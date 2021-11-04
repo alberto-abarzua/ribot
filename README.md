@@ -13,7 +13,7 @@ roll, pitch and yaw also known as euler angles.
 - A certain angle configurations of the joints can only achieve one TCP state.
 
 
-<p> As this is a project in development, there are still things to improve. The previous iteration of the robot arm (design and 3D prints) had multiple flaws, most of them related to hardware issues (stepper motors, drivers and belts) due to these issues most of arm is going to be redesigned.
+<p> As this is a project in development, there are still things to improve. The previous iteration of the robot arm (design and 3D prints) had multiple flaws, most of them related to hardware issues (stepper motors, drivers and belts) due to these issues most of the arm is going to be redesigned.
 </p>
 
 ## Photos and videos of the arm and it's evolution.
