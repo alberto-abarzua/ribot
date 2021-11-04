@@ -24,7 +24,7 @@ Video with the arm working
 <https://youtu.be/y-Uy8BWoXXg>
 
 ### Current version of the arm using stepper motors and Arduino Mega.
-![Current version of the arm using servo motors.](https://ibb.co/QmV1JbF)
+![Current version of the arm using servo motors.](https://i.ibb.co/6v71SMv/stepper-arm-1.jpg)
 <p>
 Not a really good test video but the current arm is disassembled and sadly y did not 
 record any other viedo.
@@ -55,8 +55,8 @@ record any other viedo.
 - Inverse Kinematics: This is the mathematical process of calculating the angles that every joint should have so that the tool of the arm reaches a certain position (x,y,z) with certian angles (roll,pitch,yaw). (Code in armUtils/robotarm.py)
 - Simulation of the robot arm using openGL (arm_simulation.py), this is a keyboard controlled simulated version of the robot arm (6DOF stepper motor) shown in the previous photos. (Code in Main/arm_simulation.py). This part of the code uses the library "grafica" from <https://github.com/ivansipiran/grafica>. This is the gitHub repo used in the course "CC3501-Modelación y Computación Gráfica para Ingenieros" which is part of the study plan of "Licenciatura en Ciencias de la Ingeniería, Mención Computación v5- Universidad de Chile".    
 
-![Simulation](\media\simulation.JPG)
+![Simulation](https://i.ibb.co/HVWBQhN/simulation.jpg)
 
-<p>This simulation controlls the arm using only coordinates and euler angles of the TCP,these are then used to calculte the angles the joints should have using Inverse Kinematics. Controlls: (A,W,S,D,Q,E) are used to change x,y,z and (I,J,K,L,U,O) are used to change euler angles of the TCP </p>
+<p>This simulation controlls the arm using only coordinates and euler angles of the TCP,these are then used to calculte the angles the joints should have using Inverse Kinematics. Controlls: (A,W,S,D,Q,E) are used to change x,y,z and (I,J,K,L,U,O) are used to change euler angles of the TCP , the camera angle and position can be adjusted with the arrow keys.</p>
 
 
