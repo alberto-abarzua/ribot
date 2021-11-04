@@ -48,7 +48,7 @@ class RobotArm:
         self.xyz = None
         # Euler Angles
         self.euler_angles = None
-        self.direct_kinematics()  # We update the euler angles and xyz
+        
 
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
@@ -143,6 +143,7 @@ class RobotArm:
         Returns:
             list[Angle]: list of Angles the robot arm should have to reach config.
         """
+        prev = self.angles[:] # Current angles of the robot (used to choose the closest angles to achieve config)
         if (config == None):
             config = self.xyz, self.euler_angles
         xyz, euler_angles = config
@@ -189,10 +190,11 @@ class RobotArm:
             # Finding J4
             J5 = Angle(np.arctan2(
                 np.sqrt(1-Rwrist[0, 0]**2), Rwrist[0, 0]), "rad")
-            if J5.rad == 0:
-                J6 = self.angles[5]
-                J4 = Angle(np.arctan2(Rwrist[2, 1], Rwrist[2, 2]), "rad")
+            if J5.rad == 0:#Singularity
+                J4 = self.angles[5]
+                J6 = Angle(np.arctan2(Rwrist[2, 1], Rwrist[2, 2]), "rad").sub(J4)
             else:
                 J4 = Angle(np.arctan2(Rwrist[1, 0], -Rwrist[2, 0]), "rad")
                 J6 = Angle(np.arctan2(Rwrist[0, 1], Rwrist[0, 2]), "rad")
-            return nearest_to_zero([J1, J2, J3, J4, J5, J6])
+            angles = [J1, J2, J3, J4, J5, J6]
+            return  nearest_to_prev([J1, J2, J3, J4, J5, J6],prev)

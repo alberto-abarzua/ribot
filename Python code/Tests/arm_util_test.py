@@ -34,3 +34,8 @@ class testArmUtils(unittest.TestCase):
         A, B, C = util.rotationMatrixToEulerAngles(R1)
         R2 = util.eulerAnglesToRotMatrix(A, B, C)
         self.assertTrue(np.allclose(R1, R2))
+    def test_nearest_to_prev(self):
+        prev = [Angle(10,"deg"),Angle(100,"deg"),Angle(270,"deg")]
+        angle = [Angle(270,"deg"),Angle(170,"deg"),Angle(-90,"deg")]
+        self.assertEqual([Angle(-90,"deg"),Angle(170,"deg"),Angle(270,"deg")],util.nearest_to_prev(angle,prev))
+

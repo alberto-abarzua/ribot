@@ -23,9 +23,26 @@ class Angle:
         return (180/np.pi)*self.value
 
     def __eq__(self, value):
-        if (self.unit == "rad"):
-            return self.value == value.rad
-        return self.value == value.deg
+        if (type(value) == Angle):
+            if (self.unit == "rad"):
+                return self.value == value.rad
+            return self.value == value.deg
+        return False
+    def add(self,other):
+        if (type(other) == Angle):
+            if (self.unit == "rad"):
+                self.value +=other.rad
+            if (self.unit == "deg"):
+                self.value += other.deg
+    def sub(self,other):
+        if (type(other) == Angle):
+            if (self.unit == "rad"):
+                value = self.value - other.rad
+                return Angle(value,"rad")
+            if (self.unit == "deg"):
+                value = self.value - other.deg
+                return Angle(value,"deg")
+        return other
 
 
 def rad2degree(angle):
@@ -179,8 +196,8 @@ def angle_list(angles, unit):
     return [Angle(angle, unit) for angle in angles]
 
 
-def nearest_to_zero(angles):
-    """Uses nearest_to_zero_aux on a list of Angles and applies it to all of the angles
+def nearest_to_prev(angles,prev):
+    """Uses nearest_to_prev_aux on a list of Angles and applies it to all of the angles
     insise de list
 
     Args:
@@ -189,12 +206,12 @@ def nearest_to_zero(angles):
     Returns:
         list[Angle]: list of modified angles.
     """
-    rad_angles = [nearest_to_zero_aux(angle.rad) for angle in angles]
+    rad_angles = [nearest_to_prev_aux(angle.rad,prev.rad) for angle,prev in zip(angles,prev)]
     return [Angle(angle, "rad") for angle in rad_angles]
 
 
-def nearest_to_zero_aux(angle):
-    """Returns the nearest angle to zero that follows this formula
+def nearest_to_prev_aux(angle,prev):
+    """Returns the nearest angle to prev that follows this formula
     new_angle = 2*n*np.pi + angle, where n is an integer.
 
     Args:
@@ -202,7 +219,7 @@ def nearest_to_zero_aux(angle):
     Returns:
         (float): angle that is nearest to zero.
     """
-    if (abs(angle) < np.pi):
+    if (abs(angle-prev) <= np.pi):
         return angle
     d = -abs(angle)/angle
-    return nearest_to_zero_aux(d*2*np.pi+angle)
+    return nearest_to_prev_aux(d*2*np.pi+angle,prev)

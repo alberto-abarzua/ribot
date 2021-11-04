@@ -1,1 +1,0 @@
-J2.transform = tr.matmul([tr.translate(0,1.7,3),tr.rotationY(np.pi/4),tr.translate(0,-1.7,-3)])
