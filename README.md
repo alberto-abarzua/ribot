@@ -1,8 +1,4 @@
-##6DOF 3d printed robot arm.
-#Por: Alberto Abarzua Poblete.
-
-#Codigo 
-
+## 6DOF 3D printeable Robot Arm
 
 
 
