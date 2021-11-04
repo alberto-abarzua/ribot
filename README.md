@@ -24,7 +24,7 @@ Video with the arm working
 <https://youtu.be/y-Uy8BWoXXg>
 
 ### Current version of the arm using stepper motors and Arduino Mega.
-![Current version of the arm using servo motors.](/media/stepper_arm_1.JPG)
+![Current version of the arm using servo motors.](https://ibb.co/QmV1JbF)
 <p>
 Not a really good test video but the current arm is disassembled and sadly y did not 
 record any other viedo.
