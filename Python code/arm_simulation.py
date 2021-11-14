@@ -186,14 +186,14 @@ def createScene(pipeline):
     base = sg.SceneGraphNode("base")
 
     bottom = createOFFShape(
-        pipeline, "obj_files/Base/BOTTOM.off", r_orange, g_orange, b_orange)
+        pipeline, "arm_off_files/Base/BOTTOM.off", r_orange, g_orange, b_orange)
     bottomNode = sg.SceneGraphNode("bottom")
     bottomNode.childs += [bottom]
     base.childs += [bottomNode]
     bottomNode.transform = tr.matmul(
         [tr.uniformScale(scale_factor), tr.rotationZ(np.pi), tr.rotationX(np.pi/2)])
 
-    top = createOFFShape(pipeline, "obj_files/Base/TOP.off",
+    top = createOFFShape(pipeline, "arm_off_files/Base/TOP.off",
                          r_orange, g_orange, b_orange)
     topNode = sg.SceneGraphNode("top")
     topNode.childs += [top]
@@ -208,7 +208,7 @@ def createScene(pipeline):
     J1.childs += [J2]
 
     first_static = createOFFShape(
-        pipeline, "obj_files/First/FIRST_STATIC.off", r_grey, g_grey, b_grey)
+        pipeline, "arm_off_files/First/FIRST_STATIC.off", r_grey, g_grey, b_grey)
     firstStaticNode = sg.SceneGraphNode("first_static")
     firstStaticNode.childs += [first_static]
     J1.childs += [firstStaticNode]
@@ -216,7 +216,7 @@ def createScene(pipeline):
         [tr.uniformScale(scale_factor), tr.rotationX(np.pi/2)])
 
     first_rotating = createOFFShape(
-        pipeline, "obj_files/First/ROTATING_FIRST.off", r_orange, g_orange, b_orange)
+        pipeline, "arm_off_files/First/ROTATING_FIRST.off", r_orange, g_orange, b_orange)
     first_rotatingNode = sg.SceneGraphNode("first_rotating")
     first_rotatingNode.childs += [first_rotating]
     J2.childs += [first_rotatingNode]
@@ -224,7 +224,7 @@ def createScene(pipeline):
         [tr.translate(0, 1.7, 3), tr.uniformScale(scale_factor), tr.rotationX(np.pi/2)])
 
     second_static = createOFFShape(
-        pipeline, "obj_files/Second/SECOND_STATIC.off", r_orange, g_orange, b_orange)
+        pipeline, "arm_off_files/Second/SECOND_STATIC.off", r_orange, g_orange, b_orange)
     secondStaticNode = sg.SceneGraphNode("second_static")
     secondStaticNode.childs += [second_static]
     J2.childs += [secondStaticNode]
@@ -232,7 +232,7 @@ def createScene(pipeline):
         [tr.translate(0, 1.7, 3), tr.uniformScale(scale_factor), tr.rotationX(np.pi/2)])
 
     second_static = createOFFShape(
-        pipeline, "obj_files/Second/SECOND_STATIC.off", r_grey, g_grey, b_grey)
+        pipeline, "arm_off_files/Second/SECOND_STATIC.off", r_grey, g_grey, b_grey)
     secondStaticNode = sg.SceneGraphNode("second_static")
     secondStaticNode.childs += [second_static]
     J2.childs += [secondStaticNode]
@@ -243,7 +243,7 @@ def createScene(pipeline):
     J2.childs += [J3]
 
     second_rotating = createOFFShape(
-        pipeline, "obj_files/Second/SECOND_ROTATION.off", r_grey, g_grey, b_grey)
+        pipeline, "arm_off_files/Second/SECOND_ROTATION.off", r_grey, g_grey, b_grey)
     secondRotatingNode = sg.SceneGraphNode("second_rotating")
     secondRotatingNode.childs += [second_rotating]
     secondRotatingNode.transform = tr.matmul(
@@ -254,7 +254,7 @@ def createScene(pipeline):
     J3.childs += [J4]
 
     third_static = createOFFShape(
-        pipeline, "obj_files/Third/THIRD_STATIC.off", r_grey, g_grey, b_grey)
+        pipeline, "arm_off_files/Third/THIRD_STATIC.off", r_grey, g_grey, b_grey)
     thirdStaticNode = sg.SceneGraphNode("third_static")
     thirdStaticNode.childs += [third_static]
     thirdStaticNode.transform = tr.matmul(
@@ -265,7 +265,7 @@ def createScene(pipeline):
     J4.childs += [J5]
 
     third_rotating = createOFFShape(
-        pipeline, "obj_files/Third/THIRD_ROTATING.off", r_grey, g_grey, b_grey)
+        pipeline, "arm_off_files/Third/THIRD_ROTATING.off", r_grey, g_grey, b_grey)
     thirdRotatingNode = sg.SceneGraphNode("third_rotating")
     thirdRotatingNode.childs += [third_rotating]
     thirdRotatingNode.transform = tr.matmul(
@@ -275,7 +275,7 @@ def createScene(pipeline):
     J6 = sg.SceneGraphNode("J6")
     J5.childs += [J6]
 
-    tcp = createOFFShape(pipeline, "obj_files/TCP/TCP.off",
+    tcp = createOFFShape(pipeline, "arm_off_files/TCP/TCP.off",
                          r_orange, g_orange, b_orange)
     tcpNode = sg.SceneGraphNode("tcp")
     tcpNode.childs += [tcp]
