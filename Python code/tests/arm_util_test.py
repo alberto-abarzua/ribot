@@ -2,12 +2,12 @@ import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
-from armUtils.armTransforms import Angle
-import armUtils.armTransforms as util
+from arm_utils.armTransforms import Angle
+import arm_utils.armTransforms as util
 import unittest
 
 
-class testArmUtils(unittest.TestCase):
+class testarm_utils(unittest.TestCase):
     def setUp(self):
         return super().setUp()
 

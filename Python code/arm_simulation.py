@@ -2,8 +2,8 @@ import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import grafica.text_renderer as tx
-import armUtils.robotarm as ra
-from armUtils.armTransforms import Angle
+import arm_utils.robotarm as ra
+from arm_utils.armTransforms import Angle
 from grafica.assets_path import getAssetPath
 from grafica.gpu_shape import GPUShape
 import grafica.performance_monitor as pm

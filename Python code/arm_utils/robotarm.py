@@ -1,7 +1,7 @@
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from armUtils.armTransforms import *
+from arm_utils.armTransforms import *
 import time
 import serial
 from numpy.lib.function_base import angle
