@@ -14,24 +14,47 @@ const int max_size = 100;
 char buf[max_size];
 
 //Motor parameters
-const int numSteppers = 1;
+const int numSteppers = 7;
 const int micro_stepping = 32;
-const int acc = 1000;
-const double ratios[numSteppers] = {1.0};//Ratios between motor and joint (pulley)
+const int acc = 10000;
+const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
 
 long positions[numSteppers] = {0};
 
-//Motor1
+// Motor 1
 const int stepPin1 = 22;
 const int dirPin1 = 24;
-
-void readLine(char *buf,long * nums,char * op,int* n);
+// Motor 2
+const int stepPin2 = 42;
+const int dirPin2 = 44;
+// Motor 3
+const int stepPin3 =46;
+const int dirPin3=48;
+// Motor 4
+const int stepPin4 = 38;
+const int dirPin4 = 40;
+// Motor 5
+const int stepPin5 = 34;
+const int dirPin5 = 36;
+//Motor 6
+const int stepPin6 = 30;
+const int dirPin6 = 32;
+//Motor 7
+const int stepPin7 = 26;
+const int dirPin7 = 28;
 
 //Stepper motors
 
 #define motorInterfaceType 1
 AccelStepper motor1(motorInterfaceType, stepPin1, dirPin1);
-AccelStepper *listSteppers[numSteppers] = {&motor1};
+AccelStepper motor2(motorInterfaceType, stepPin2, dirPin2);
+AccelStepper motor3(motorInterfaceType, stepPin3, dirPin3);
+AccelStepper motor4(motorInterfaceType, stepPin4, dirPin4);
+AccelStepper motor5(motorInterfaceType, stepPin5, dirPin5);
+AccelStepper motor6(motorInterfaceType, stepPin6, dirPin6);
+AccelStepper motor7(motorInterfaceType, stepPin7, dirPin7);
+
+AccelStepper *listSteppers[numSteppers] = {&motor1,&motor2,&motor3,&motor4,&motor5,&motor6,&motor7};
 
 MultiStepper steppers;
 
@@ -50,7 +73,18 @@ void loop() {
   int n = 0;
   long nums[numSteppers] = {0};
   readLine(buf,nums,&op,&n);
-  if (op == 'm'){ // Move motors op
+  if (op == 'm'){ 
+    /*
+     * Move motors op:
+     * 
+     * Must follow this syntax: f"m{numSteppers} angle1 angle 2 ... angle_{numSteppers}"
+     * example:
+     *      m7 31415 31415 31415 31415 31415 31415 31415
+     *      
+     * IMPORTANT:
+     *  The angles should be in radians*acc--> 3.1415*rad <--> 31415 [rad*acc]
+     * 
+     */
     long result[numSteppers];
     numsToRatios(result,nums);
     for (int i =0; i<numSteppers;i++){
@@ -59,11 +93,17 @@ void loop() {
     steppers.moveTo(positions); 
   }
   if (op == 'i'){
+    /**
+     * Get current steps op:
+     * 
+     * Prints to the serial all the current position in steps of the motors.
+     */
     for (int i =0;i<numSteppers;i++){
       long curPos = (*listSteppers[i]).currentPosition();
       Serial.print(curPos);
-      Serial.print(" ");
-     
+      if (i != numSteppers -1){
+        Serial.print(" ");
+      }
     }
     Serial.print("\n");
   }
