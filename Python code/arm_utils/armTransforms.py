@@ -223,5 +223,5 @@ def nearest_to_prev_aux(angle,prev):
     """
     if (abs(angle-prev) <= np.pi):
         return angle
-    d = -abs(angle)/angle
+    d = -1 if angle>prev else 1
     return nearest_to_prev_aux(d*2*np.pi+angle,prev)
