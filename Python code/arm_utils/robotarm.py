@@ -7,6 +7,7 @@ import serial
 from numpy.lib.function_base import angle
 import numpy as np
 
+__author__ = "Alberto Abarzua"
 
 class RobotArm:
     """RobotArm class, used to create and calculate the kinematics of a robot arm.

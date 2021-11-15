@@ -7,6 +7,7 @@ from arm_utils.armTransforms import Angle
 import arm_utils.armTransforms as util
 import unittest
 
+__author__ = "Alberto Abarzua"
 
 class robot_arm_tests(unittest.TestCase):
 

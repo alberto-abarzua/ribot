@@ -17,6 +17,8 @@ from OpenGL.GL import *
 import OpenGL.GL.shaders
 import numpy as np
 
+__author__ = "Alberto Abarzua"
+
 
 # A class to store the application control
 class Controller:

@@ -6,6 +6,7 @@ from arm_utils.armTransforms import Angle
 import arm_utils.armTransforms as util
 import unittest
 
+__author__ = "Alberto Abarzua"
 
 class testarm_utils(unittest.TestCase):
     def setUp(self):
