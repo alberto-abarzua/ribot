@@ -73,7 +73,6 @@ void setup() {
     steppers.addStepper((*listSteppers[i]));
     stepperSetup(i);
   }
-  Serial.println("1");
 
   
 }
@@ -124,8 +123,8 @@ void loop() {
     }
     Serial.print("\n");
   }
-  //Serial.println("1");
-  //steppers.runSpeedToPosition();
+  Serial.println("1");
+  steppers.runSpeedToPosition();
 }
 
 
