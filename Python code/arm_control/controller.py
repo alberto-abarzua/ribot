@@ -35,18 +35,21 @@ class Controller():
                     print("Error opening serial port: " +str(e) )
         # Robot arm initialization
         
-        robot = robotarm.RobotArm()
+        self.robot = robotarm.RobotArm()
 
         #Physical paramters in mm.
-        robot.a2x = 0
-        robot.a2z = 178
-        robot.a3z = 156
-        robot.a4x = 54
-        robot.a5x = 116
-        robot.a6x = 156
+        self.robot.a2x = 0
+        self.robot.a2z = 178
+        self.robot.a3z = 156
+        self.robot.a4x = 54
+        self.robot.a5x = 116
+        self.robot.a6x = 156
 
         self.acc = 10000 #Acurray of the angles sent to the arduino.
         self.num_joints = 6
+        self.angles = [Angle(0,"rad") for _ in range(self.num_joints)]
+        self.arduino_angles = [0 for _ in range(self.num_joints)]
+
         
 
     def read(self): 
@@ -56,14 +59,35 @@ class Controller():
             str: decoded line read from the arduino
         """
         return self.arduino.readline().decode()
-    
+
+    def update_arduino_angles(self,angles):
+        """Updates the angles that represnt the current angles array in the arduino. 
+
+        Args:
+            angles (list[Angle]): list of angles that will be added to arduino_angles
+        """
+        for i in range(len(angles)):
+            self.arduino_angles[i] += angles[i]
+        self.robot.angles = self.get_arduino_angles()
+        
+    def get_arduino_angles(self):
+        """Gets the current arduino angles in Angle format.
+
+        Returns:
+            list[Angles]: current angles tracked.
+        """
+        return [Angle(x/self.acc,"rad") for x in self.arduino_angles]
+
     def move_command(self,angles):
         """Sends a move command to the arduino.
 
         Args:
             angles (list[Angle]): list of angles the joints should move from their current pos.
         """
-        rad_times_acc_angles = [str(int(angle.rad*self.acc)) for angle in angles]
+        rad_times_acc_angles = [str(round(angle.rad*self.acc)) for angle in angles]
+
+        self.update_arduino_angles([int(x) for x in rad_times_acc_angles ])#Keep track of the angles sent.
+        
         # Joint 1 has 2 motors
         rad_times_acc_angles.insert(1,rad_times_acc_angles[1])
         command = "m{} ".format(self.num_joints +1)
@@ -76,13 +100,29 @@ class Controller():
         while(self.read() != "0\n"):
             time.sleep(0.00001)
 
-    def move_to(self,cords,angles):
-        """Makes the tcp move to cords and certain euler angles.
+    def move_to_angle_config(self,angles):
+        """Makes the robot go to a certain angle configuration (this is absolute positioning).
+
+        Args:
+            angles (list[Angles]): Angles to go to.
+        """
+        cur_angles = self.get_arduino_angles()
+        dif = [Angle(fin.rad-ini.rad,"rad")for  ini,fin in zip(cur_angles,angles)]
+        self.move_command(dif)
+
+    def move_to_point(self,cords,angles):
+        """Makes the tcp move to cords and certain euler angles. This is a point to point movement.
 
         Args:
             cords (list[int]): list x,y,z coords of the tcp to reach
             angles (list[Angle]): euler angles the tcp should have.
         """
+        next_angles = self.robot.inverse_kinematics((cords,angles))
+        if (next_angles is None):
+            return "Angles out of reach"
+        self.move_to_angle_config(next_angles)
+        
+        
         
 
    
