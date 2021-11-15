@@ -1,5 +1,7 @@
 import os.path
 import sys
+
+from serial.serialutil import SerialException
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.arduino_dummy import DummyArduino
 import serial
@@ -26,11 +28,11 @@ class Controller():
             self.arduino = DummyArduino()
         else:
             self.arduino = serial.Serial(baudrate = baudrate,port = port)
-            self.arduino.baudrate = baudrate
-            try:
-                self.arduino.open()
-            except Exception as e:
-                print("Error opening serial port: " +str(e) )
+            if not self.arduino.isOpen():
+                try:
+                    self.arduino.open()
+                except SerialException as e:
+                    print("Error opening serial port: " +str(e) )
         # Robot arm initialization
         
         robot = robotarm.RobotArm()
@@ -74,12 +76,13 @@ class Controller():
         while(self.read() != "0\n"):
             time.sleep(0.00001)
 
-    def move_to(self,joints):
-        """Empty for now
+    def move_to(self,cords,angles):
+        """Makes the tcp move to cords and certain euler angles.
 
         Args:
-            joints (list[Angle]): list of angles the joints should add to current angles.
+            cords (list[int]): list x,y,z coords of the tcp to reach
+            angles (list[Angle]): euler angles the tcp should have.
         """
-        pass
+        
 
    

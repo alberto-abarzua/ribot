@@ -10,11 +10,19 @@
 
 //Serial comunication buffer
 const int max_size = 100;
+const int numSteppers = 7;
 
 char buf[max_size];
 
+char op = ' ';
+int n = 0;
+
+long nums[numSteppers] = {0};
+
+long result[numSteppers] = {0};
+
 //Motor parameters
-const int numSteppers = 7;
+
 const int micro_stepping = 32;
 const int acc = 10000;
 const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
@@ -59,19 +67,19 @@ AccelStepper *listSteppers[numSteppers] = {&motor1,&motor2,&motor3,&motor4,&moto
 MultiStepper steppers;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   for (int i =0;i<numSteppers;i++){
     steppers.addStepper((*listSteppers[i]));
     stepperSetup(i);
   }
+  Serial.println("1");
+
+  
 }
 
 
 void loop() {
-  
-  char op = ' ';
-  int n = 0;
-  long nums[numSteppers] = {0};
+  op = ' ';
   readLine(buf,nums,&op,&n);
   if (op == 'm'){ 
     /*
@@ -85,11 +93,15 @@ void loop() {
      *  The angles should be in radians*acc--> 3.1415*rad <--> 31415 [rad*acc]
      * 
      */
-    long result[numSteppers];
     numsToRatios(result,nums);
+    delay(1);
+    //printArr(result,numSteppers,"result");
+    //printArr(nums,numSteppers,"nums");
     for (int i =0; i<numSteppers;i++){
       positions[i] += result[i];
     }
+    //printArr(positions,numSteppers,"positions");
+    Serial.println("");
     steppers.moveTo(positions); 
   }
   if (op == 'i'){
@@ -100,14 +112,14 @@ void loop() {
      */
     for (int i =0;i<numSteppers;i++){
       long curPos = (*listSteppers[i]).currentPosition();
-      Serial.print(curPos);
+      Serial.print(positions[i]);
       if (i != numSteppers -1){
         Serial.print(" ");
       }
     }
     Serial.print("\n");
   }
-  
+  Serial.println("1");
   steppers.run();
 }
 
@@ -119,10 +131,9 @@ void loop() {
 void stepperSetup(int i){
     listSteppers[i]->setMaxSpeed(300.0*ratios[i]);
     listSteppers[i]->setAcceleration(100.0*ratios[i]);
-    Serial.println(&(*listSteppers[i])==&motor1);
 }
 
-void numsToRatios(long result[],long nums[]){
+void numsToRatios(long *result,long *nums){
   //Gets a list of nums representing angles in radians*accuracy and converts them in steps for 
   // each of the robots joints.
   for (int i =0;i<numSteppers;i++){
@@ -136,8 +147,20 @@ void numsToRatios(long result[],long nums[]){
  */
 
 
-
-
+// Used to print arrays during testing.
+void printArr(long * arr,int n,char * label){
+  Serial.print(label);
+  Serial.print(" ");
+  for (int i =0;i<n;i++){
+    long value = arr[i];
+    Serial.print(value);
+    if (i != n-1){
+      Serial.print(" ");
+    }
+    
+  }
+  Serial.println("");
+}
 
 
 
@@ -211,12 +234,14 @@ void readChars(char * buf,int max_size,bool* newData){
   }
 }
 
+ // If there is data available in the serial buffer it will read.
  void readLine(char *buf,long * nums,char * op,int* n){
     bool newData;
     readChars(buf,max_size,&newData);//Reads the char from serial
     if (!newData){
       getOP(buf,op,n); // 
       strToList(&buf[3],nums,*n);
+      
     }
     
  }
