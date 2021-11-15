@@ -1,8 +1,11 @@
 #include <Servo.h>
-#include <Vector.h> 
 #include <Streaming.h>
 #include <AccelStepper.h>
 #include <MultiStepper.h>
+
+/*
+ * Author: Alberto Abarzua
+ */
 
 
 //Serial comunication buffer
@@ -10,16 +13,22 @@ const int max_size = 100;
 
 char buf[max_size];
 
-//Pin defs
+//Motor parameters
+const int numSteppers = 1;
+const int micro_stepping = 32;
+const int acc = 1000;
+const double ratios[numSteppers] = {1.0};//Ratios between motor and joint (pulley)
+
+long positions[numSteppers] = {0};
 
 //Motor1
 const int stepPin1 = 22;
 const int dirPin1 = 24;
 
-
+void readLine(char *buf,long * nums,char * op,int* n);
 
 //Stepper motors
-const int numSteppers = 1;
+
 #define motorInterfaceType 1
 AccelStepper motor1(motorInterfaceType, stepPin1, dirPin1);
 AccelStepper *listSteppers[numSteppers] = {&motor1};
@@ -29,8 +38,8 @@ MultiStepper steppers;
 void setup() {
   Serial.begin(9600);
   for (int i =0;i<numSteppers;i++){
-    steppers.addStepper(*listSteppers[i]);
-    stepperSetup(listSteppers[i],i);
+    steppers.addStepper((*listSteppers[i]));
+    stepperSetup(i);
   }
 }
 
@@ -39,12 +48,17 @@ void loop() {
   
   char op = ' ';
   int n = 0;
-  long nums[n] = {0};
+  long nums[numSteppers] = {0};
   readLine(buf,nums,&op,&n);
   if (op == 'm'){ // Move motors op
-    steppers.moveTo(nums); 
+    long result[numSteppers];
+    numsToRatios(result,nums);
+    for (int i =0; i<numSteppers;i++){
+      positions[i] += result[i];
+    }
+    steppers.moveTo(positions); 
   }
-  if (op == 'd'){
+  if (op == 'i'){
     for (int i =0;i<numSteppers;i++){
       long curPos = (*listSteppers[i]).currentPosition();
       Serial.print(curPos);
@@ -58,12 +72,32 @@ void loop() {
 }
 
 
-// Function to setup the params for every stepper.
-void stepperSetup(AccelStepper *ptr_stepper,int i){
-    AccelStepper stepper = *ptr_stepper; 
-    stepper.setMaxSpeed(300);
-    stepper.setAcceleration(20);
+
+/*
+ * ------------------------- Beginning of stepper management functions -------------------------
+ */
+void stepperSetup(int i){
+    listSteppers[i]->setMaxSpeed(300.0*ratios[i]);
+    listSteppers[i]->setAcceleration(100.0*ratios[i]);
+    Serial.println(&(*listSteppers[i])==&motor1);
 }
+
+void numsToRatios(long result[],long nums[]){
+  //Gets a list of nums representing angles in radians*accuracy and converts them in steps for 
+  // each of the robots joints.
+  for (int i =0;i<numSteppers;i++){
+    result[i] = (nums[i]*100*micro_stepping)/(PI*acc);
+  }
+}
+
+
+/*
+ * ------------------------- Ending of stepper management functions -------------------------
+ */
+
+
+
+
 
 
 
@@ -72,15 +106,7 @@ void stepperSetup(AccelStepper *ptr_stepper,int i){
  */
 
 
- void readLine(char *buf,long * nums,char * op,int* n){
-    bool newData;
-    readChars(buf,max_size,&newData);//Reads the char from serial
-    if (!newData){
-      getOP(buf,op,n); // 
-      strToList(&buf[3],nums,*n);
-    }
-    
- }
+
 
 // Recieves a string with n numbers separated by ' ' and stores then in the array nums.
 void strToList(char * str, long * nums,int n){
@@ -144,6 +170,16 @@ void readChars(char * buf,int max_size,bool* newData){
     }
   }
 }
+
+ void readLine(char *buf,long * nums,char * op,int* n){
+    bool newData;
+    readChars(buf,max_size,&newData);//Reads the char from serial
+    if (!newData){
+      getOP(buf,op,n); // 
+      strToList(&buf[3],nums,*n);
+    }
+    
+ }
 
 
 /*
