@@ -3,6 +3,7 @@ import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import grafica.text_renderer as tx
 import arm_utils.robotarm as ra
+import arm_control.controller as ac
 from arm_utils.armTransforms import Angle
 from grafica.assets_path import getAssetPath
 from grafica.gpu_shape import GPUShape
@@ -345,19 +346,8 @@ def drawText(textPipeline, string, size, pos):
 
 if __name__ == "__main__":
     # Creation of robot arm
-    robot = ra.RobotArm()
-    # J1
-    # J2
-    robot.a2x = 0
-    robot.a2z = 178
-    # J3
-    robot.a3z = 148+8
-    # J4
-    robot.a4x = 54
-    # J5
-    robot.a5x = 116
-    # J6
-    robot.a6x = 156
+    robot_controller = ac.Controller()
+    robot = robot_controller.robot
 
     # Initialize glfw
     if not glfw.init():
@@ -573,11 +563,10 @@ if __name__ == "__main__":
         glUniformMatrix4fv(glGetUniformLocation(
             pipeline.shaderProgram, "model"), 1, GL_TRUE, tr.rotationX(np.pi/2))
 
-        joints = robot.inverse_kinematics(([x, y, z], [A, B, C]))
-
-        if (joints != None):
-            setJoints(bottom, joints)
-            pos, angles = robot.direct_kinematics(joints)
+        
+        if (robot_controller.move_to_point([x, y, z], [A, B, C]) != "Angles out of reach"):
+            setJoints(bottom, robot_controller.get_arduino_angles())
+            pos, angles = robot.direct_kinematics()
             # Text to display
             (x_disp, y_disp, z_disp) = pos
             A_disp, B_disp, C_disp = angles
