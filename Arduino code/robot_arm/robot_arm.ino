@@ -27,7 +27,8 @@ const int micro_stepping = 32;
 const int acc = 10000;
 const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
 
-long positions[numSteppers] = {0};
+long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
+long angles[numSteppers] = {0}; // Array to store the angles of each joint (J1 J2 J2 J3 J4 J5 J6) // J2 is repeated because there are two steppers that controll it.
 
 // Motor 1
 const int stepPin1 = 22;
@@ -93,16 +94,20 @@ void loop() {
      *  The angles should be in radians*acc--> 3.1415*rad <--> 31415 [rad*acc]
      * 
      */
-    numsToRatios(result,nums);
+    
     delay(1);
     //printArr(result,numSteppers,"result");
     //printArr(nums,numSteppers,"nums");
     for (int i =0; i<numSteppers;i++){
-      positions[i] += result[i];
+      angles[i] += nums[i]; // Add to current angles the angles received in nums 
+    }
+    numsToRatios(result,angles); //
+    for (int i =0; i<numSteppers;i++){
+      positions[i] += result[i]; // Add to current positions the new angles in steps
     }
     //printArr(positions,numSteppers,"positions");
     Serial.println("");
-    steppers.moveTo(positions); 
+    //steppers.moveTo(positions); 
   }
   if (op == 'i'){
     /**
@@ -112,15 +117,15 @@ void loop() {
      */
     for (int i =0;i<numSteppers;i++){
       long curPos = (*listSteppers[i]).currentPosition();
-      Serial.print(positions[i]);
+      Serial.print(curPos);
       if (i != numSteppers -1){
         Serial.print(" ");
       }
     }
     Serial.print("\n");
   }
-  Serial.println("1");
-  steppers.run();
+  //Serial.println("1");
+  //steppers.runSpeedToPosition();
 }
 
 
