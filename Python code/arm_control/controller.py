@@ -1,7 +1,7 @@
 import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arduino_dummy import DummyArduino
+from arm_control.arduino_dummy import DummyArduino
 import serial
 import time
 from arm_utils.armTransforms import Angle
@@ -42,22 +42,44 @@ class Controller():
         robot.a4x = 54
         robot.a5x = 116
         robot.a6x = 156
+
+        self.acc = 10000 #Acurray of the angles sent to the arduino.
+        self.num_joints = 6
         
 
-    def read(self) -> str: 
+    def read(self): 
         """Read a line from the arduino.
 
         Returns:
             str: decoded line read from the arduino
         """
         return self.arduino.readline().decode()
+    
+    def move_command(self,angles):
+        """Sends a move command to the arduino.
 
-    def wait(self) -> None:
+        Args:
+            angles (list[Angle]): list of angles the joints should move from their current pos.
+        """
+        rad_times_acc_angles = [str(int(angle.rad*self.acc)) for angle in angles]
+        # Joint 1 has 2 motors
+        rad_times_acc_angles.insert(1,rad_times_acc_angles[1])
+        command = "m{} ".format(self.num_joints +1)
+        command += " ".join(rad_times_acc_angles)
+        self.arduino.write(command.encode())
+
+    def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
         while(self.read() != "0\n"):
             time.sleep(0.00001)
 
-    def moveTo(self,joints):
+    def move_to(self,joints):
+        """Empty for now
+
+        Args:
+            joints (list[Angle]): list of angles the joints should add to current angles.
+        """
+        pass
 
    

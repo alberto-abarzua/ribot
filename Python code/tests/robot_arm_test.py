@@ -73,3 +73,6 @@ class robot_arm_tests(unittest.TestCase):
             [124.3, -24.7, 43.6, -42.8, 65.6, 140.8], [-500, 1000, 2000], [50, 50, 50])
         self.helper_inverse_kinematics(
             [-51.6, -7.9, -31.3, -51.5, 52.6, -72.7], [600, -1000, 3300], [250, 0, -90])
+
+if __name__ == '__main__':
+    unittest.main()

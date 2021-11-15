@@ -13,9 +13,12 @@ class DummyArduino():
         self.output = "1" # 1 means the arduino is ready to receive instructions , 0 means it is working.
 
     def readline(self):
-        """Returns the current output of the arduino.
+        """Reads a line from arduino
+
+        Returns:
+            byte: enconded string.
         """
-        return str(self.output) + "\n"
+        return (str(self.output) + "\n").encode()
     
     def write(self,message):
         """Simulates the writing from serial to an arduino.

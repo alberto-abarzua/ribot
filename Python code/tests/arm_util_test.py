@@ -40,3 +40,5 @@ class testarm_utils(unittest.TestCase):
         angle = [Angle(270,"deg"),Angle(170,"deg"),Angle(-90,"deg")]
         self.assertEqual([Angle(-90,"deg"),Angle(170,"deg"),Angle(270,"deg")],util.nearest_to_prev(angle,prev))
 
+if __name__ == '__main__':
+    unittest.main()
