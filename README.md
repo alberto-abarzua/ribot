@@ -33,7 +33,7 @@ record any other viedo.
 <https://youtu.be/bNo2X5EaJBo>
 
 ### About arduino (C\C++) and design:
-<p> With the current state of the project the arduino code is functional but the serial comunication Python script is not done yet for the current code. The main code of the previous version of the robot arm is located in 'Arduino code/robot_arm_arduino' this file was created almost a year ago, many improvements can be made and some of them are implemented in 'Arduino code/dev'.</p>
+<p> With the current state of the project the arduino code is functional but the serial comunication Python script is not done yet for the current code (checkout the branch serialDev). The main code of the previous version of the robot arm is located in 'Arduino code/robot_arm_arduino' this file was created almost a year ago, many improvements can be made and some of them are implemented in the new arduino code on the branch `serialDev`.</p>
 <p>The arm displayed in the last photo was built using the following main components:</p>
 
 - 2 x Nema 23 Stepper motors
