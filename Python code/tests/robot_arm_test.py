@@ -1,13 +1,14 @@
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import numpy as np
-import arm_utils.robotarm as robotarm
-from arm_utils.armTransforms import Angle
-import arm_utils.armTransforms as util
 import unittest
+import arm_utils.armTransforms as util
+from arm_utils.armTransforms import Angle
+import arm_utils.robotarm as robotarm
+import numpy as np
 
 __author__ = "Alberto Abarzua"
+
 
 class robot_arm_tests(unittest.TestCase):
 
@@ -73,6 +74,7 @@ class robot_arm_tests(unittest.TestCase):
             [124.3, -24.7, 43.6, -42.8, 65.6, 140.8], [-500, 1000, 2000], [50, 50, 50])
         self.helper_inverse_kinematics(
             [-51.6, -7.9, -31.3, -51.5, 52.6, -72.7], [600, -1000, 3300], [250, 0, -90])
+
 
 if __name__ == '__main__':
     unittest.main()
