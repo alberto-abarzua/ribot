@@ -3,7 +3,7 @@ import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import unittest
 import arm_utils.armTransforms as util
-from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Angle, Config
 import arm_utils.robotarm as robotarm
 import numpy as np
 
@@ -21,7 +21,8 @@ class robot_arm_tests(unittest.TestCase):
             euler (list[float]): A,B,C expected euler angles in deg.
         """
         angles = util.angle_list(joints, "deg")
-        pos_pred, euler_angles_pred = self.robot.direct_kinematics(angles)
+        config = self.robot.direct_kinematics(angles)
+        pos_pred, euler_angles_pred = config.cords,config.euler_angles
         self.assertTrue(np.allclose(pos_pred, pos, rtol=1e-01))
         euler_angles_pred = [angle.deg for angle in euler_angles_pred]
         self.assertTrue(np.allclose(euler, euler_angles_pred, rtol=1e-01))
@@ -35,7 +36,7 @@ class robot_arm_tests(unittest.TestCase):
             euler (list[Angle]): A,B,C euler angles of config
         """
         euler = util.angle_list(euler, "deg")
-        angles = self.robot.inverse_kinematics((pos, euler))
+        angles = self.robot.inverse_kinematics(Config(pos, euler))
         angles = [angle.deg for angle in angles]
         self.assertTrue(np.allclose(angles, joints, rtol=1e-01),f"expected: {joints} actual: {angles}")
 

@@ -6,6 +6,7 @@ import unittest
 import arm_control.controller as ctrl
 import arm_utils.armTransforms as util
 from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Config
 import arm_utils.robotarm as robotarm
 import numpy as np
 
@@ -68,17 +69,17 @@ class robot_controller_tests(unittest.TestCase):
         cords = [326, 0, 334]
         euler = [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")]
         # Moving to initial position
-        self.controller.move_to_point(cords=cords, angles=euler)
+        self.controller.move_to_point(Config(cords,euler))
         self.assertTrue("m7 0 0 0 0 0 0 0", self.arduino.received_lines[0])
         self.assertTrue(self.angleAllClose(
             [Angle(0, "rad") for _ in range(6)], self.controller.get_arduino_angles()))
 
         joints = [Angle(np.pi/8, "rad"), Angle(2*np.pi/8, "rad"), Angle(np.pi/8, "rad"),
                   Angle(np.pi/8, "rad"), Angle(np.pi/8, "rad"), Angle(np.pi/8, "rad")]
-        cords, euler = self.controller.robot.direct_kinematics(joints)
+        conf = self.controller.robot.direct_kinematics(joints)
 
         # Moving to initial position
-        self.controller.move_to_point(cords=cords, angles=euler)
+        self.controller.move_to_point(conf)
         self.assertEqual("m7 3927 7854 7854 3927 3927 3927 3927\n",
                          self.arduino.received_lines[1])
         self.assertTrue(self.angleAllClose(

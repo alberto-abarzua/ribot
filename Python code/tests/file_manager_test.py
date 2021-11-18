@@ -7,6 +7,7 @@ import unittest
 import arm_control.controller as ctrl
 import arm_utils.armTransforms as util
 from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Config
 import arm_utils.robotarm as robotarm
 import numpy as np
 
@@ -29,8 +30,9 @@ class file_manager_test(unittest.TestCase):
         return np.allclose(L1, L2, atol=1/1000)
 
     def test_instructions(self):
-        p1 = ([300, 0, 300], [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")])
-        p2 = ([320, 0, 320], [Angle(0, "rad"), Angle(90, "deg"), Angle(0, "rad")])
+        p1 = Config([300, 0, 300], [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")])
+        p2 = Config([320, 0, 320], [Angle(0, "rad"), Angle(90, "deg"), Angle(0, "rad")])
+        
         p1_instruction = filem.CordAngleInstruction(p1)
         p2_instruction = filem.CordAngleInstruction(p2)
         self.assertEqual("c 300 0 300 0 0 0\n", p1_instruction.line)
@@ -38,15 +40,15 @@ class file_manager_test(unittest.TestCase):
         p2_fromstring = filem.CordAngleInstruction(
             "c 320 0 320 0 1.57079633 0\n")
         self.assertEqual("c 320 0 320 0 1.57079633 0\n", p2_fromstring.line)
-        self.assertEqual(p2[0], p2_fromstring.as_tuple()[0])
-        self.assertTrue(self.angleAllClose(p2[1], p2_fromstring.as_tuple()[1]))
+        self.assertEqual(p2.cords, p2_fromstring.as_config().cords)
+        self.assertTrue(self.angleAllClose(p2.euler_angles, p2_fromstring.as_config().euler_angles))
 
     def test_run(self):
         controller = ctrl.Controller()
         controller.arduino.set_log_file("test1_arduino.txt")
-        p1 = ([326.55, 1, 334], [Angle(0, "deg"),
+        p1 = Config([326.55, 1, 334], [Angle(0, "deg"),
               Angle(0, "deg"), Angle(0, "deg")])
-        p2 = ([367, 1, 334], [Angle(10, "deg"), Angle(0, "deg"), Angle(0, "deg")])
+        p2 = Config([367, 1, 334], [Angle(10, "deg"), Angle(0, "deg"), Angle(0, "deg")])
         curve = controller.generate_curve_ptp(p1=p1, p2=p2, n=500)
 
         f = filem.FileManager()

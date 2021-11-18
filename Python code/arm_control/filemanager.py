@@ -1,8 +1,10 @@
+from dataclasses import astuple
 import os
 import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Config
 
 __author__ = "Alberto Abarzua"
 
@@ -47,17 +49,17 @@ class CordAngleInstruction(Instruction):
         if (type(value) is str):
             self.value = value.strip()
 
-    def as_tuple(self):
+    def as_config(self):
         """Gets the cords and angles of this instruction as a tuple (cords,angles)
 
         Returns:
-            tuple[List[float],List[Angle]]: position that describes this instruction
+            Config: position that describes this instruction
         """
         if (type(self.value) is str):
             l = [float(x) for x in self.value[2:].split(" ")]
             cords = l[:3]
             angles = [Angle(x, "rad") for x in l[3:]]
-            return(cords, angles)
+            return Config(cords,angles)
 
         return self.value
 
@@ -71,7 +73,7 @@ class CordAngleInstruction(Instruction):
         """
         if (type(self.value) is str):
             return self.value + "\n"
-        cords, angles = self.value
+        cords, angles = self.value.cords,self.value.euler_angles
         result = [str(round(x, ndigits=5)) for x in cords] + \
             [str(round(x.rad, ndigits=8)) for x in angles]
         return "c " + " ".join(result) + "\n"
@@ -97,7 +99,7 @@ class FileManager():
         for elem in curve:
             cord = elem[:3]
             angle = [Angle(x, "rad") for x in elem[3:]]
-            result.append(CordAngleInstruction((cord, angle)))
+            result.append(CordAngleInstruction(Config(cord,angle)))
         return result
 
     def get_demo_number(self):

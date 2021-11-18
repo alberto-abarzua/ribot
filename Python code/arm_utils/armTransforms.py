@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 from dataclasses import dataclass
 
@@ -45,6 +46,16 @@ class Angle:
                 value = self.value - other.deg
                 return Angle(value,"deg")
         return other
+
+@dataclass
+class Config:
+    """Config dataclass, used to store all the information required to determine the position and configuration of 
+    the robot arm. (coordinates, euler angles of the tcp and the state of the tool (for now None))
+    """
+
+    cords: List[float]
+    euler_angles: List[Angle]
+    tool: None = None
 
 
 def rad2degree(angle):

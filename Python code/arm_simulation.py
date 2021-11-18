@@ -12,6 +12,7 @@ from grafica.gpu_shape import GPUShape
 from grafica.assets_path import getAssetPath
 from arm_control.filemanager import FileManager
 from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Config
 import arm_control.controller as ac
 import arm_utils.robotarm as ra
 import grafica.text_renderer as tx
@@ -37,7 +38,7 @@ class Controller:
         """Used to save the current position (cords,angle) of the tcp to the cur_point_list
         """
         angle = [Angle(x.rad,"rad") for x in self.euler]
-        self.cur_point_list.append((self.cords, angle))
+        self.cur_point_list.append(Config(self.cords, angle))
 
     def write_file(self):
         """Used to create a new file used to run the curve generated between cur_point_list
@@ -504,11 +505,11 @@ if __name__ == "__main__":
     glfw.swap_interval(0)
     R = 17
     robot.direct_kinematics()  # We update the euler angles and xyz
-    x, y, z = robot.xyz
-    A, B, C = robot.euler_angles
-
-    (x_disp, y_disp, z_disp) = robot.xyz
-    A_disp, B_disp, C_disp = robot.euler_angles
+    xyz,euler_angles = robot.config.cords,robot.config.euler_angles
+    x, y, z = xyz
+    A, B, C = euler_angles
+    (x_disp, y_disp, z_disp) = xyz
+    A_disp, B_disp, C_disp = euler_angles
     while not glfw.window_should_close(window):
 
         # Measuring performance
@@ -615,15 +616,16 @@ if __name__ == "__main__":
             if (controller.new_file):
                 controller.new_file = False
                 robot_controller.run_file(controller.cur_file)
-            setJoints(bottom, robot_controller.get_arduino_angles())
 
         else:
-            if (robot_controller.move_to_point([x, y, z], [A, B, C]) != "Angles out of reach"):
+            if (robot_controller.move_to_point(Config([x, y, z], [A, B, C])) != "Angles out of reach"):
                 controller.cords = [x, y, z]
                 controller.euler = [A, B, C]
-                setJoints(bottom, robot_controller.get_arduino_angles())
 
-        pos, angles = robot.direct_kinematics()
+
+        setJoints(bottom, robot_controller.get_arduino_angles())
+        dirk = robot.direct_kinematics()
+        pos, angles = dirk.cords,dirk.euler_angles
         # Text to display
         (x_disp, y_disp, z_disp) = pos
         A_disp, B_disp, C_disp = angles
@@ -640,8 +642,8 @@ if __name__ == "__main__":
         # Instructions to create new demo files
         title_text = drawText(
                 textPipeline, f"Recorded points list: press C to clear |G to play last demo| R to record | T to save demo{FileManager().get_demo_number()}.txt", 0.02, [-0.95, 0.95, 0])
-        for i, elem in enumerate(controller.cur_point_list):
-            cord, angle = elem
+        for i, elem in enumerate(controller.cur_point_list): #Only display the last 5 points
+            cord, angle = elem.cords,elem.euler_angles
             x_disp, y_disp, z_disp = cord
             A_disp, B_disp, C_disp = angle
             elem_text = drawText(

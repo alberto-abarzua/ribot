@@ -5,6 +5,7 @@ import numpy as np
 import arm_control.commands as com
 import arm_utils.robotarm as robotarm
 from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Config
 import time
 import serial
 from arm_control.arduino_dummy import DummyArduino
@@ -85,9 +86,9 @@ class Controller():
 
         if (cur_line[0] == "c"):
             instruct = CordAngleInstruction(cur_line)
-            cords, angle = instruct.as_tuple()
-            angles = self.robot.inverse_kinematics((cords, angle))
-            assert angles != None, f"Config that failed: cords: {cords} and angles: {angle}"
+            config = instruct.as_config()
+            angles = self.robot.inverse_kinematics(config)
+            assert angles != None, f"Config that failed: cords: {config.cords} and angles: {config.euler_angles}"
             self.move_to_angle_config(angles)
 
         return True
@@ -148,14 +149,13 @@ class Controller():
         command = com.MoveCommand(self, dif)
         self.send_command(command)
 
-    def move_to_point(self, cords, angles):
+    def move_to_point(self, config):
         """Makes the tcp move to cords and certain euler angles. This is a point to point movement.
 
         Args:
-            cords (list[int]): list x,y,z coords of the tcp to reach
-            angles (list[Angle]): euler angles the tcp should have.
+            config (Config) : Point described as a config.
         """
-        next_angles = self.robot.inverse_kinematics((cords, angles))
+        next_angles = self.robot.inverse_kinematics(config)
         if (next_angles is None):
             return "Angles out of reach"
         self.move_to_angle_config(next_angles)
@@ -164,7 +164,7 @@ class Controller():
         """Generates curves ptp from a list of points
 
         Args:
-            points (list[tuple[List[float],List[Angle]]]): list of points   
+            points (list[Config]): list of points   
 
         Returns:
             np.array: array with all the positions the tcp should follow
@@ -180,20 +180,17 @@ class Controller():
     def generate_curve_ptp(self, p1, p2, n=None):
         """Creates a parametric straight curve from point p1 to point p2.
 
-        Both points should follow the next syntax:
-        p = ([x,y,z],[A,B,C])
-
         Args:
-            p1 (tuple[List[float],List[Angle]]): starting point
-            p2 (tuple[List[float],List[Angle]]): ending point
+            p1 (Config): starting point
+            p2 (Config): ending point
             n (int) : Number of points in the curve (definition)
 
         Returns:
             np.array: Array with all the positions to achieve the curve.
             (Dimensions: (self.numJoints+1),n)
         """
-        cords_ini, euler_ini = p1
-        cords_fin, euler_fin = p2
+        cords_ini, euler_ini = p1.cords,p1.euler_angles
+        cords_fin, euler_fin = p2.cords,p2.euler_angles
         cords_ini = np.array(cords_ini)
         cords_fin = np.array(cords_fin)
         euler_ini = np.array([angle.rad for angle in euler_ini])
@@ -209,8 +206,8 @@ class Controller():
         for i in range(n+1):
             cur_cords = cords_ini * (1-t) + cords_fin*(t)
             cur_euler = euler_ini*(1-t) + euler_fin*(t)
-            assert(self.robot.inverse_kinematics(
-                (cur_cords, [Angle(x, "rad") for x in cur_euler])) != None)
+            cur_config = Config(cur_cords,[Angle(angle,"rad") for angle in cur_euler])
+            assert self.robot.inverse_kinematics(cur_config) != None
             cur_post = np.append(cur_cords, cur_euler, axis=0)
             cur_post = np.transpose(cur_post)
             t += step

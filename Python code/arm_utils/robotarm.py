@@ -46,10 +46,7 @@ class RobotArm:
 
         # Joints angles
         self.angles = [Angle(0, "rad") for i in range(6)]
-        # Position x,yz
-        self.xyz = None
-        # Euler Angles
-        self.euler_angles = None
+        self.config = None
 
 
 # -----------------------------------------------------------------------------------
@@ -67,8 +64,8 @@ class RobotArm:
             angles (Angle, optional): list of Angles to use as robot config. Defaults to None.
 
         Returns:
-            tuple(list[float],list[Angle]): returns the current position of the tool and the current euler angles
-            as follows: ([x,y,z],[A,B,C])
+            Config: returns the current position of the tool and the current euler angles
+            as a Config.
         """
         if (angles == None):
             angles = self.angles
@@ -127,9 +124,8 @@ class RobotArm:
         rotation = R1@R2@R3@R4@R5@R6
         euler_angles = rotationMatrixToEulerAngles(rotation)
         pos = list(position[:3, 0])
-        self.xyz = pos
-        self.euler_angles = euler_angles
-        return pos, euler_angles
+        self.config = Config(pos,euler_angles)
+        return self.config
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
 # INVERSE KINEMATICS
@@ -141,7 +137,7 @@ class RobotArm:
         euler angles given by config. If config is None the current config of the robot arm is used.
 
         Args:
-            config (tuple(list[float],list[Angle]), optional): [description]. Defaults to None.
+            config (Config), optional): configuration of the robot to reach. Defaults to None.
 
         Returns:
             list[Angle]: list of Angles the robot arm should have to reach config.
@@ -149,8 +145,8 @@ class RobotArm:
         prev = self.angles[:
                            ]  # Current angles of the robot (used to choose the closest angles to achieve config)
         if (config == None):
-            config = self.xyz, self.euler_angles
-        xyz, euler_angles = config
+            config = self.config
+        xyz, euler_angles = config.cords,config.euler_angles
         x, y, z = xyz
         A, B, C = euler_angles
 
