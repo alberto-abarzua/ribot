@@ -208,8 +208,12 @@ def nearest_to_prev(angles,prev):
     Returns:
         list[Angle]: list of modified angles.
     """
-    rad_angles = [nearest_to_prev_aux(angle.rad,prev.rad) for angle,prev in zip(angles,prev)]
-    return [Angle(angle, "rad") for angle in rad_angles]
+
+    
+    rad_angles = [nearest_to_prev_aux(angle.rad,pre.rad) for angle,pre in zip(angles,prev)]
+    result = [Angle(angle, "rad") for angle in rad_angles]
+
+    return result
 
 
 def nearest_to_prev_aux(angle,prev):
@@ -223,5 +227,7 @@ def nearest_to_prev_aux(angle,prev):
     """
     if (abs(angle-prev) <= np.pi):
         return angle
-    d = -1 if angle>prev else 1
-    return nearest_to_prev_aux(d*2*np.pi+angle,prev)
+    if (abs(angle +np.pi*2-prev)<abs(angle-prev)):
+        return nearest_to_prev_aux(2*np.pi+angle,prev)
+    if (abs(angle -np.pi*2-prev)<abs(angle-prev)):
+        return nearest_to_prev_aux(angle - 2*np.pi,prev)

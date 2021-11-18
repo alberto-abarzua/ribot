@@ -1,13 +1,14 @@
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arm_utils.armTransforms import *
-import time
-import serial
-from numpy.lib.function_base import angle
 import numpy as np
+from numpy.lib.function_base import angle
+import serial
+import time
+from arm_utils.armTransforms import *
 
 __author__ = "Alberto Abarzua"
+
 
 class RobotArm:
     """RobotArm class, used to create and calculate the kinematics of a robot arm.
@@ -49,13 +50,14 @@ class RobotArm:
         self.xyz = None
         # Euler Angles
         self.euler_angles = None
-        
+
 
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
 # FORWARD KINEMATCIS
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
+
     def direct_kinematics(self, angles=None):
         """Direct Kinematics function,takes a configuration of angles for all the robots joints and 
         calculates the current position of the Arms tool and it's euler angles. If the list
@@ -144,7 +146,8 @@ class RobotArm:
         Returns:
             list[Angle]: list of Angles the robot arm should have to reach config.
         """
-        prev = self.angles[:] # Current angles of the robot (used to choose the closest angles to achieve config)
+        prev = self.angles[:
+                           ]  # Current angles of the robot (used to choose the closest angles to achieve config)
         if (config == None):
             config = self.xyz, self.euler_angles
         xyz, euler_angles = config
@@ -191,11 +194,12 @@ class RobotArm:
             # Finding J4
             J5 = Angle(np.arctan2(
                 np.sqrt(1-Rwrist[0, 0]**2), Rwrist[0, 0]), "rad")
-            if J5.rad == 0:#Singularity
+            if J5.rad == 0:  # Singularity
                 J4 = self.angles[5]
-                J6 = Angle(np.arctan2(Rwrist[2, 1], Rwrist[2, 2]), "rad").sub(J4)
+                J6 = Angle(np.arctan2(
+                    Rwrist[2, 1], Rwrist[2, 2]), "rad").sub(J4)
             else:
                 J4 = Angle(np.arctan2(Rwrist[1, 0], -Rwrist[2, 0]), "rad")
                 J6 = Angle(np.arctan2(Rwrist[0, 1], Rwrist[0, 2]), "rad")
             angles = [J1, J2, J3, J4, J5, J6]
-            return  nearest_to_prev([J1, J2, J3, J4, J5, J6],prev)
+            return nearest_to_prev([J1, J2, J3, J4, J5, J6], prev)
