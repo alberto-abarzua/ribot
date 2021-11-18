@@ -123,7 +123,7 @@ void loop() {
     }
     Serial.print("\n");
   }
-  Serial.println("1");
+  Serial.print("1\n");
   steppers.runSpeedToPosition();
 }
 
