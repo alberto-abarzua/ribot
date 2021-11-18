@@ -37,7 +37,7 @@ class robot_arm_tests(unittest.TestCase):
         euler = util.angle_list(euler, "deg")
         angles = self.robot.inverse_kinematics((pos, euler))
         angles = [angle.deg for angle in angles]
-        self.assertTrue(np.allclose(angles, joints, rtol=1e-01))
+        self.assertTrue(np.allclose(angles, joints, rtol=1e-01),f"expected: {joints} actual: {angles}")
 
     def setUp(self):
         # Physical constraints of the robot (measurements in mm)
@@ -69,7 +69,7 @@ class robot_arm_tests(unittest.TestCase):
         self.helper_inverse_kinematics(
             [90, 0, 0, 0, 0, 0], [0, 1755, 2660], [0, 0, 90])
         self.helper_inverse_kinematics(
-            [38.5, 7.9, 25.5, -124.7, 49.2, 136.6], [1500, 1000, 2000], [0, 0, 0])
+            [38.5, 7.9, 25.5, 55.3, -49.2, -43.3], [1500, 1000, 2000], [0, 0, 0])
         self.helper_inverse_kinematics(
             [124.3, -24.7, 43.6, -42.8, 65.6, 140.8], [-500, 1000, 2000], [50, 50, 50])
         self.helper_inverse_kinematics(

@@ -195,11 +195,21 @@ class RobotArm:
             J5 = Angle(np.arctan2(
                 np.sqrt(1-Rwrist[0, 0]**2), Rwrist[0, 0]), "rad")
             if J5.rad == 0:  # Singularity
-                J4 = self.angles[5]
+                J4 = self.angles[3]
                 J6 = Angle(np.arctan2(
                     Rwrist[2, 1], Rwrist[2, 2]), "rad").sub(J4)
             else:
-                J4 = Angle(np.arctan2(Rwrist[1, 0], -Rwrist[2, 0]), "rad")
-                J6 = Angle(np.arctan2(Rwrist[0, 1], Rwrist[0, 2]), "rad")
-            angles = [J1, J2, J3, J4, J5, J6]
+                J4_1 = Angle(np.arctan2(Rwrist[1, 0], -Rwrist[2, 0]), "rad")
+                J4_2 = Angle(-np.arctan2(Rwrist[1, 0], Rwrist[2, 0]), "rad")
+                
+                J6_1 = Angle(np.arctan2(Rwrist[0, 1], Rwrist[0, 2]), "rad")
+                J6_2 = Angle(-np.arctan2(Rwrist[0, 1], -Rwrist[0, 2]), "rad")
+                if (abs(prev[3].rad-J4_1.rad)>abs(prev[3].rad-J4_2.rad)):
+                    J4 = J4_2
+                    J6 = J6_2
+                    J5 = Angle(np.arctan2(
+                -np.sqrt(1-Rwrist[0, 0]**2), Rwrist[0, 0]), "rad")
+                else:
+                    J4 = J4_1
+                    J6 =J6_1
             return nearest_to_prev([J1, J2, J3, J4, J5, J6], prev)

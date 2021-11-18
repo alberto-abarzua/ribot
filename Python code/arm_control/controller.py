@@ -199,9 +199,9 @@ class Controller():
         euler_ini = np.array([angle.rad for angle in euler_ini])
         euler_fin = np.array([angle.rad for angle in euler_fin])
         if (n == None):
-            dist = np.linalg.norm(cords_ini-cords_fin)
-            if (dist == 0):
-                dist = np.linalg.norm(euler_ini-euler_fin)*100
+            dist1 = np.linalg.norm(cords_ini-cords_fin)
+            dist2 = np.linalg.norm(euler_ini-euler_fin)*100
+            dist = max(dist1,dist2,1/5)
             n = int(dist)*5
         result = np.zeros((n+1, 6))
         t = 0
