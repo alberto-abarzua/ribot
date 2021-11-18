@@ -33,7 +33,7 @@ record any other viedo.
 <https://youtu.be/bNo2X5EaJBo>
 
 ### About arduino (C\C++) and design:
-<p> With the current state of the project the arduino code is functional but the serial comunication Python script is not done yet for the current code. The main code of the previous version of the robot arm is located in 'Arduino code/robot_arm_arduino' this file was created almost a year ago, many improvements can be made and some of them are implemented in 'Arduino code/dev'.</p>
+<p> The arduino code receives commands through serial comunication, most of this is ready.</p>
 <p>The arm displayed in the last photo was built using the following main components:</p>
 
 - 2 x Nema 23 Stepper motors
@@ -58,5 +58,15 @@ record any other viedo.
 ![Simulation](https://i.ibb.co/HVWBQhN/simulation.jpg)
 
 <p>This simulation controlls the arm using only coordinates and euler angles of the TCP, these are then used to calculate the angles the joints should have using Inverse Kinematics. Controlls: (A,W,S,D,Q,E) are used to change x,y,z and (I,J,K,L,U,O) are used to change euler angles of the TCP, the camera angle and position can be adjusted with the arrow keys.</p>
+
+<p>The simulation is able to record a set of points and creat a file that stores a curve with straight point to point segments. Each sequence is stored in a .txt file (Demo files in "Python Code/arm_control/data").</p>
+
+Controlls to store and play sequences:
+
+*   R - Store the current position of the TCP in a pre-sequence
+*   C - Clear the pre-sequence
+*   T - Create a sequence from the points inside the pre-sequence and store it in a txt file.
+*   G - Play the last recorded sequence
+*   Demo files in "Python Code/arm_control/data" can be droped on the window of the simulation to be ran.
 
 
