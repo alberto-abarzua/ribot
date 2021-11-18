@@ -1,22 +1,23 @@
+import numpy as np
+import OpenGL.GL.shaders
+from OpenGL.GL import *
+import glfw
+import grafica.transformations as tr
+import grafica.basic_shapes as bs
+import grafica.scene_graph as sg
+import grafica.easy_shaders as es
+import grafica.lighting_shaders as ls
+import grafica.performance_monitor as pm
+from grafica.gpu_shape import GPUShape
+from grafica.assets_path import getAssetPath
+from arm_control.filemanager import FileManager
+from arm_utils.armTransforms import Angle
+import arm_control.controller as ac
+import arm_utils.robotarm as ra
+import grafica.text_renderer as tx
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import grafica.text_renderer as tx
-import arm_utils.robotarm as ra
-import arm_control.controller as ac
-from arm_utils.armTransforms import Angle
-from grafica.assets_path import getAssetPath
-from grafica.gpu_shape import GPUShape
-import grafica.performance_monitor as pm
-import grafica.lighting_shaders as ls
-import grafica.easy_shaders as es
-import grafica.scene_graph as sg
-import grafica.basic_shapes as bs
-import grafica.transformations as tr
-import glfw
-from OpenGL.GL import *
-import OpenGL.GL.shaders
-import numpy as np
 
 __author__ = "Alberto Abarzua"
 
@@ -25,6 +26,30 @@ __author__ = "Alberto Abarzua"
 class Controller:
     def __init__(self):
         self.fillPolygon = True
+        self.new_file = False
+        self.cur_file = None
+        self.cur_point_list = []
+        self.cords = None
+        self.euler = None
+        self.arm_controller = None
+
+    def save_point(self):
+        """Used to save the current position (cords,angle) of the tcp to the cur_point_list
+        """
+        angle = [Angle(x.rad,"rad") for x in self.euler]
+        self.cur_point_list.append((self.cords, angle))
+
+    def write_file(self):
+        """Used to create a new file used to run the curve generated between cur_point_list
+        """
+        a = self.arm_controller.gen_curve_points(self.cur_point_list)
+        f = FileManager()
+        b = f.from_curve_to_instruct(a)
+        # print(f.path)
+        n =f.get_demo_number()
+        f.write_file(b, "demo{}.txt".format(n))
+        self.cur_file = "arm_control/data/demo{}.txt".format(n)
+        self.cur_point_list.clear()
 
 
 # We will use the global controller as communication with the callback function
@@ -32,6 +57,8 @@ controller = Controller()
 
 
 def on_key(window, key, scancode, action, mods):
+    """Used to check key inputs.
+    """
 
     if action != glfw.PRESS:
         return
@@ -43,6 +70,26 @@ def on_key(window, key, scancode, action, mods):
 
     elif key == glfw.KEY_ESCAPE:
         glfw.set_window_should_close(window, True)
+
+    elif key == glfw.KEY_C:
+        controller.cur_point_list.clear()
+    elif key == glfw.KEY_R:
+        controller.save_point()
+    elif key == glfw.KEY_T:
+        controller.write_file()
+    elif key == glfw.KEY_G:
+        controller.cur_file = "arm_control/data/demo{}.txt".format(FileManager().get_demo_number()-1)
+        controller.new_file = True
+
+
+def on_drop(window, paths):
+    """Used to check for file drop inputs
+    """
+    global controller
+    for elem in paths:
+        controller.cur_file = elem
+        controller.new_file = True
+        print(elem)
 
 
 def readFaceVertex(faceDescription):
@@ -347,6 +394,8 @@ def drawText(textPipeline, string, size, pos):
 if __name__ == "__main__":
     # Creation of robot arm
     robot_controller = ac.Controller()
+    robot_controller.arduino.wait = True
+    controller.arm_controller = robot_controller
     robot = robot_controller.robot
 
     # Initialize glfw
@@ -357,7 +406,6 @@ if __name__ == "__main__":
     height = 1200
     title = "6DOF Robot Arm simulation"
     window = glfw.create_window(width, height, title, None, None)
-
     if not window:
         glfw.terminate()
         glfw.set_window_should_close(window, True)
@@ -366,6 +414,7 @@ if __name__ == "__main__":
 
     # Connecting the callback function 'on_key' to handle keyboard events
     glfw.set_key_callback(window, on_key)
+    glfw.set_drop_callback(window, on_drop)
 
     # Defining shader programs
     axisPipeline = es.SimpleModelViewProjectionShaderProgram()
@@ -562,26 +611,50 @@ if __name__ == "__main__":
 
         glUniformMatrix4fv(glGetUniformLocation(
             pipeline.shaderProgram, "model"), 1, GL_TRUE, tr.rotationX(np.pi/2))
-
-        
-        if (robot_controller.move_to_point([x, y, z], [A, B, C]) != "Angles out of reach"):
+        if (robot_controller.step() or controller.new_file):
+            if (controller.new_file):
+                controller.new_file = False
+                robot_controller.run_file(controller.cur_file)
             setJoints(bottom, robot_controller.get_arduino_angles())
-            pos, angles = robot.direct_kinematics()
-            # Text to display
-            (x_disp, y_disp, z_disp) = pos
-            A_disp, B_disp, C_disp = angles
+
+        else:
+            if (robot_controller.move_to_point([x, y, z], [A, B, C]) != "Angles out of reach"):
+                controller.cords = [x, y, z]
+                controller.euler = [A, B, C]
+                setJoints(bottom, robot_controller.get_arduino_angles())
+
+        pos, angles = robot.direct_kinematics()
+        # Text to display
+        (x_disp, y_disp, z_disp) = pos
+        A_disp, B_disp, C_disp = angles
 
         sg.drawSceneGraphNode(bottom, pipeline, "model")
+
+        #Displaying the current position text
         cords_text = drawText(
             textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f}", 0.03, [-0.95, -0.8, 0])
         angles_text = drawText(
             textPipeline, f"A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f}", 0.03, [-0.95, -0.9, 0])
+
+        point_texts = []
+        # Instructions to create new demo files
+        title_text = drawText(
+                textPipeline, f"Recorded points list: press C to clear |G to play last demo| R to record | T to save demo{FileManager().get_demo_number()}.txt", 0.02, [-0.95, 0.95, 0])
+        for i, elem in enumerate(controller.cur_point_list):
+            cord, angle = elem
+            x_disp, y_disp, z_disp = cord
+            A_disp, B_disp, C_disp = angle
+            elem_text = drawText(
+                textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f} A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f}", 0.02, [-0.95, 0.9-i*0.05, 0])
+            point_texts.append(elem_text)
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)
 
     # freeing GPU memory
     bottom.clear()
     cords_text.clear()
+    title_text.clear()
     angles_text.clear()
+    [x.clear() for x in point_texts]
     glfw.terminate()
     gpuAxis.clear()
