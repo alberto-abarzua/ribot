@@ -105,7 +105,7 @@ void loop() {
       positions[i] += result[i]; // Add to current positions the new angles in steps
     }
     //printArr(positions,numSteppers,"positions");
-    Serial.println("");
+    Serial.print("\n");
     //steppers.moveTo(positions); 
   }
   if (op == 'i'){
@@ -134,6 +134,7 @@ void loop() {
  */
 void stepperSetup(int i){
     listSteppers[i]->setMaxSpeed(300.0*ratios[i]);
+    listSteppers[i]->setSpeed(50.0*ratios[i]);
     listSteppers[i]->setAcceleration(100.0*ratios[i]);
 }
 
