@@ -41,7 +41,7 @@ class testarm_utils(unittest.TestCase):
         self.assertEqual([Angle(-90,"deg"),Angle(170,"deg"),Angle(270,"deg")],util.nearest_to_prev(angle,prev))
         prev = [Angle(value=-1.5698, unit='rad')]
         angle = [Angle(value=-0.004070600133077029, unit='rad')]
-        util.nearest_to_prev(angle,prev)
+        self.assertAlmostEqual(angle[0].rad,util.nearest_to_prev(angle,prev)[0].rad)
 
 if __name__ == '__main__':
     unittest.main()
