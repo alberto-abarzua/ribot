@@ -99,7 +99,7 @@ class Controller():
         Returns:
             str: decoded line read from the arduino
         """
-        if (self.arduino.in_waiting > 2):
+        if (self.arduino.in_waiting > 1):
             val = self.arduino.readline()
             try:
                 val.decode()
@@ -135,6 +135,7 @@ class Controller():
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
         while(self.read() != "1"):
+            print("waiting")
             time.sleep(0.00001)
 
     def move_to_angle_config(self, angles):

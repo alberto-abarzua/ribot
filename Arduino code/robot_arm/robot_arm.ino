@@ -9,7 +9,7 @@
 
 
 //Serial comunication buffer
-const int max_size = 100;
+const int max_size = 512;
 const int numSteppers = 7;
 
 char buf[max_size];
@@ -23,7 +23,7 @@ long result[numSteppers] = {0};
 
 //Motor parameters
 
-const int micro_stepping = 32;
+const int micro_stepping = 8;
 const int acc = 10000;
 const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
 
@@ -93,20 +93,20 @@ void loop() {
      *  The angles should be in radians*acc--> 3.1415*rad <--> 31415 [rad*acc]
      * 
      */
+   
     
-    delay(1);
-    //printArr(result,numSteppers,"result");
     //printArr(nums,numSteppers,"nums");
     for (int i =0; i<numSteppers;i++){
       angles[i] += nums[i]; // Add to current angles the angles received in nums 
     }
     numsToRatios(result,angles); //
+    //printArr(result,numSteppers,"result");
     for (int i =0; i<numSteppers;i++){
-      positions[i] += result[i]; // Add to current positions the new angles in steps
+      positions[i] = result[i]; // Add to current positions the new angles in steps
     }
     //printArr(positions,numSteppers,"positions");
-    Serial.print("\n");
-    //steppers.moveTo(positions); 
+    //Serial.print("\n");
+    steppers.moveTo(positions); 
   }
   if (op == 'i'){
     /**
@@ -123,8 +123,9 @@ void loop() {
     }
     Serial.print("\n");
   }
-  Serial.print("1\n");
+  
   steppers.runSpeedToPosition();
+  Serial.print("1\n");
 }
 
 
