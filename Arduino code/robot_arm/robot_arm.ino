@@ -14,17 +14,20 @@ const int numSteppers = 7;
 
 char buf[max_size];
 
+
+/**
+ * Variables used in loop.
+ */
 char op = ' ';
 int n = 0;
-
 long nums[numSteppers] = {0};
-
 long result[numSteppers] = {0};
+bool new_print = false;
 
 //Motor parameters
 
 const int micro_stepping = 8;
-const int acc = 10000;
+const int acc = 10000; // Accuracy of the angles received.
 const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
 
 long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
@@ -73,6 +76,7 @@ void setup() {
     steppers.addStepper((*listSteppers[i]));
     stepperSetup(i);
   }
+  Serial.print("1\n");
 
   
 }
@@ -94,18 +98,18 @@ void loop() {
      * 
      */
    
-    
-    //printArr(nums,numSteppers,"nums");
+    new_print = true;
+    //printArr(nums,numSteppers,"nums"); //<--Testing
     for (int i =0; i<numSteppers;i++){
       angles[i] += nums[i]; // Add to current angles the angles received in nums 
     }
     numsToRatios(result,angles); //
-    //printArr(result,numSteppers,"result");
+    //printArr(result,numSteppers,"result"); //<--Testing
     for (int i =0; i<numSteppers;i++){
       positions[i] = result[i]; // Add to current positions the new angles in steps
     }
-    //printArr(positions,numSteppers,"positions");
-    //Serial.print("\n");
+    //printArr(positions,numSteppers,"positions"); //<--Testing
+    //Serial.print("\n"); //<--Testing
     steppers.moveTo(positions); 
   }
   if (op == 'i'){
@@ -123,9 +127,23 @@ void loop() {
     }
     Serial.print("\n");
   }
-  
-  steppers.runSpeedToPosition();
-  Serial.print("1\n");
+  if (steppers.run() || new_print){
+    long max_val= 0;
+    for (int i =0;i <numSteppers;i++){
+      long cur = listSteppers[i]->distanceToGo();
+      if (abs(cur)>max_val){
+        max_val = abs(cur);
+      }
+      //Serial.print(cur); //<--Testing
+      //Serial.print(" "); //<--Testing
+    }
+    //Serial.print(" max_val: "); //<--Testing
+    //Serial.print(max_val); //<--Testing
+    if ((max_val <micro_stepping && new_print)){
+      Serial.print("1\n");
+      new_print = false;
+    }
+  }
 }
 
 
@@ -134,9 +152,9 @@ void loop() {
  * ------------------------- Beginning of stepper management functions -------------------------
  */
 void stepperSetup(int i){
-    listSteppers[i]->setMaxSpeed(300.0*ratios[i]);
-    listSteppers[i]->setSpeed(50.0*ratios[i]);
-    listSteppers[i]->setAcceleration(100.0*ratios[i]);
+    listSteppers[i]->setMaxSpeed(2*37.5*ratios[i]*micro_stepping);
+    listSteppers[i]->setSpeed(50*ratios[i]*micro_stepping);
+    listSteppers[i]->setAcceleration(100.0*ratios[i]*micro_stepping);
 }
 
 void numsToRatios(long *result,long *nums){
@@ -191,7 +209,7 @@ void strToList(char * str, long * nums,int n){
     }
     char temp = *fin;
     *fin = '\0';
-    nums[idx] = atoi(ini);
+    nums[idx] = atol(ini);
     
     idx ++;
     *fin = temp;
