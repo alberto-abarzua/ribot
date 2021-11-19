@@ -55,7 +55,7 @@ record any other viedo.
 - Inverse Kinematics: This is the mathematical process of calculating the angles that every joint should have so that the TCP reaches a certain position (x,y,z) with certain angles (roll,pitch,yaw). (Code in armUtils/robotarm.py)
 - Simulation of the robot arm using openGL (arm_simulation.py), this is a keyboard controlled simulated version of the robot arm (6DOF stepper motor) shown in the previous photos. (Code in Main/arm_simulation.py). This part of the code uses the library "grafica" from <https://github.com/ivansipiran/grafica>. This is the GitHub repository used in the course "CC3501-Modelación y Computación Gráfica para Ingenieros" which is part of the study plan for "Licenciatura en Ciencias de la Ingeniería, Mención Computación v5- Universidad de Chile".    
 
-![Simulation](https://i.ibb.co/HVWBQhN/simulation.jpg)
+![Simulation](https://i.ibb.co/xCFvBVg/2021-11-19-15-19-43-Settings.png)
 
 <p>This simulation controlls the arm using only coordinates and euler angles of the TCP, these are then used to calculate the angles the joints should have using Inverse Kinematics. Controlls: (A,W,S,D,Q,E) are used to change x,y,z and (I,J,K,L,U,O) are used to change euler angles of the TCP, the camera angle and position can be adjusted with the arrow keys.</p>
 
