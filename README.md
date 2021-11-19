@@ -69,6 +69,9 @@ Controlls to store and play sequences:
 *   G - Play the last recorded sequence
 *   Demo files in "Python Code/arm_control/data" can be droped on the window of the simulation to be ran.
 
+Sample video of the simulation, recording and playing a sequence of points.
+<https://youtu.be/7AEa5AiqH-Q>
+
 <p>If an arduino with the correct code uploaded to it is conected to a COM port, the simulation can send the movements to it. To run the simulation with a real arduino use the next command inside the "Python Code" directory:</p>
 
     `python arm_simulation.py <port>` // Run simulation to an arduino
