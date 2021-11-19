@@ -155,6 +155,9 @@ class Controller():
         cur_angles = self.get_arduino_angles()
         dif = [Angle(fin.rad-ini.rad, "rad")
                for ini, fin in zip(cur_angles, angles)]
+
+        if (all([abs(x.rad)<1/self.acc for x in dif])): #Check, so that only usefull commands are sent.
+            return None
         command = com.MoveCommand(self, dif)
         self.send_command(command)
 
