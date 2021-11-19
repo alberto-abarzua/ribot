@@ -59,6 +59,8 @@ class Controller():
 
         self.filem = FileManager()
         self.cur_file = None
+        self.read_val = None
+        self.arduino_status = None
 
     def run_file(self, file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
@@ -95,7 +97,6 @@ class Controller():
 
     def read(self):
         """Read a line from the arduino.
-
         Returns:
             str: decoded line read from the arduino
         """
@@ -128,16 +129,23 @@ class Controller():
         return [Angle(x/self.acc, "rad") for x in self.arduino_angles]
 
     def send_command(self, command):
+        """Sends a command to the arduino. Sends the command's message to the arduino.
+
+        Args:
+            command (Command): Calls the send method on a command, (sends it's message to the arduino)
+        """
         self.wait()
+        self.arduino_status= "0"
         command.send()
+        self.wait()
 
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
-        while(self.read() != "1"):
-            print("waiting")
-            time.sleep(0.00001)
-
+        while(self.arduino_status != "1"):
+            self.arduino_status = self.read()
+            time.sleep(0.000001)
+            
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).
 
@@ -198,7 +206,7 @@ class Controller():
         euler_fin = np.array([angle.rad for angle in euler_fin])
         if (n == None):
             dist1 = np.linalg.norm(cords_ini-cords_fin)
-            dist2 = np.linalg.norm(euler_ini-euler_fin)*100
+            dist2 = np.linalg.norm(euler_ini-euler_fin)*60
             dist = max(dist1,dist2,1/5)
             n = int(dist)*5
         result = np.zeros((n+1, 6))

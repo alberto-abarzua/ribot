@@ -393,8 +393,16 @@ def drawText(textPipeline, string, size, pos):
 
 
 if __name__ == "__main__":
+    port = None
+    if (len(sys.argv)>1 ):
+        port = sys.argv[1]
+        assert "COM" in port , "Enter a valid port"
+        baudrate = 115200
     # Creation of robot arm
-    robot_controller = ac.Controller()
+    if (port != None):
+        robot_controller = ac.Controller(port,baudrate)
+    else:
+        robot_controller = ac.Controller()
     robot_controller.arduino.wait = True
     controller.arm_controller = robot_controller
     robot = robot_controller.robot
@@ -523,7 +531,6 @@ if __name__ == "__main__":
         t1 = glfw.get_time()
         dt = t1 - t0
         t0 = t1
-
         # Camera controlls
         if (glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS):
             camera_theta -= 2 * dt
@@ -538,7 +545,7 @@ if __name__ == "__main__":
             R += 5 * dt
 
         # Arm controlls
-        movement_step = 30
+        movement_step = 50
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             x += movement_step * dt
 

@@ -1,13 +1,24 @@
+__author__ = "Alberto Abarzua"
 class Command:
     """Superclass for all the commands that can be sent to the arduino
     """
 
     def __init__(self, controller) -> None:
+        """Command constructor, used to create a new commands. Receives the controller where it is used.
+
+        Args:
+            controller (Controller): Controller where the command will be used.
+        """
         super().__init__()
         self.controller = controller
 
     @property
     def message(self):
+        """Generates the message that will be sent to the arduino
+
+        Returns:
+            str: message to the arduino to do this command
+        """
         raise NotImplementedError("This method is not implemented")
 
     def send(self):
@@ -32,6 +43,11 @@ class MoveCommand(Command):
 
     @property
     def message(self):
+        """Generates the message that will be sent to the arduino
+
+        Returns:
+            str: message to the arduino to do this command
+        """
         rad_times_acc_angles = [
             str(round(angle.rad*self.controller.acc)) for angle in self.angles]
         self.angles_for_arduino = rad_times_acc_angles[:]
@@ -42,6 +58,8 @@ class MoveCommand(Command):
         return command
 
     def send(self):
+        """Sends the command to the controllers arduino.
+        """
         super().send()
         # Keep track of the angles sent.
         self.controller.update_arduino_angles(
