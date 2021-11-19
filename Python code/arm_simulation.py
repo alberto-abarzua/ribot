@@ -1,3 +1,6 @@
+import sys
+import os.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import OpenGL.GL.shaders
 from OpenGL.GL import *
@@ -16,9 +19,6 @@ from arm_utils.armTransforms import Config
 import arm_control.controller as ac
 import arm_utils.robotarm as ra
 import grafica.text_renderer as tx
-import sys
-import os.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 __author__ = "Alberto Abarzua"
 
