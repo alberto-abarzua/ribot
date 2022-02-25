@@ -23,37 +23,38 @@ int n = 0;
 long nums[numSteppers] = {0};
 long result[numSteppers] = {0};
 bool new_print = false;
+bool testing = false;
 
 //Motor parameters
 
 const int micro_stepping = 8;
 const int acc = 10000; // Accuracy of the angles received.
-const double ratios[numSteppers] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0};//Ratios between motor and joint (pulley)
+const double ratios[numSteppers] = {9.3,5.357,5.357,4.5*5.0,1.0,3.5,1.0};//Ratios between motor and joint (pulley)
 
 long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
 long angles[numSteppers] = {0}; // Array to store the angles of each joint (J1 J2 J2 J3 J4 J5 J6) // J2 is repeated because there are two steppers that controll it.
 
 // Motor 1
-const int stepPin1 = 22;
-const int dirPin1 = 24;
+const int stepPin1 = 52;
+const int dirPin1 = 53;
 // Motor 2
-const int stepPin2 = 42;
-const int dirPin2 = 44;
+const int stepPin2 = 51;
+const int dirPin2 = 50;
 // Motor 3
-const int stepPin3 =46;
+const int stepPin3 =49;
 const int dirPin3=48;
 // Motor 4
-const int stepPin4 = 38;
-const int dirPin4 = 40;
+const int stepPin4 = 47;
+const int dirPin4 = 46;
 // Motor 5
-const int stepPin5 = 34;
-const int dirPin5 = 36;
+const int stepPin5 = 45;
+const int dirPin5 = 44;
 //Motor 6
-const int stepPin6 = 30;
-const int dirPin6 = 32;
+const int stepPin6 = 43;
+const int dirPin6 = 42;
 //Motor 7
-const int stepPin7 = 26;
-const int dirPin7 = 28;
+const int stepPin7 = 10;
+const int dirPin7 = 11;
 
 //Stepper motors
 
@@ -67,6 +68,21 @@ AccelStepper motor6(motorInterfaceType, stepPin6, dirPin6);
 AccelStepper motor7(motorInterfaceType, stepPin7, dirPin7);
 
 AccelStepper *listSteppers[numSteppers] = {&motor1,&motor2,&motor3,&motor4,&motor5,&motor6,&motor7};
+
+//Hall Sensors
+
+// Joint 1
+const int hall_1 = 7;
+const int hall_2 = 6;
+const int hall_3 = 5;
+const int hall_4 = 4;
+const int hall_5 = 3;
+const int hall_6 = 2;
+
+
+//Sensor list
+const int num_sensors = 6;
+const int sensor_list[] = {hall_1,hall_2,hall_3,hall_4,hall_5,hall_6};
 
 MultiStepper steppers;
 
@@ -85,6 +101,7 @@ void setup() {
 void loop() {
   op = ' ';
   readLine(buf,nums,&op,&n);
+  
   if (op == 'm'){ 
     /*
      * Move motors op:
@@ -92,6 +109,14 @@ void loop() {
      * Must follow this syntax: f"m{numSteppers} angle1 angle 2 ... angle_{numSteppers}"
      * example:
      *      m7 31415 31415 31415 31415 31415 31415 31415
+     *      m7 7853 7853 7853 7853 7853 7853 7853
+     *      m7 -7853 -7853 -7853 -7853 -7853 -7853 -7853
+     *      m7 0 7853 7853 0 0 0 0
+     *      m7 0 0 0 7853 0 0 0
+     *      m7 7853 0 0 0 0 0 0
+     *      m7 0 0 0 0 7853 0 0
+     *      m7 0 0 0 0 0 7853 0
+     *      m7 0 0 0 0 0 0 7853
      *      
      * IMPORTANT:
      *  The angles should be in radians*acc--> 3.1415*rad <--> 31415 [rad*acc]
@@ -112,7 +137,7 @@ void loop() {
     //Serial.print("\n"); //<--Testing
     steppers.moveTo(positions); 
   }
-  if (op == 'i'){
+  else if (op == 'i'){
     /**
      * Get current steps op:
      * 
@@ -127,6 +152,24 @@ void loop() {
     }
     Serial.print("\n");
   }
+  else if(op == 't'){ // Operation to turn on or off testing mode.
+      testing = !testing;
+    }
+  
+
+  if (testing){// This is testing mode, shows and reads all sensors.
+    Serial.print("Sensors --> ");
+    for (int i =0;i<num_sensors;i++){
+      Serial.print("| S");
+      Serial.print(i);
+      Serial.print(" = ");
+      Serial.print(digitalRead(sensor_list[i]) ? "off" : "on");
+      Serial.print(" | ");
+    }
+      Serial.print("\n");
+  }
+
+    
   if (steppers.run() || new_print){
     long max_val= 0;
     for (int i =0;i <numSteppers;i++){
@@ -152,16 +195,16 @@ void loop() {
  * ------------------------- Beginning of stepper management functions -------------------------
  */
 void stepperSetup(int i){
-    listSteppers[i]->setMaxSpeed(2*37.5*ratios[i]*micro_stepping);
-    listSteppers[i]->setSpeed(50*ratios[i]*micro_stepping);
-    listSteppers[i]->setAcceleration(100.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setMaxSpeed(5.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setSpeed(1.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setAcceleration(2.0*ratios[i]*micro_stepping);
 }
 
 void numsToRatios(long *result,long *nums){
   //Gets a list of nums representing angles in radians*accuracy and converts them in steps for 
   // each of the robots joints.
   for (int i =0;i<numSteppers;i++){
-    result[i] = (nums[i]*100*micro_stepping)/(PI*acc);
+    result[i] = (nums[i]*100*micro_stepping*ratios[i])/(PI*acc);
   }
 }
 
