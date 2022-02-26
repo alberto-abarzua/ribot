@@ -30,6 +30,7 @@ bool testing = false;
 const int micro_stepping = 8;
 const int acc = 10000; // Accuracy of the angles received.
 const double ratios[numSteppers] = {9.3,5.357,5.357,4.5*5.0,1.0,3.5,1.0};//Ratios between motor and joint (pulley)
+const int inverted[numSteppers] = {true,false,false,false,false,true,false};
 
 long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
 long angles[numSteppers] = {0}; // Array to store the angles of each joint (J1 J2 J2 J3 J4 J5 J6) // J2 is repeated because there are two steppers that controll it.
@@ -195,9 +196,11 @@ void loop() {
  * ------------------------- Beginning of stepper management functions -------------------------
  */
 void stepperSetup(int i){
-    listSteppers[i]->setMaxSpeed(5.0*ratios[i]*micro_stepping);
-    listSteppers[i]->setSpeed(1.0*ratios[i]*micro_stepping);
-    listSteppers[i]->setAcceleration(2.0*ratios[i]*micro_stepping);
+    double mult = 1.8;
+    listSteppers[i]->setMaxSpeed(mult*5.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setPinsInverted(inverted[i],false,false);
+    listSteppers[i]->setSpeed(mult*1.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setAcceleration(mult*2.0*ratios[i]*micro_stepping);
 }
 
 void numsToRatios(long *result,long *nums){

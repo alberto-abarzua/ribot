@@ -629,8 +629,8 @@ if __name__ == "__main__":
                 controller.cords = [x, y, z]
                 controller.euler = [A, B, C]
 
-
-        setJoints(bottom, robot_controller.get_arduino_angles())
+        angs = robot_controller.get_arduino_angles()
+        setJoints(bottom,angs)
         dirk = robot.direct_kinematics()
         pos, angles = dirk.cords,dirk.euler_angles
         # Text to display

@@ -46,11 +46,13 @@ class Controller():
 
         # Physical paramters in mm.
         self.robot.a2x = 0
-        self.robot.a2z = 178
-        self.robot.a3z = 156
-        self.robot.a4x = 54
-        self.robot.a5x = 116
-        self.robot.a6x = 156
+        self.robot.a2z = 172.48
+        self.robot.a3z = 173.5
+        self.robot.a4z = 0
+
+        self.robot.a4x = 126.2
+        self.robot.a5x = 64.1
+        self.robot.a6x = 169
 
         self.acc = 10000  # Acurray of the angles sent to the arduino.
         self.num_joints = 6
