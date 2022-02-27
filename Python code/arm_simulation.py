@@ -32,13 +32,14 @@ class Controller:
         self.cur_point_list = []
         self.cords = None
         self.euler = None
+        self.tool = None
         self.arm_controller = None
 
     def save_point(self):
         """Used to save the current position (cords,angle) of the tcp to the cur_point_list
         """
         angle = [Angle(x.rad,"rad") for x in self.euler]
-        self.cur_point_list.append(Config(self.cords, angle))
+        self.cur_point_list.append(Config(self.cords, angle,int(self.tool)))
 
     def write_file(self):
         """Used to create a new file used to run the curve generated between cur_point_list
@@ -78,6 +79,8 @@ def on_key(window, key, scancode, action, mods):
         controller.save_point()
     elif key == glfw.KEY_T:
         controller.write_file()
+    elif key == glfw.KEY_H:
+        controller.arm_controller.home_arm()
     elif key == glfw.KEY_G:
         controller.cur_file = "arm_control/data/demo{}.txt".format(FileManager().get_demo_number()-1)
         controller.new_file = True
@@ -515,6 +518,7 @@ if __name__ == "__main__":
     robot.direct_kinematics()  # We update the euler angles and xyz
     xyz,euler_angles = robot.config.cords,robot.config.euler_angles
     x, y, z = xyz
+    tool_angle = 100
     A, B, C = euler_angles
     (x_disp, y_disp, z_disp) = xyz
     A_disp, B_disp, C_disp = euler_angles
@@ -532,6 +536,7 @@ if __name__ == "__main__":
         dt = t1 - t0
         t0 = t1
         # Camera controlls
+        
         if (glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS):
             camera_theta -= 2 * dt
 
@@ -544,11 +549,18 @@ if __name__ == "__main__":
         if (glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS):
             R += 5 * dt
 
+        #Gripper controls
+        gripper_step = 40
+        if (glfw.get_key(window, glfw.KEY_MINUS) == glfw.PRESS):
+            tool_angle -= gripper_step * dt
+        if (glfw.get_key(window, glfw.KEY_EQUAL) == glfw.PRESS):
+            tool_angle += gripper_step * dt
+
         # Arm controlls
         movement_step = 50
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             x += movement_step * dt
-
+        
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
             x -= movement_step * dt
 
@@ -625,11 +637,13 @@ if __name__ == "__main__":
                 robot_controller.run_file(controller.cur_file)
 
         else:
-            if (robot_controller.move_to_point(Config([x, y, z], [A, B, C])) != "Angles out of reach"):
+            if (robot_controller.move_to_point(Config([x, y, z], [A, B, C],tool_angle)) != "Angles out of reach"):
                 controller.cords = [x, y, z]
                 controller.euler = [A, B, C]
+                controller.tool = tool_angle
 
         angs = robot_controller.get_arduino_angles()
+        
         setJoints(bottom,angs)
         dirk = robot.direct_kinematics()
         pos, angles = dirk.cords,dirk.euler_angles
@@ -643,7 +657,7 @@ if __name__ == "__main__":
         cords_text = drawText(
             textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f}", 0.03, [-0.95, -0.8, 0])
         angles_text = drawText(
-            textPipeline, f"A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f}", 0.03, [-0.95, -0.9, 0])
+            textPipeline, f"A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f}   TOOL = {int(controller.arm_controller.tool)}", 0.03, [-0.95, -0.9, 0])
 
         point_texts = []
         # Instructions to create new demo files
@@ -651,10 +665,11 @@ if __name__ == "__main__":
                 textPipeline, f"Recorded points list: press C to clear |G to play last demo| R to record | T to save demo{FileManager().get_demo_number()}.txt", 0.02, [-0.95, 0.95, 0])
         for i, elem in enumerate(controller.cur_point_list): #Only display the last 5 points
             cord, angle = elem.cords,elem.euler_angles
+            tool = elem.tool
             x_disp, y_disp, z_disp = cord
             A_disp, B_disp, C_disp = angle
             elem_text = drawText(
-                textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f} A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f}", 0.02, [-0.95, 0.9-i*0.05, 0])
+                textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f} A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f} TOOL = {tool}", 0.02, [-0.95, 0.9-i*0.05, 0])
             point_texts.append(elem_text)
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)

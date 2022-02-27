@@ -55,7 +55,7 @@ class Config:
 
     cords: List[float]
     euler_angles: List[Angle]
-    tool: None = None
+    tool: int 
 
 
 def rad2degree(angle):

@@ -31,6 +31,8 @@ const int micro_stepping = 8;
 const int acc = 10000; // Accuracy of the angles received.
 const double ratios[numSteppers] = {9.3,5.357,5.357,4.5*5.0,1.0,3.5,1.0};//Ratios between motor and joint (pulley)
 const int inverted[numSteppers] = {true,false,false,false,false,true,false};
+const int homing_dir[6] = {1,1,1,1,-1,-1};
+const int offsets[] = {-3234*micro_stepping/8,-1250*micro_stepping/8,(-5186+8998)*micro_stepping/8,-435*micro_stepping/8,-566*micro_stepping/8,0}; // Offsets of each joint in steps
 
 long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
 long angles[numSteppers] = {0}; // Array to store the angles of each joint (J1 J2 J2 J3 J4 J5 J6) // J2 is repeated because there are two steppers that controll it.
@@ -87,13 +89,23 @@ const int sensor_list[] = {hall_1,hall_2,hall_3,hall_4,hall_5,hall_6};
 
 MultiStepper steppers;
 
+// Servo motor for gripper
+
+Servo gripper;
+
+const int gripper_pin = 8;
+
+
+
 void setup() {
   Serial.begin(115200);
   for (int i =0;i<numSteppers;i++){
     steppers.addStepper((*listSteppers[i]));
     stepperSetup(i);
   }
+  gripper.attach(gripper_pin);
   Serial.print("1\n");
+  
 
   
 }
@@ -112,9 +124,9 @@ void loop() {
      *      m7 31415 31415 31415 31415 31415 31415 31415
      *      m7 7853 7853 7853 7853 7853 7853 7853
      *      m7 -7853 -7853 -7853 -7853 -7853 -7853 -7853
+     *      m7 7853 0 0 0 0 0 0
      *      m7 0 7853 7853 0 0 0 0
      *      m7 0 0 0 7853 0 0 0
-     *      m7 7853 0 0 0 0 0 0
      *      m7 0 0 0 0 7853 0 0
      *      m7 0 0 0 0 0 7853 0
      *      m7 0 0 0 0 0 0 7853
@@ -156,6 +168,52 @@ void loop() {
   else if(op == 't'){ // Operation to turn on or off testing mode.
       testing = !testing;
     }
+  else if (op == 'g'){// Operation to move the gripper servo motor RELATIVE 
+    /**
+     * Commands should follow this syntax:
+     * 
+     * g1 degress --> "g1 20" moves the servo motor 20 degrees from its current position
+     */
+    new_print = true;
+    if (n == 1){
+      int newVal = nums[0] + gripper.read();
+      if (newVal>170){
+        newVal = 170;
+      }
+      if (newVal<85){
+        newVal = 85;
+      }
+      gripper.write(newVal);
+    }else if(n==2){ // Shows the current angle of the gripper servo.
+      Serial.println(gripper.read());
+    }else if (n ==3){ // Operation to move the gripper servo motor ABSOLUTE
+    /**
+     * Commands should follow this syntax:
+     * 
+     * g1 degress --> "g1 20" moves the servo motor 20 degrees from its current position
+     */
+     int newVal = nums[0];
+      if (newVal>170){
+        newVal = 170;
+      }
+      if (newVal<85){
+        newVal = 85;
+      }
+      gripper.write(newVal);
+      
+    }
+  }else if (op == 'h'){ // Homing operation
+    new_print = true;
+    if (n ==10){
+      for(int i =0;i<6;i++){
+        homeJoint(i);
+      }
+    }else{
+      homeJoint(n);
+      
+    }
+  }
+  
   
 
   if (testing){// This is testing mode, shows and reads all sensors.
@@ -164,7 +222,7 @@ void loop() {
       Serial.print("| S");
       Serial.print(i);
       Serial.print(" = ");
-      Serial.print(digitalRead(sensor_list[i]) ? "off" : "on");
+      Serial.print(digitalRead(sensor_list[i])? "off" :"on");
       Serial.print(" | ");
     }
       Serial.print("\n");
@@ -174,9 +232,9 @@ void loop() {
   if (steppers.run() || new_print){
     long max_val= 0;
     for (int i =0;i <numSteppers;i++){
-      long cur = listSteppers[i]->distanceToGo();
-      if (abs(cur)>max_val){
-        max_val = abs(cur);
+      long cur = abs(listSteppers[i]->distanceToGo());
+      if (cur>max_val){
+        max_val = cur;
       }
       //Serial.print(cur); //<--Testing
       //Serial.print(" "); //<--Testing
@@ -209,6 +267,73 @@ void numsToRatios(long *result,long *nums){
   for (int i =0;i<numSteppers;i++){
     result[i] = (nums[i]*100*micro_stepping*ratios[i])/(PI*acc);
   }
+}
+void stepsToAngles(long *result,long *nums){
+  //Gets a list of nums representing steps and converts them into radians*accuracy
+  for (int i =0;i<numSteppers;i++){
+
+    result[i] = (PI*acc)/(nums[i]*100*micro_stepping*ratios[i]);
+  }
+}
+
+void homeJoint(int i){
+  int c =0;
+  if (i== 1){ // Homing joint 1 ( two motors)
+      angles[i] += 3.1415*acc*homing_dir[i]; 
+      angles[i+1] += 3.1415*acc*homing_dir[i];
+      numsToRatios(result,angles);
+      positions[i] = result[i];
+      positions[i+1] = result[i+1];
+      steppers.moveTo(positions);
+      
+      while(true){
+        if (digitalRead(sensor_list[i]) == 0){
+          c++;
+        }else{
+          c=0;
+        }
+        
+        if (c>=7){
+         
+          listSteppers[i]->setCurrentPosition(offsets[i]*homing_dir[i]*-1);
+          listSteppers[i+1]->setCurrentPosition(offsets[i]*homing_dir[i]*-1);
+          positions[i] = 0;
+          positions[i+1] = 0;
+          angles[i] = 0;
+          angles[i+1] = 0;
+          steppers.moveTo(positions);
+          break;
+        }
+        steppers.run();
+    }
+  }else{
+    int prev = i;
+    if (i >0){
+      i ++;
+    }
+    angles[i] += 2*3.1415*acc*homing_dir[prev]; 
+    numsToRatios(result,angles);
+    positions[i] = result[i];
+    steppers.moveTo(positions);
+    while(true){
+      if (digitalRead(sensor_list[prev]) == 0){
+          c++;
+        }else{
+          c=0;
+        }
+      
+      if (c>=7){
+        listSteppers[i]->setCurrentPosition(offsets[prev]*homing_dir[prev]*-1);
+        positions[i] = 0;
+        angles[i] =0;
+        steppers.moveTo(positions);
+        break;
+      }
+      steppers.run();
+  }
+    
+  }
+    
 }
 
 
