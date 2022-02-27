@@ -155,7 +155,7 @@ class Controller():
         """
         while(self.arduino_status != "1"):
             self.arduino_status = self.read()
-            time.sleep(0.000001)
+            time.sleep(0.0000001)
 
     def move_gripper_to(self,angle):
         """Moves the gripper to a certain angle configuration
@@ -239,7 +239,7 @@ class Controller():
             dist1 = np.linalg.norm(cords_ini-cords_fin)
             dist2 = np.linalg.norm(euler_ini-euler_fin)*60
             dist = max(dist1,dist2,1/5)
-            n = int(dist)*5
+            n = int(dist*1.5)
         t = 0
         if (n ==0): #This means only the tool was changed
             n = abs(tool_ini-tool_fin)
