@@ -180,10 +180,11 @@ void loop() {
       if (newVal>170){
         newVal = 170;
       }
-      if (newVal<85){
-        newVal = 85;
+      if (newVal<80){
+        newVal = 80;
       }
       gripper.write(newVal);
+      delay(15);
     }else if(n==2){ // Shows the current angle of the gripper servo.
       Serial.println(gripper.read());
     }else if (n ==3){ // Operation to move the gripper servo motor ABSOLUTE
@@ -196,10 +197,11 @@ void loop() {
       if (newVal>170){
         newVal = 170;
       }
-      if (newVal<85){
-        newVal = 85;
+      if (newVal<80){
+        newVal = 80;
       }
       gripper.write(newVal);
+      delay(15);
       
     }
   }else if (op == 'h'){ // Homing operation
@@ -254,7 +256,7 @@ void loop() {
  * ------------------------- Beginning of stepper management functions -------------------------
  */
 void stepperSetup(int i){
-    double mult = 1.8;
+    double mult = 3.2;
     listSteppers[i]->setMaxSpeed(mult*5.0*ratios[i]*micro_stepping);
     listSteppers[i]->setPinsInverted(inverted[i],false,false);
     listSteppers[i]->setSpeed(mult*1.0*ratios[i]*micro_stepping);
