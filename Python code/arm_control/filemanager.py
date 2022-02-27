@@ -32,6 +32,35 @@ class Instruction:
         raise NotImplementedError("This method is not implemented")
 
 
+class ToolAngleInstruction(Instruction):
+    """Tool angle instruction used to create instructons for the robot's tool
+
+    Args:
+        Instruction (_type_): _description_
+    """
+
+    def __init__(self, value) -> None:
+        """Tool angle instruction,
+
+        Args:
+            value (int): angle of the tool to be stored.
+        """
+        super().__init__(value)
+        if (type(value) is str):
+            self.value = int(value[2:].strip())
+
+    @property
+    def line(self):
+        """Gets the string representation of the instruction. Used to store the instruction in
+        a file.
+
+        Returns:
+            str: string representation.
+        """
+        return "t {}\n".format(int(self.value))
+
+
+
 class CordAngleInstruction(Instruction):
     """Used to store in a file a position and angles for the tcp
     """
@@ -59,7 +88,7 @@ class CordAngleInstruction(Instruction):
             l = [float(x) for x in self.value[2:].split(" ")]
             cords = l[:3]
             angles = [Angle(x, "rad") for x in l[3:]]
-            return Config(cords,angles)
+            return Config(cords,angles,None)
 
         return self.value
 
@@ -98,8 +127,10 @@ class FileManager():
         result = []
         for elem in curve:
             cord = elem[:3]
-            angle = [Angle(x, "rad") for x in elem[3:]]
-            result.append(CordAngleInstruction(Config(cord,angle)))
+            angle = [Angle(x, "rad") for x in elem[3:-1]]
+            tool = elem[6]
+            result.append(CordAngleInstruction(Config(cord,angle,tool)))
+            result.append(ToolAngleInstruction(tool))
         return result
 
     def get_demo_number(self):

@@ -9,7 +9,7 @@ from arm_utils.armTransforms import Config
 import time
 import serial
 from arm_control.arduino_dummy import DummyArduino
-from arm_control.filemanager import CordAngleInstruction, FileManager
+from arm_control.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
 
 from serial.serialutil import SerialException
 
@@ -57,12 +57,17 @@ class Controller():
         self.acc = 10000  # Acurray of the angles sent to the arduino.
         self.num_joints = 6
         self.angles = [Angle(0, "rad") for _ in range(self.num_joints)]
+        self.tool = 100
         self.arduino_angles = [0 for _ in range(self.num_joints)]
+        
 
         self.filem = FileManager()
         self.cur_file = None
         self.read_val = None
         self.arduino_status = None
+
+    
+
 
     def run_file(self, file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
@@ -94,6 +99,10 @@ class Controller():
             angles = self.robot.inverse_kinematics(config)
             assert angles != None, f"Config that failed: cords: {config.cords} and angles: {config.euler_angles}"
             self.move_to_angle_config(angles)
+        if(cur_line[0] == "t"):
+            instruct = ToolAngleInstruction(cur_line)
+            tool = instruct.value
+            self.move_gripper_to(tool)
 
         return True
 
@@ -147,7 +156,22 @@ class Controller():
         while(self.arduino_status != "1"):
             self.arduino_status = self.read()
             time.sleep(0.000001)
-            
+
+    def move_gripper_to(self,angle):
+        """Moves the gripper to a certain angle configuration
+
+        Args:
+            angle (int): integer that represents the angle configuration of the gripper
+        """
+        if (self.tool == int(angle)):
+            return None
+        self.send_command(com.GripperCommand(self,int(angle)))
+        self.tool = int(angle)
+
+    def home_arm(self):
+        """Homes all the joints of the arm (runs the home command)"""
+        self.send_command(com.HomeComand(self))
+        
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).
 
@@ -173,6 +197,7 @@ class Controller():
         if (next_angles is None):
             return "Angles out of reach"
         self.move_to_angle_config(next_angles)
+        self.move_gripper_to(config.tool)
 
     def gen_curve_points(self, points):
         """Generates curves ptp from a list of points
@@ -205,6 +230,7 @@ class Controller():
         """
         cords_ini, euler_ini = p1.cords,p1.euler_angles
         cords_fin, euler_fin = p2.cords,p2.euler_angles
+        tool_ini,tool_fin = p1.tool,p2.tool
         cords_ini = np.array(cords_ini)
         cords_fin = np.array(cords_fin)
         euler_ini = np.array([angle.rad for angle in euler_ini])
@@ -214,15 +240,19 @@ class Controller():
             dist2 = np.linalg.norm(euler_ini-euler_fin)*60
             dist = max(dist1,dist2,1/5)
             n = int(dist)*5
-        result = np.zeros((n+1, 6))
         t = 0
+        if (n ==0): #This means only the tool was changed
+            n = abs(tool_ini-tool_fin)
         step = 1/n
+        result = np.zeros((n+1, 7))
         for i in range(n+1):
             cur_cords = cords_ini * (1-t) + cords_fin*(t)
+            cur_tool =  tool_ini * (1-t) + tool_fin*(t) 
             cur_euler = euler_ini*(1-t) + euler_fin*(t)
-            cur_config = Config(cur_cords,[Angle(angle,"rad") for angle in cur_euler])
+            cur_config = Config(cur_cords,[Angle(angle,"rad") for angle in cur_euler],cur_tool)
             assert self.robot.inverse_kinematics(cur_config) != None
             cur_post = np.append(cur_cords, cur_euler, axis=0)
+            cur_post= np.append(cur_post,np.array([cur_tool]),axis=0)
             cur_post = np.transpose(cur_post)
             t += step
             result[i] += cur_post

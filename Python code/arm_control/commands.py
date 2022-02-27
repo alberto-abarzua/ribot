@@ -71,4 +71,47 @@ class GripperCommand(Command):
     """Class used to send a command to the robot's tool (gripper), not yet implemented.
 
     """
-    pass
+    def __init__(self, controller,angle) -> None:
+        """GripperCommand used to move the robot't tool
+
+        Args:
+            controller (Controller): controller of the arm
+            angle (int): interger between (85 and 170) representing the state of the gripper.
+        """
+        super().__init__(controller)
+        self.angle = angle
+
+
+    @property
+    def message(self):
+        """Generates the message that will be sent to the arduino
+
+        Returns:
+            str: message to the arduino to do this command
+        """
+        return "g3 {}\n".format(self.angle)
+
+    def send(self):
+        """Sends the command to the controllers arduino.
+        """
+        super().send()
+
+class HomeComand(Command):
+    """Command used to home the joints of the robot arm, gets the arm to it's home position"""
+    def __init__(self, controller) -> None:
+        super().__init__(controller)
+
+    @property
+    def message(self):
+        """Generates the message that will be sent to the arduino
+
+        Returns:
+            str: message to the arduino to do this command
+        """
+        return "h10\n"
+
+    def send(self):
+        """Sends the command to the controllers arduino.
+        """
+        super().send()
+        
