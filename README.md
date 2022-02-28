@@ -24,13 +24,7 @@ Video with the arm working
 <https://youtu.be/y-Uy8BWoXXg>
 
 ### Current version of the arm using stepper motors and Arduino Mega.
-![Current version of the arm using servo motors.](https://i.ibb.co/6v71SMv/stepper-arm-1.jpg)
-<p>
-Not a really good test video but the current arm is disassembled, sadly I did not 
-record any other viedo.
-</p>
-
-<https://youtu.be/bNo2X5EaJBo>
+Coming soon...
 
 ### About arduino (C\C++) and design:
 <p> The arduino code receives commands through serial comunication, most of this is ready.</p>
