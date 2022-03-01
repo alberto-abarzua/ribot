@@ -12,10 +12,6 @@ roll, pitch and yaw also known as euler angles.
 - A certain TCP state can be achieved with multiple angle configurations of each joint. (Inverse Kinematics can have multiple solutions)
 - A certain angle configurations of the joints can only achieve one TCP state.
 
-
-<p> As this is a project in development, there are still things to improve. The previous iteration of the robot arm (design and 3D prints) had multiple flaws, most of them related to hardware issues (stepper motors, drivers and belts) due to these issues most of the arm is going to be redesigned.
-</p>
-
 ## Photos and videos of the arm and it's evolution.
 
 ### First robot arm (4DOF) using servo motors and Arduino Uno
@@ -24,21 +20,23 @@ Video with the arm working
 <https://youtu.be/y-Uy8BWoXXg>
 
 ### Current version of the arm using stepper motors and Arduino Mega.
-Coming soon...
+![Whole view](https://i.ibb.co/4WtFVFL/8-E2-F34-B1-2-A22-40-E4-8-CC6-2-BCDFD35-D6-A7.jpg)
+Video of the current version of the arm working:
+<https://youtu.be/Nz6M56jV3Vw>
 
 ### About arduino (C\C++) and design:
-<p> The arduino code receives commands through serial comunication, most of this is ready.</p>
+<p> The arduino code receives commands through serial comunication to control the steppers for each joint and the servo motor
+    of the robot's gripper. There are multiple commands to move the robot these are defined and explained in the arduino code.</p>
+    
 <p>The arm displayed in the last photo was built using the following main components:</p>
 
 - 2 x Nema 23 Stepper motors
 - 5 x Various sizes of Nema 17 Stepper motors
 - Arduino Mega 2560
 - 24V power supply
-- 2 x S109 stepper motor driver 
-- 5 x A4988 stepper motor driver
+- 7 x TB6600 stepper motor driver.
 - 6 x hall effect sensors (Used to home each Joint)
-
-<p> I expect to improve the design replacing the S109 stepper drivers with TB6600 drivers because of cooling issues that made them thermaly shut down during operation. Replace the GT2 belts and pulleys with T5 belts (this belt profile works better with 3d printed parts), improve the wiring, etc. As electronics and hardware are not part of my current degree (Ingenieria Civil en Ciencias de la Computacion) they are the hardest areas of this project to improve.</p>
+- MG995 servo motor (Part of the robot's tool)
 
 ## About the Python Code.
 
