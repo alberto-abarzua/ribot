@@ -557,7 +557,7 @@ if __name__ == "__main__":
             tool_angle += gripper_step * dt
 
         # Arm controlls
-        movement_step = 50
+        movement_step = 25
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             x += movement_step * dt
         
