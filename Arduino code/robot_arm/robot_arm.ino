@@ -243,7 +243,7 @@ void loop() {
     }
     //Serial.print(" max_val: "); //<--Testing
     //Serial.print(max_val); //<--Testing
-    if ((max_val <micro_stepping && new_print)){
+    if ((max_val <16 && new_print)){
       Serial.print("1\n");
       new_print = false;
     }
@@ -256,11 +256,11 @@ void loop() {
  * ------------------------- Beginning of stepper management functions -------------------------
  */
 void stepperSetup(int i){
-    double mult = 3.2;
-    listSteppers[i]->setMaxSpeed(mult*5.0*ratios[i]*micro_stepping);
+    double mult = (5.0/8.0)*6.0;
     listSteppers[i]->setPinsInverted(inverted[i],false,false);
-    listSteppers[i]->setSpeed(mult*1.0*ratios[i]*micro_stepping);
-    listSteppers[i]->setAcceleration(mult*2.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setMaxSpeed(mult*2.0*ratios[i]*micro_stepping);
+    listSteppers[i]->setSpeed(mult*ratios[i]*micro_stepping);
+    listSteppers[i]->setAcceleration(mult*30.0*ratios[i]*micro_stepping);
 }
 
 void numsToRatios(long *result,long *nums){
