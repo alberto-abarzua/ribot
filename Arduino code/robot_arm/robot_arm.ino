@@ -32,7 +32,7 @@ const int acc = 10000; // Accuracy of the angles received.
 const double ratios[numSteppers] = {9.3,5.357,5.357,4.5*5.0,1.0,3.5,1.0};//Ratios between motor and joint (pulley)
 const int inverted[numSteppers] = {true,false,false,false,false,true,false};
 const int homing_dir[6] = {1,1,1,1,-1,-1};
-const int offsets[] = {-3234*(micro_stepping/8),-1250*(micro_stepping/8),(-5186+8998)*(micro_stepping/8),-435*(micro_stepping/8),-566*(micro_stepping/8),0}; // Offsets of each joint in steps
+const int offsets[] = {-3234*(micro_stepping/8),-1250*(micro_stepping/8),(-5186+8998)*(micro_stepping/8),-435*(micro_stepping/8),-566*(micro_stepping/8),-75*(micro_stepping/8)}; // Offsets of each joint in steps
 
 long positions[numSteppers] = {0};//Array to store the positions where the steppers should be. (in steps)
 long angles[numSteppers] = {0}; // Array to store the angles of each joint (J1 J2 J2 J3 J4 J5 J6) // J2 is repeated because there are two steppers that controll it.
@@ -180,8 +180,8 @@ void loop() {
       if (newVal>170){
         newVal = 170;
       }
-      if (newVal<80){
-        newVal = 80;
+      if (newVal<60){
+        newVal = 60;
       }
       gripper.write(newVal);
       delay(15);
@@ -197,8 +197,8 @@ void loop() {
       if (newVal>170){
         newVal = 170;
       }
-      if (newVal<80){
-        newVal = 80;
+      if (newVal<60){
+        newVal = 60;
       }
       gripper.write(newVal);
       delay(15);
