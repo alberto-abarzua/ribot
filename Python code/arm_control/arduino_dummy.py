@@ -45,7 +45,6 @@ class DummyArduino():
         """
         message = message.decode()
         print(message)
-        return None
         m_value = self.max_value_from_command(command=message)
         self.max_values.append(m_value)
         self.received_lines.append(message)

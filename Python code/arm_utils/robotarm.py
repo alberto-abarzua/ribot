@@ -124,7 +124,7 @@ class RobotArm:
         rotation = R1@R2@R3@R4@R5@R6
         euler_angles = rotationMatrixToEulerAngles(rotation)
         pos = list(position[:3, 0])
-        self.config = Config(pos,euler_angles,None)
+        self.config = Config(pos,euler_angles)
         return self.config
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------

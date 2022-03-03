@@ -66,7 +66,8 @@ class robot_controller_tests(unittest.TestCase):
             joints, self.controller.get_arduino_angles()))
 
     def test_move_to_point(self):
-        cords = [326, 0, 334]
+        
+        cords = self.controller.robot.direct_kinematics([Angle(0,"rad") for i in range(6)]).cords
         euler = [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")]
         # Moving to initial position
         self.controller.move_to_point(Config(cords,euler))
