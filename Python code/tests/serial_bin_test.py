@@ -1,13 +1,18 @@
+from sre_constants import IN
 import serial
 import time
-from arm_control.bins import *
 import random
 import numpy as np
+import os
+import sys
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from arm_control.bins import *
+from arm_control.status import *
 
 """
 
-Tests for the arduino serial comunication.
+Tests for the arduino serial comunication.  (not unittesting)
 
 
 """
@@ -23,7 +28,7 @@ def my_read(times = -1,show = True):
         res = arduino.read(1)
         try:
             res = res.decode()
-            assert(res == "1")
+            assert(res == READY_STATUS)
             if(res == "\r\n<LOOP>;"):
                 continue;
             if(show):
@@ -32,7 +37,7 @@ def my_read(times = -1,show = True):
             print("invalid char")
         times -=1
 
-def stress(iters,every =10):
+def stress(iters):
     commands = [("m",1)]
     results = np.zeros(iters);
     print("Starting stress test")
@@ -53,7 +58,7 @@ if __name__=="__main__":
     arduino.close()
     arduino.open()
 
-    if (arduino.read(1).decode() == "0"):
+    if (arduino.read(1).decode() == INITIALIZED):
         print("Arduino initilized")
 
 
@@ -62,4 +67,3 @@ if __name__=="__main__":
     r = stress(9000)
     s_end = time.perf_counter()
     print("Average time between command and response",np.average(r),"lasting overall ",(s_end-s_start),"seconds")
-    # read()

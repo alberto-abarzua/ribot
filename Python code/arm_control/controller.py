@@ -12,7 +12,7 @@ from arm_control.arduino_dummy import DummyArduino
 from arm_control.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
 
 from serial.serialutil import SerialException
-
+from arm_control.status import *
 
 __author__ = "Alberto Abarzua"
 
@@ -106,13 +106,15 @@ class Controller():
 
         return True
 
-    def read(self):
+    def read(self,nbytes =1):
         """Read a line from the arduino.
+         Args:
+            nbytes (int): number of bytes that will be read
         Returns:
             str: decoded line read from the arduino
         """
         if (self.arduino.in_waiting > 1):
-            val = self.arduino.readline()
+            val = self.arduino.read(nbytes)
             try:
                 val.decode()
             except Exception as e:
@@ -153,7 +155,7 @@ class Controller():
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
-        while(self.arduino_status != "1"):
+        while(self.arduino_status != READY_STATUS):
             self.arduino_status = self.read()
             time.sleep(0.0000001)
 
