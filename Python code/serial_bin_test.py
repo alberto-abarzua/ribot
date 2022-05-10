@@ -1,3 +1,4 @@
+from socket import timeout
 import serial
 import time
 from arm_control.bins import *
@@ -8,22 +9,29 @@ import random
 
 
 
-arduino = serial.Serial(baudrate = 9600,port ="COM6")
+arduino = serial.Serial(baudrate = 9600,port ="COM6",timeout=5)
 arduino.close()
 arduino.open()
 
-print("c".encode())
 time.sleep(1)
 
 val = ""
 
-
-
-for _ in range(10):
-    args = [random.randint(-21321313,21321313) for i in range(random.randint(0,10))]
-    m = Message(random.choice(string.ascii_letters),random.randint(0,10),args)
+def run(m):
     m = m.encode()
     arduino.write(m)
-    time.sleep(0.001)
-    res = arduino.read_until()
+    time.sleep(0.2)
+    res = arduino.read_until(";".encode(),)
     print(res.decode())
+
+
+
+run(Message("d",1,[]))
+run(Message("k",1,[]))
+
+run(Message("d",1,[]))
+# run(Message("k",1,[900,200,900,900,900,3]))
+
+# time.sleep(0.2)
+
+# run(Message("k",1,[]))
