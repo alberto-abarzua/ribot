@@ -1,25 +1,22 @@
 #include "Arduino.h"
 #include "coms.h"
 
+
+
+
 //Global vars
 const int MAX_SIZE = 512;
 const int MAX_ARGS = 32;
-long ARGS[MAX_ARGS];
+long * ARGS;
 bool NEW_DATA;
-Message M(ARGS);
-byte BUF[MAX_SIZE];
+Message* M;
+byte * BUF;
 
-
-
-Message::Message(char nop,long ncode,long *nargs,int nnum_args){
-    op = nop;
-    code =ncode;
-    num_args = nnum_args;
-    for (int i =0;i<num_args;i++){
-       args[i] = nargs[i];
-    }
-  }
-
+void init_coms(){
+   BUF =(byte *) malloc(sizeof(byte)*MAX_SIZE);
+   ARGS = (long *)malloc(sizeof(long)*MAX_ARGS);
+   M = new Message(ARGS);
+}
 
 Message::Message(long*nargs){
     op = ' ';
@@ -107,7 +104,7 @@ bool run_reader(){
    NEW_DATA = true;
    my_read(BUF,MAX_SIZE,&NEW_DATA);//Reads the char from serial
    if(!NEW_DATA){
-      getMessage(BUF,&M);
+      getMessage(BUF,M);
    }
    return NEW_DATA;
 }
@@ -116,21 +113,25 @@ bool new_data(){
    return NEW_DATA;
 }
 Message * getM(){
-   return &M;
+   return M;
 }
 
 char getOP(){
-   return M.op;
+   return M->op;
 }
 
 int getCode(){
-   return M.code;
+   return M->code;
 }
 
 long * getArgs(){
-   return M.args;
+   return M->args;
 }
 
 int getNumArgs(){
-   return M.num_args;
+   return M->num_args;
+}
+
+void set_status(char status){
+   Serial.write(status);
 }

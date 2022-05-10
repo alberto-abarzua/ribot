@@ -1,9 +1,16 @@
 #ifndef coms_h
 #define coms_h
+
+//Status
+#define READY_STATUS '1'
+#define INITIALIZED '0'
+
+
 /**
  * @brief Message class, used to create new messages.
  * 
  */
+
 class Message{
   public:
     char op;
@@ -53,8 +60,8 @@ int getNumArgs();
 long * getArgs();
 int getCode();
 char getOP();
-
-
+void init_coms();
+void set_status(char status);
 
 
 

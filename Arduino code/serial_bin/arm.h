@@ -36,7 +36,7 @@ class Joint{
     void Joint::create_sensor(int pin);
     void Joint::show();
     void Joint::motor_setup();
-    void Joint::add_angle(long angle);
+    void Joint::add_angle(long val);
 
 
 };
@@ -63,7 +63,6 @@ class Arm{
     void Arm::build_joints();
     void Arm::show();
     void Arm::create_gripper(int pin);
-    void Arm::set_pos(long * positions);
     void Arm::run();
     void Arm::add(long * args);
     void Arm::show_pos();

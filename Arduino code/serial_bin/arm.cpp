@@ -13,8 +13,8 @@ const int ACC= 10000; // Accuracy of the angles received.
 Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int joint_num_steppers){
     jn_steppers = joint_num_steppers;
 
-    motors = malloc(sizeof (AccelStepper *)*joint_num_steppers);
-    sensor = malloc(sizeof(Sensor *));
+    motors =(AccelStepper **) malloc(sizeof (AccelStepper *)*joint_num_steppers);
+    sensor = (Sensor *) malloc(sizeof(Sensor *));
     for (int i =0;i<jn_steppers;i++) motors[i]=NULL;
     ratio = a_ratio;
     inverted = a_inverted;
@@ -56,8 +56,8 @@ void Joint::show(){
 
 Arm::Arm(int n_joints){
     num_joins = n_joints;
-    joints = malloc(sizeof(Joint *)*n_joints);
-    sensors = malloc(sizeof(Sensor *)*n_joints);
+    joints = (Joint **)malloc(sizeof(Joint *)*n_joints);
+    sensors =(Sensor **) malloc(sizeof(Sensor *)*n_joints);
     idx=0;
     m_idx =0;
     num_motors =0;
@@ -74,7 +74,7 @@ void Arm::build_joints(){
         num_motors+= joints[i]->jn_steppers; //First count the amount of motors
     }
     //We create an array to store them
-    motors =malloc(sizeof(AccelStepper *)*num_motors);
+    motors =(AccelStepper **) malloc(sizeof(AccelStepper *)*num_motors);
     int spot= 0;
     for (int i =0;i<num_joins;i++){
 
@@ -91,7 +91,7 @@ void Arm::build_joints(){
 void Arm::show(){
     Serial.print("Num motors ");
     Serial.print(num_motors);
-        Serial.println("  -  ");
+    Serial.println("  -  ");
     for(int i =0;i<num_joins;i++){
         joints[i]->show();
     }
@@ -105,8 +105,7 @@ void Arm::create_gripper(int pin){
 
 void Joint::add_angle(long val){
     angle+=val;
-    position += val;
-    //position = (long) ((angle*100*MICRO_STEPPING*ratio)/(PI*ACC));
+    position = (long) ((angle*100*MICRO_STEPPING*ratio)/(PI*ACC));
 }
 
 void Arm::run(){
