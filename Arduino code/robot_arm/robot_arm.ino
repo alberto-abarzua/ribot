@@ -157,7 +157,6 @@ void loop() {
         
 
       default:
-        set_status(UNK);
         break;
     }
 

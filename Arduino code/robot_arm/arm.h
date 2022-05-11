@@ -7,6 +7,9 @@
 
 
 #define MICRO_STEPPING 16
+#define ACC 10000
+#define motorInterfaceType 1
+
 
 /**
  * @brief Sensor class, used to create a sensor that each joint uses
@@ -89,7 +92,10 @@ class Joint{
 
 
 
-
+/**
+ * @brief Arm class, used to create a new robot arm.
+ * 
+ */
 class Arm{
   public:
 

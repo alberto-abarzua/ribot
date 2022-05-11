@@ -22,7 +22,7 @@ Tests for the arduino serial comunication.  Must be connected to real arduino wi
 Port to be used should be defined here:
 
 """
-DEFAULT_PORT  = "COM6"
+DEFAULT_PORT  = "COM8"
 
 
 class serial_bin_test(unittest.TestCase):
@@ -38,12 +38,9 @@ class serial_bin_test(unittest.TestCase):
             try:
                 res = res.decode()
                 assert(res == READY_STATUS)
-                if(res == "\r\n<LOOP>;"):
-                    continue;
-                if(show):
-                    print(res)
+                
             except:
-                print("invalid char")
+                print("invalid char {}".format(res))
             times -=1
 
     def stress(self,iters):
@@ -77,8 +74,7 @@ class serial_bin_test(unittest.TestCase):
         self.my_run(Message("m",1,[900,900,900,900,900,900]))
         self.my_run(Message("i",1,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()
-        idx = res.index("angles:")
-        self.assertEqual(res[idx:],"angles:  900 900 900 900 900 900 ;")
+        self.assertTrue("angles:  900 900 900 900 900 900" in res)
 
 
 
@@ -100,8 +96,7 @@ class serial_bin_test(unittest.TestCase):
     def step4(self):
         self.my_run(Message("i",1,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()
-        idx = res.index("angles:")
-        self.assertEqual(res[idx:],"angles:  1800 1800 1800 1800 1800 1800 ;")
+        self.assertTrue("angles:  1800 1800 1800 1800 1800 1800" in res)
 
     def step5(self):
         "Stress test"
@@ -111,9 +106,10 @@ class serial_bin_test(unittest.TestCase):
         print("Average time between command and response",np.average(r),"lasting overall ",(s_end-s_start),"seconds")
 
     def step6(self):
-        self.my_run(Message("D",0,[]))
+        self.my_run(Message("i",3,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()
-        print(repr(str(res)))
+        self.assertEqual(res,"Sensors:  S1 OFF S2 OFF S3 OFF S4 OFF S5 OFF S6 OFF;")
+
 
 
     def steps(self):
@@ -138,7 +134,7 @@ if __name__=="__main__":
 
 
     if (len(sys.argv) ==1):
-        port = "COM6"
+        port = DEFAULT_PORT
     else:
         port = sys.argv[1]
     

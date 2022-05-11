@@ -1,13 +1,31 @@
 #include "Arduino.h"
 #include "arm.h"
 
+/**
+-----------------------------
+-----------     Sensor     -----------
+-----------------------------
 
-#define motorInterfaceType 1
+ */
 
-const int ACC= 10000; // Accuracy of the angles received.
+
  Sensor::Sensor(int new_pin){
      pin = new_pin;
  }
+
+
+bool Sensor::read(){
+    return !digitalRead(pin);
+}
+
+
+/**
+-----------------------------
+-----------     Joint     -----------
+-----------------------------
+
+ */
+
 
 
 Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers){
@@ -24,6 +42,31 @@ Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int jo
     position =0;
 }
 
+void Joint::home(MultiStepper * m){
+    int times_activated = 0;
+    int tolerance = 7;
+    while(true){
+        if (sensor->read()){
+            times_activated++;
+        }else{
+            times_activated =0;
+        }
+
+        if (times_activated>=tolerance){
+            for (int i =0 ;i<jn_steppers;i++){
+                motors[i]->setCurrentPosition(offset*homing_dir*-1);
+                position=0;
+                angle=0;
+                motors[i]->moveTo(position);
+            }
+                break;
+        }
+
+        for (int i =0 ;i<jn_steppers;i++){
+                motors[i]->run();
+            }
+    }
+}
 
 void Joint::create_motor(int step_pin,int dir_pin){
     int idx = 0;
@@ -54,6 +97,30 @@ void Joint::show(){
     Serial.println(jn_steppers);
 }
 
+void Joint::add_angle(long val){
+    angle+=val;
+    position = (long) ((ratio*angle*100*MICRO_STEPPING)/(PI*ACC));
+    for(int i =0;i<jn_steppers;i++){
+        motors[i]->moveTo(position);
+    }
+}
+
+void Joint::launch_home(){
+    add_angle(3.1415*ACC*homing_dir);
+    for (int i =0 ;i<jn_steppers;i++){
+      motors[i]->moveTo(position);
+    }
+}
+
+
+/**
+-----------------------------
+-----------     Arm     -----------
+-----------------------------
+
+ */
+
+
 Arm::Arm(int n_joints){
     num_joins = n_joints;
     joints = (Joint **)malloc(sizeof(Joint *)*n_joints);
@@ -64,30 +131,6 @@ Arm::Arm(int n_joints){
     idx=0;
     m_idx =0;
     num_motors =0;
-
-
-}
-void Arm::register_joint(Joint* joint){
-    joints[idx] = joint;
-    joints[idx]->index = idx;
-    idx++;
-}
-void Arm::build_joints(){
-    for (int i =0;i<num_joins;i++){
-        num_motors+= joints[i]->jn_steppers; //First count the amount of motors
-    }
-    //We create an array to store them
-    motors =(AccelStepper **) malloc(sizeof(AccelStepper *)*num_motors);
-    int spot= 0;
-    for (int i =0;i<num_joins;i++){
-
-        joints[i]->motor_setup();
-        for (int j =0;j<joints[i]->jn_steppers;j++){
-            motors[spot] = joints[i]->motors[j];
-            steppers->addStepper(*motors[spot]);
-            spot ++;
-        }
-    }
 
 }
 
@@ -111,13 +154,7 @@ void Arm::set_gripper_angle(int val){
     gripper->write(val);
 }
 
-void Joint::add_angle(long val){
-    angle+=val;
-    position = (long) ((ratio*angle*100*MICRO_STEPPING)/(PI*ACC));
-    for(int i =0;i<jn_steppers;i++){
-        motors[i]->moveTo(position);
-    }
-}
+
 
 void Arm::run(){
     for (int i =0;i<num_motors;i++){
@@ -154,48 +191,9 @@ void Arm::show_pos(){
         Serial.print(" ");
 
     }
-
-
-
-
 }
 
-bool Sensor::read(){
-    return !digitalRead(pin);
-}
 
-void Joint::launch_home(){
-    add_angle(3.1415*ACC*homing_dir);
-    for (int i =0 ;i<jn_steppers;i++){
-      motors[i]->moveTo(position);
-    }
-}
-
-void Joint::home(MultiStepper * m){
-    int times_activated = 0;
-    int tolerance = 7;
-    while(true){
-        if (sensor->read()){
-            times_activated++;
-        }else{
-            times_activated =0;
-        }
-
-        if (times_activated>=tolerance){
-            for (int i =0 ;i<jn_steppers;i++){
-                motors[i]->setCurrentPosition(offset*homing_dir*-1);
-                position=0;
-                angle=0;
-                motors[i]->moveTo(position);
-            }
-                break;
-        }
-
-        for (int i =0 ;i<jn_steppers;i++){
-                motors[i]->run();
-            }
-    }
-}
 
 void Arm::home(){
     for(int i =0;i< num_joins;i++){
@@ -217,4 +215,31 @@ void Arm::show_sensors(){
         Serial.print(" ");
         Serial.print(joints[i]->sensor->read()?"ACTIVE" : "OFF");
     }
+}
+
+
+
+void Arm::register_joint(Joint* joint){
+    joints[idx] = joint;
+    joints[idx]->index = idx;
+    idx++;
+}
+
+void Arm::build_joints(){
+    for (int i =0;i<num_joins;i++){
+        num_motors+= joints[i]->jn_steppers; //First count the amount of motors
+    }
+    //We create an array to store them
+    motors =(AccelStepper **) malloc(sizeof(AccelStepper *)*num_motors);
+    int spot= 0;
+    for (int i =0;i<num_joins;i++){
+
+        joints[i]->motor_setup();
+        for (int j =0;j<joints[i]->jn_steppers;j++){
+            motors[spot] = joints[i]->motors[j];
+            steppers->addStepper(*motors[spot]);
+            spot ++;
+        }
+    }
+
 }
