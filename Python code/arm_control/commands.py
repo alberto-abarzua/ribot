@@ -50,7 +50,7 @@ class MoveCommand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
         rad_times_acc_angles = [
             str(round(angle.rad*self.controller.acc)) for angle in self.angles]
@@ -88,9 +88,9 @@ class GripperCommand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
-        return "g3 {}\n".format(self.angle)
+        return bins.Message("g",1,[self.angle])
 
     def send(self):
         """Sends the command to the controllers arduino.
@@ -107,9 +107,9 @@ class HomeComand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
-        return "h10\n"
+        return  bins.Message('h',0)
 
     def send(self):
         """Sends the command to the controllers arduino.

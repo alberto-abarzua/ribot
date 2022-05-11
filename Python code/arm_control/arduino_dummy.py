@@ -1,6 +1,6 @@
 
 import time
-
+from . import bins
 __author__ = "Alberto Abarzua"
 
 
@@ -50,13 +50,15 @@ class DummyArduino():
         Args:
             message (bytes): Encoded str that the arduino will receive.
         """
-        message = message.decode()
+        
+        message = bins.decode_message(message)
         print(message)
         m_value = self.max_value_from_command(command=message)
+        message = str(message)
         self.max_values.append(m_value)
         self.received_lines.append(message)
         if(self.log != None):
-            self.log.write(message)
+            self.log.write(message+"\n")
         if (len(self.received_lines) > 100):
             self.received_lines.clear()
             self.max_values.clear()
@@ -74,6 +76,4 @@ class DummyArduino():
         Returns:
             int: max value in the command
         """
-        command = command[3:].strip().split(" ")
-        max_val = max([int(x) for x in command])
-        return max_val
+        return max(command.args)

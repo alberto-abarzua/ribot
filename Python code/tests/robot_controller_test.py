@@ -32,25 +32,13 @@ class robot_controller_tests(unittest.TestCase):
         self.controller = ctrl.Controller()
         self.arduino = self.controller.arduino
 
-    def test_arduino_dummy(self):
-        self.assertEqual("1", self.controller.read())
-        self.assertEqual(12, self.controller.arduino.in_waiting)
-        self.assertEqual(
-            50, self.controller.arduino.max_value_from_command("m7 0 0 0 0 50 0 0"))
-        self.assertEqual(
-            150, self.controller.arduino.max_value_from_command("m7 0 150 0 0 50 0 0"))
-        self.assertEqual(1000, self.controller.arduino.max_value_from_command(
-            "m7 1000 150 0 0 50 0 0"))
-        self.assertEqual(1000, self.controller.arduino.max_value_from_command(
-            "m7 0 150 0 0 50 0 1000"))
-
     def test_move_command(self):
         joints = [Angle(np.pi, "rad"), Angle(2*np.pi, "rad"), Angle(np.pi, "rad"),
                   Angle(np.pi, "rad"), Angle(np.pi, "rad"), Angle(np.pi, "rad")]
         m_command = com.MoveCommand(self.controller, joints)
         self.controller.send_command(m_command)
         self.assertEqual(
-            "m7 31416 62832 62832 31416 31416 31416 31416\n", self.arduino.received_lines[0])
+            "m1 31416 62832 31416 31416 31416 31416", self.arduino.received_lines[0])
         self.assertEqual([31416, 62832, 31416, 31416, 31416,
                          31416], self.controller.arduino_angles)
         self.assertTrue(self.angleAllClose(
@@ -58,7 +46,7 @@ class robot_controller_tests(unittest.TestCase):
         m_command = com.MoveCommand(self.controller, joints)
         self.controller.send_command(m_command)
         self.assertEqual(
-            "m7 31416 62832 62832 31416 31416 31416 31416\n", self.arduino.received_lines[1])
+            "m1 31416 62832 31416 31416 31416 31416", self.arduino.received_lines[1])
         self.assertEqual([62832, 125664, 62832, 62832, 62832,
                          62832], self.controller.arduino_angles)
         joints = [Angle(angle.rad*2, "rad") for angle in joints]
@@ -71,7 +59,7 @@ class robot_controller_tests(unittest.TestCase):
         euler = [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")]
         # Moving to initial position
         self.controller.move_to_point(Config(cords,euler))
-        self.assertTrue("m7 0 0 0 0 0 0 0", self.arduino.received_lines[0])
+        self.assertTrue("m1 0 0 0 0 0 0", self.arduino.received_lines[0])
         self.assertTrue(self.angleAllClose(
             [Angle(0, "rad") for _ in range(6)], self.controller.get_arduino_angles()))
 
@@ -81,7 +69,7 @@ class robot_controller_tests(unittest.TestCase):
 
         # Moving to initial position
         self.controller.move_to_point(conf)
-        self.assertEqual("m7 3927 7854 7854 3927 3927 3927 3927\n",
+        self.assertEqual("m1 3927 7854 3927 3927 3927 3927",
                          self.arduino.received_lines[1])
         self.assertTrue(self.angleAllClose(
             joints, self.controller.get_arduino_angles()))

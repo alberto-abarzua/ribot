@@ -21,7 +21,7 @@ class Message():
         <end> ::= <char> //This is going to be ;
     
     """
-    def __init__(self,op,code,args) -> None:
+    def __init__(self,op,code,args = []) -> None:
         self.op = op
         self.code = int(code)
         self.args= [int(arg) for arg in args]
@@ -39,7 +39,8 @@ class Message():
         res+= self.end
         return res
     def __str__(self):
-        return "OP: {}{} Aguments: {}".format(self.op,self.code,self.args)
+        return "{}{} ".format(self.op,self.code) + " ".join([str(x) for x in self.args])
+        #return "OP: {}{} Aguments: {}".format(self.op,self.code,self.args)
 def decode_message(bytes):
     """
 
