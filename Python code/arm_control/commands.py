@@ -1,4 +1,8 @@
+from . import bins
+
 __author__ = "Alberto Abarzua"
+
+
 class Command:
     """Superclass for all the commands that can be sent to the arduino
     """
@@ -17,7 +21,7 @@ class Command:
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
         raise NotImplementedError("This method is not implemented")
 
@@ -46,15 +50,12 @@ class MoveCommand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
         rad_times_acc_angles = [
             str(round(angle.rad*self.controller.acc)) for angle in self.angles]
         self.angles_for_arduino = rad_times_acc_angles[:]
-        rad_times_acc_angles.insert(1, rad_times_acc_angles[1])
-        command = "m{} ".format(self.controller.num_joints + 1)
-        command += " ".join(rad_times_acc_angles)
-        command += "\n"
+        command = bins.Message("m",1,rad_times_acc_angles)
         return command
 
     def send(self):
@@ -87,9 +88,9 @@ class GripperCommand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
-        return "g3 {}\n".format(self.angle)
+        return bins.Message("g",1,[self.angle])
 
     def send(self):
         """Sends the command to the controllers arduino.
@@ -106,9 +107,9 @@ class HomeComand(Command):
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
-        return "h10\n"
+        return  bins.Message('h',0)
 
     def send(self):
         """Sends the command to the controllers arduino.

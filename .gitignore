@@ -147,3 +147,5 @@ Media/
 .vscode/
 .DS_Store
 workspace vscode.code-workspace
+
+tempCodeRunnerFile.py
