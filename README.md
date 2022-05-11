@@ -17,7 +17,13 @@ roll, pitch and yaw also known as euler angles.
 ### First robot arm (4DOF) using servo motors and Arduino Uno
 ![First robot arm (4DOF) using servo motors and Arduino Uno](https://i.ibb.co/C0yTw15/servo-arm-1.jpg)
 Video with the arm working
-<https://youtu.be/y-Uy8BWoXXg>
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/MUQfKFzIOeU" 
+frameborder="0" 
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+allowfullscreen></iframe>
+
 
 ### Current version of the arm using stepper motors and Arduino Mega.
 ![Whole view](https://i.ibb.co/4WtFVFL/8-E2-F34-B1-2-A22-40-E4-8-CC6-2-BCDFD35-D6-A7.jpg)
