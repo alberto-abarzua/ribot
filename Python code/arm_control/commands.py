@@ -21,7 +21,7 @@ class Command:
         """Generates the message that will be sent to the arduino
 
         Returns:
-            str: message to the arduino to do this command
+            Message: message to the arduino to do this command
         """
         raise NotImplementedError("This method is not implemented")
 
