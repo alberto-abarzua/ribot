@@ -30,15 +30,19 @@ class Controller():
             baudrate (int, optional): BaudRate of the arduino. Defaults to None.
         """
         # Conection to arduino
+        print("Conecting to arduino...")
+
         if (port is None or baudrate is None):  # Used during testing.
             self.arduino = DummyArduino()
         else:
             self.arduino = serial.Serial(baudrate=baudrate, port=port)
-            if not self.arduino.isOpen():
-                try:
-                    self.arduino.open()
-                except SerialException as e:
-                    print("Error opening serial port: " + str(e))
+            try:
+                self.arduino.close()
+                self.arduino.open()
+                if (self.arduino.read(1).decode() == INITIALIZED):
+                    print("Arduino is initialized!")
+            except SerialException as e:
+                print("Error opening serial port: " + str(e))
         time.sleep(0.5)
         # Robot arm initialization
 
@@ -147,7 +151,6 @@ class Controller():
         Args:
             command (Command): Calls the send method on a command, (sends it's message to the arduino)
         """
-        self.wait()
         self.arduino_status= "0"
         command.send()
         self.wait()
@@ -155,9 +158,7 @@ class Controller():
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
-        while(self.arduino_status != READY_STATUS):
-            self.arduino_status = self.read()
-            time.sleep(0.0000001)
+        self.arduino_status = self.read()
 
     def move_gripper_to(self,angle):
         """Moves the gripper to a certain angle configuration

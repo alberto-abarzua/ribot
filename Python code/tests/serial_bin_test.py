@@ -110,7 +110,10 @@ class serial_bin_test(unittest.TestCase):
         s_end = time.perf_counter()
         print("Average time between command and response",np.average(r),"lasting overall ",(s_end-s_start),"seconds")
 
-
+    def step6(self):
+        self.my_run(Message("D",0,[]))
+        res = self.arduino.read_until(PRINTED.encode()).decode()
+        print(repr(str(res)))
 
 
     def steps(self):
