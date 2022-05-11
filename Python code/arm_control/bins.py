@@ -38,6 +38,24 @@ class Message():
             res+= struct.pack("i",arg)
         res+= self.end
         return res
-        
+    def __str__(self):
+        return "OP: {}{} Aguments: {}".format(self.op,self.code,self.args)
+def decode_message(bytes):
+    """
+
+    Args:
+        bytes (b""): sequence of bytes
+
+    Returns:
+        Message: message that was stored in bytes.
+    """
+    op = str(struct.unpack_from("c",bytes,offset=0)[0].decode())
+    code =int(struct.unpack_from("i",bytes,offset=1)[0])
+    num_args = struct.unpack_from("i",bytes,offset=5)[0]
+    args =[]
+    for i in range(num_args):
+        args.append(int(struct.unpack_from("i",bytes,i*4+9)[0]))
+
+    return Message(op,code,args)
 
 

@@ -1,4 +1,8 @@
+from . import bins
+
 __author__ = "Alberto Abarzua"
+
+
 class Command:
     """Superclass for all the commands that can be sent to the arduino
     """
@@ -51,10 +55,7 @@ class MoveCommand(Command):
         rad_times_acc_angles = [
             str(round(angle.rad*self.controller.acc)) for angle in self.angles]
         self.angles_for_arduino = rad_times_acc_angles[:]
-        rad_times_acc_angles.insert(1, rad_times_acc_angles[1])
-        command = "m{} ".format(self.controller.num_joints + 1)
-        command += " ".join(rad_times_acc_angles)
-        command += "\n"
+        command = bins.Message("m",1,rad_times_acc_angles)
         return command
 
     def send(self):

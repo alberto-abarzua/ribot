@@ -36,6 +36,13 @@ class DummyArduino():
             byte: enconded string.
         """
         return (str(self.output) + "\n").encode()
+    def read(self,nbytes):
+        """Reads nbytes from the serial buffer
+
+        Args:
+            nbytes (int): number of bytes
+        """
+        return self.output[:min(nbytes,len(self.output))].encode()
 
     def write(self, message):
         """Simulates the writing from serial to an arduino.
