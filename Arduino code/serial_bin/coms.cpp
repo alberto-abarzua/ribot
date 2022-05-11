@@ -45,7 +45,7 @@ void Message::show(){
        Serial.print(" <=> ");
         Serial.print(args[i]);  
      }
-     Serial.println(" )");
+     Serial.print(" )");
   }
 
 long get_long(byte * buf,int offset){

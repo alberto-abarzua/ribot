@@ -1,9 +1,10 @@
 #ifndef coms_h
 #define coms_h
 
-//Status
+//Statuses
 #define READY_STATUS '1'
 #define INITIALIZED '0'
+#define PRINTED ';'
 
 
 /**

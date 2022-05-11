@@ -35,7 +35,7 @@ Joint * j6;
   arm->register_joint(j6);
   arm->build_joints();
   init_coms();
-  Serial.write(INITIALIZED);
+  set_status(INITIALIZED);
 
 }
 
@@ -59,19 +59,29 @@ void loop() {
             break;
         }
         break;
+
       case 'i':
         switch (code){
           case 1:
             arm->show_pos();
+            set_status(PRINTED);
+            
             break;
           case 2:
             arm->show();
+            set_status(PRINTED);
+
             break;
           default:
             break;
         }
         break;
 
+        case 't':
+            getM()->show();
+            set_status(PRINTED);
+            break;
+        
 
       default:
         break;
@@ -80,4 +90,7 @@ void loop() {
 
 
   }
+
+  arm->run();
+
 }
