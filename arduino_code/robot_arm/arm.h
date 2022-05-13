@@ -1,5 +1,8 @@
 #ifndef arm_h
 #define arm_h
+
+#include "Arduino.h"
+
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 #include <Servo.h>
@@ -166,6 +169,14 @@ class Arm{
      * 
      */
     void Arm::set_gripper_angle(int val);
+    /**
+     * @brief Checks if the motors have a distance to go.
+     * 
+     * @return true if the motors are still runing (distance to go)
+     * @return false if the motors have reached their desired positions.
+     */
+    bool Arm::left_to_go();
+    
 };
 
 

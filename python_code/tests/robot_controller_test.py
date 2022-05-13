@@ -1,5 +1,7 @@
 import sys
 import os.path
+
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import arm_control.commands as com
 import unittest
@@ -9,7 +11,7 @@ from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
 import arm_utils.robotarm as robotarm
 import numpy as np
-
+import random
 __author__ = "Alberto Abarzua"
 
 
@@ -73,7 +75,6 @@ class robot_controller_tests(unittest.TestCase):
                          self.arduino.received_lines[1])
         self.assertTrue(self.angleAllClose(
             joints, self.controller.get_arduino_angles()))
-
 
 if __name__ == '__main__':
     unittest.main()

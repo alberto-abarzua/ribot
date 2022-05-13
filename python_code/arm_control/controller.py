@@ -1,6 +1,8 @@
 import os.path
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from arm_control.commands import Agregator, MoveCommand
 import numpy as np
 import arm_control.commands as com
 import arm_utils.robotarm as robotarm
@@ -70,6 +72,7 @@ class Controller():
         self.read_val = None
         self.arduino_status = None
 
+        self.agregator = Agregator(1,0.2,self)
     
 
 
@@ -117,7 +120,7 @@ class Controller():
         Returns:
             str: decoded line read from the arduino
         """
-        if (self.arduino.in_waiting > 1):
+        if (self.arduino.in_waiting >= 1):
             val = self.arduino.read(nbytes)
             try:
                 val.decode()
@@ -145,21 +148,32 @@ class Controller():
         """
         return [Angle(x/self.acc, "rad") for x in self.arduino_angles]
 
-    def send_command(self, command):
+    def send_command(self, command,agreg = False):
         """Sends a command to the arduino. Sends the command's message to the arduino.
 
         Args:
             command (Command): Calls the send method on a command, (sends it's message to the arduino)
         """
         self.arduino_status= "0"
-        command.send()
+        if (type(command) is MoveCommand and agreg == False):
+            self.agregator.receive(command)
+        else:
+            command.send()
+            print("ELSE: ",command.message)
+        # command.send()
+        # print(command.message)
         self.wait()
 
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
-        self.arduino_status = self.read()
-
+        if(self.read() == BUSY ):
+            print("Busy...")
+            while (self.read() != CONTINUE):
+                time.sleep(0.0001)
+            print("Continuing")
+        self.arduino.flush()
+        
     def move_gripper_to(self,angle):
         """Moves the gripper to a certain angle configuration
 

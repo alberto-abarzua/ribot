@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "coms.h"
 #include "arm.h"
+
 Arm * arm;
 Joint * j1;
 Joint * j2;
@@ -79,24 +80,29 @@ void setup() {
   arm->build_joints();
   init_coms();
   set_status(INITIALIZED);
+  
 
 }
 
 void loop() {
-  if(!run_reader()){
+  run_reader();
+  if(!new_data()){
     //Get the info from the message:
-    char op = getOP();
-    int code = getCode();
-    int numArgs = getNumArgs();
-    long * args = getArgs();
-    
+    Message * M = getM();
+    bool should_return = true;
+    char op = M->op;
+    int code =  M->code;
+    int numArgs =  M->num_args;
+    long * args =  M->args;
     switch (op){
 
       case 'm': 
         switch (code){
           case 1:
-            arm->add(args);
+            queueMove(M);
+            should_return = false;
             set_status(READY_STATUS);
+
             break;
           default:
             set_status(UNK);
@@ -109,17 +115,26 @@ void loop() {
           case 1:
             arm->show_pos();
             set_status(PRINTED);
+
             
             break;
           case 2:
             arm->show();
+
             set_status(PRINTED);
             break;
           case 3:
             arm->show_sensors();
+
+            set_status(PRINTED);
+            break;
+          case 4:
+            show_queues();
+
             set_status(PRINTED);
             break;
           default:
+
             set_status(UNK);
             break;
         }
@@ -129,10 +144,12 @@ void loop() {
         switch (code){
           case 0:
             arm->home();
+
             set_status(READY_STATUS);
             
             break;
           default:
+
             set_status(UNK);
             break;
         }
@@ -141,7 +158,9 @@ void loop() {
       case 'g':
         switch (code){
           case 1:
+          
             arm->set_gripper_angle(args[0]);
+
             set_status(READY_STATUS);
             break;
           default:
@@ -150,10 +169,19 @@ void loop() {
         }
         break;
 
-      case 't':
-            getM()->show();
-            set_status(PRINTED);
+      case 's':
+        switch (code){
+          case 1:
+            toggle_debug();
             break;
+          case 2:
+
+            break;
+          default:
+
+            break;
+        }
+        break;
         
 
       default:
@@ -161,9 +189,17 @@ void loop() {
     }
 
 
+    if(should_return){
+      returnM(M);
+    }
 
   }
-
+  check_busy();
+  if (!arm->left_to_go() && movesOnQueue()){//Motors have reached positions.
+    Message * new_M = unqueueMove();
+    arm->add(new_M->args);
+    returnM(new_M);
+  }
   arm->run();
 
 }

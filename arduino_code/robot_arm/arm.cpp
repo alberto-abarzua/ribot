@@ -68,6 +68,7 @@ void Joint::home(MultiStepper * m){
     }
 }
 
+
 void Joint::create_motor(int step_pin,int dir_pin){
     int idx = 0;
     while(motors[idx]!=NULL) idx++;
@@ -145,6 +146,15 @@ void Arm::show(){
 
 }
 
+bool Arm::left_to_go(){
+    for (int i =0;i<num_joins;i++){
+        if(motors[i]->distanceToGo() != 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 void Arm::create_gripper(int pin){
     gripper = new Servo();
     gripper->attach(pin);
@@ -191,6 +201,10 @@ void Arm::show_pos(){
         Serial.print(" ");
 
     }
+
+    Serial.print("Left To Go?");
+    Serial.print(" ");
+    Serial.print(left_to_go());
 }
 
 

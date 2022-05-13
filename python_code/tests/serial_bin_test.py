@@ -6,7 +6,7 @@ import random
 import numpy as np
 import os
 import sys
-
+import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.bins import *
 from arm_control.status import *
@@ -42,6 +42,16 @@ class serial_bin_test(unittest.TestCase):
             except:
                 print("invalid char {}".format(res))
             times -=1
+    def readBussy(self):
+        if self.arduino.in_waiting>=1:
+            res= self.arduino.read(1).decode()
+            if(res == BUSY ):
+                while True:
+                    if self.arduino.in_waiting>=1:
+                        res= self.arduino.read(1).decode()
+                        if (res == CONTINUE):
+                            break;
+        self.arduino.flush()
 
     def stress(self,iters):
         commands = [("m",1)]
@@ -51,8 +61,8 @@ class serial_bin_test(unittest.TestCase):
             print(i,"/",iters,end = "\r")
             op,code = random.choice(commands)
             start = time.perf_counter()
-            self.my_run(Message(op,code,[random.randint(-6000,6000) for _ in range(6)]))
-            self.my_read(1,show= False)
+            self.my_run(Message(op,code,[random.randint(-50,50) for _ in range(6)]))
+            self.readBussy()
             end = time.perf_counter()
             results[i] += (end-start)
         return results
@@ -65,28 +75,25 @@ class serial_bin_test(unittest.TestCase):
         arduino.close()
         arduino.open()
         self.arduino = arduino
+        time.sleep(0.5)
         if (self.arduino.read(1).decode() == INITIALIZED):
             self.ini = True
+            print("Arduino initialized!")
 
-    def step0(self):
-        self.assertTrue(self.ini)
     def step1(self):
-        self.my_run(Message("m",1,[900,900,900,900,900,900]))
+        self.my_run(Message("m",1,[100,100,100,100,100,100]))
+        time.sleep(0.2)
         self.my_run(Message("i",1,[]))
+
         res = self.arduino.read_until(PRINTED.encode()).decode()
-        self.assertTrue("angles:  900 900 900 900 900 900" in res)
+        self.assertTrue("angles:  100 100 100 100 100 100" in res)
 
 
 
 
 
     def step2(self):
-        self.my_run(Message("m",1,[900,900,900,900,900,900]))
-        
-        self.my_run(Message("t",1,[900,12,24,34,53,35]))
-
-        res = self.arduino.read_until(PRINTED.encode()).decode()
-        self.assertEqual(res,"1Message: Op: t1 args (  <=> 900 <=> 12 <=> 24 <=> 34 <=> 53 <=> 35 );")
+        self.my_run(Message("m",1,[100,100,100,100,100,100]))
 
     def step3(self):
         self.my_run(Message("i",2,[]))
@@ -96,20 +103,37 @@ class serial_bin_test(unittest.TestCase):
     def step4(self):
         self.my_run(Message("i",1,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()
-        self.assertTrue("angles:  1800 1800 1800 1800 1800 1800" in res)
+        print(repr(str(res)))
+        self.assertTrue("angles:  200 200 200 200 200 200" in res)
 
     def step5(self):
         "Stress test"
         s_start= time.perf_counter()
-        r = self.stress(500)
+        r = self.stress(200)
         s_end = time.perf_counter()
         print("Average time between command and response",np.average(r),"lasting overall ",(s_end-s_start),"seconds")
 
     def step6(self):
+        time.sleep(1)
+        self.readBussy()
+
         self.my_run(Message("i",3,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()
         self.assertEqual(res,"Sensors:  S1 OFF S2 OFF S3 OFF S4 OFF S5 OFF S6 OFF;")
-
+    def step7(self):
+        """make sure that all the messages in queues add up to MESSAGE_BUFFER_SIZE *2 -1
+        """
+        self.readBussy()
+        time.sleep(1)
+        self.my_run(Message("i",4))
+        res = self.arduino.read_until(PRINTED.encode()).decode()
+        print(res)
+        res  = res.split(" ")
+        n = 0
+        for elem in res:
+            if (elem.isdigit()):
+                n += int(elem)
+        self.assertEqual(n,99)
 
 
     def steps(self):

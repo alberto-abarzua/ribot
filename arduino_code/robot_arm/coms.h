@@ -1,11 +1,19 @@
 #ifndef coms_h
 #define coms_h
+#include "Arduino.h"
 
+#include <ArduinoQueue.h>
 //Statuses
 #define READY_STATUS '1'
 #define INITIALIZED '0'
 #define PRINTED ';'
 #define UNK '?'
+#define BUSY '2'
+#define CONTINUE '3'
+
+#define READING_BUFFER_SIZE  64
+#define MAX_ARGS 8
+#define MESSAGE_BUFFER_SIZE 50
 
 
 /**
@@ -18,6 +26,7 @@ class Message{
     long code;
     long * args;
     int num_args;
+    bool viewed;
     
     Message(long*nargs);
     /**
@@ -86,43 +95,26 @@ void my_read(byte * buf,int max_size,bool* newData);
  */
 bool run_reader();
 /**
- * @brief Returns the value of NEW_DATA
+ * @brief Cehcks if there are messages to be read.
  * 
  * @return true if there is new data received from the serial.
- * @return false 
+ * @return false if there are no new messages.
  */
 bool new_data();
 /**
- * @brief Gets the global message
+ * @brief Gets the first message from the message buffer
  * 
  * @return Message* 
  */
 Message * getM();
+/**
+ * @brief Peeks the first message from the message buffer
+ * 
+ * @return Message* 
+ */
+Message * peekM();
 
-/**
- * @brief Get the Num Args
- * 
- * @return int 
- */
-int getNumArgs();
-/**
- * @brief Get the arguments of the global Message M
- * 
- * @return long* array of arguments
- */
-long * getArgs();
-/**
- * @brief Get the Code of the global message
- * 
- * @return int  code
- */
-int getCode();
-/**
- * @brief Gets the op of the global message
- * 
- * @return char operation
- */
-char getOP();
+
 /**
  * @brief Initializes all the variables used in the comunication logic.
  * 
@@ -136,5 +128,54 @@ void init_coms();
 void set_status(char status);
 
 
+/**
+ * @brief Returns true if the buffer can accept new messages.
+ * 
+ * @return true if new messages can be accepted
+ * @return false if the message buffer ir full
+ */
+bool can_receive();
+
+/**
+ * @brief Enqueues a new move message
+ * 
+ * @param m message to be enqueued
+ */
+void queueMove(Message *m);
+/**
+ * @brief Removes a move message from the move queue.
+ * 
+ * @return Message* message removed.
+ */
+Message * unqueueMove();
+
+/**
+ * @brief Prints the statuses of the queues to serial.
+ * 
+ */
+void show_queues();
+/**
+ * @brief Returns M to the queue of fresh messsages (not in use)
+ * 
+ */
+void returnM(Message * M);
+
+/**
+ * @brief Toggles debug mode.
+ * 
+ */
+void toggle_debug();
+
+/**
+ * @brief checks if the move queue is empty or not.
+ * 
+ */
+bool movesOnQueue();
+
+/**
+ * @brief Checks if the arduino is, busy. If it can receive new messages it changes it's state to CONTINUE
+ * 
+ */
+void check_busy();
 
 #endif

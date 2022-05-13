@@ -52,10 +52,7 @@ class DummyArduino():
         """
         
         message = bins.decode_message(message)
-        print(message)
-        m_value = self.max_value_from_command(command=message)
         message = str(message)
-        self.max_values.append(m_value)
         self.received_lines.append(message)
         if(self.log != None):
             self.log.write(message+"\n")
@@ -63,7 +60,7 @@ class DummyArduino():
             self.received_lines.clear()
             self.max_values.clear()
         if(self.wait):
-            time.sleep(5e-6*m_value)
+            time.sleep(5e-6)
 
     def max_value_from_command(self, command):
         """Gets the max value from a movement command:
@@ -77,3 +74,6 @@ class DummyArduino():
             int: max value in the command
         """
         return max(command.args)
+
+    def flush(self):
+        pass

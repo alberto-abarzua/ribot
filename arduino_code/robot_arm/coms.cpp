@@ -1,23 +1,37 @@
-#include "Arduino.h"
 #include "coms.h"
 
 
 
 
 //Global vars
-const int MAX_SIZE = 512;
-const int MAX_ARGS = 32;
 char status;
-long * ARGS;
+long ** ARGS;
 bool NEW_DATA;
-Message* M;
 byte * BUF;
 
+bool DEBUG;
+ArduinoQueue<Message*> * q_fresh; //Queue to store unused messages.
+ArduinoQueue<Message*> * q_in; // Queue to store messages that need to be executed.
+ArduinoQueue<Message*> * q_motor; // Motor instruct queue.
+
+Message ** Ms;
 void init_coms(){
-   BUF =(byte *) malloc(sizeof(byte)*MAX_SIZE);
-   ARGS = (long *)malloc(sizeof(long)*MAX_ARGS);
-   M = new Message(ARGS);
+   BUF =(byte *) malloc(sizeof(byte)*READING_BUFFER_SIZE);
+   ARGS = (long **) malloc(sizeof(long *)*MESSAGE_BUFFER_SIZE*2);
+   q_fresh = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE*2);
+   q_in = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
+   q_motor = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
+
+
+   for(int i=0;i<MESSAGE_BUFFER_SIZE*2;i++){
+      ARGS[i] = (long *)malloc(sizeof(long)*MAX_ARGS);
+      Message * m = new Message(ARGS[i]);
+      q_fresh->enqueue(m);
+   }
+   DEBUG = false;
 }
+
+
 
 long get_long(byte * buf,int offset){
     long res = 0;
@@ -37,7 +51,9 @@ void printBuf(byte * buf,int num){
    Serial.println("||");
 }
 
-
+void toggle_debug(){
+   DEBUG = !DEBUG;
+}
 
 void getMessage(byte * buf,Message *m){
    char op = (char)buf[0];
@@ -76,41 +92,80 @@ void my_read(byte * buf,int max_size,bool* newData){
 
 bool run_reader(){
    NEW_DATA = true;
-   my_read(BUF,MAX_SIZE,&NEW_DATA);//Reads the char from serial
+   my_read(BUF,READING_BUFFER_SIZE,&NEW_DATA);//Reads the char from serial
    if(!NEW_DATA){
-      getMessage(BUF,M);
+      Message * m_clean =  q_fresh->dequeue();//Get an unused message
+
+      getMessage(BUF,m_clean); //New message is complete
+
+      q_in->enqueue(m_clean);
+
    }
    return NEW_DATA;
 }
 
 bool new_data(){
-   return NEW_DATA;
+   return q_in->isEmpty();
 }
-Message * getM(){
+
+
+Message * peekM(){
+   Message * M = q_in->getHead();
+   return M;
+}
+Message * getM(){ // Gets the first message from the message buffer.
+   Message * M = q_in->dequeue();
    return M;
 }
 
-char getOP(){
-   return M->op;
+void returnM(Message * M){
+   q_fresh->enqueue(M);
 }
-
-int getCode(){
-   return M->code;
-}
-
-long * getArgs(){
-   return M->args;
-}
-
-int getNumArgs(){
-   return M->num_args;
+bool can_receive(){
+   return ((q_in->itemCount() <= MESSAGE_BUFFER_SIZE-10) && (q_motor->itemCount() <= MESSAGE_BUFFER_SIZE-10) && (q_fresh->itemCount() >=5));
 }
 
 void set_status(char new_status){
-   status = new_status;
-   Serial.write(new_status);
+   status = can_receive() ? new_status : BUSY;
+   if (status == BUSY ||  status == CONTINUE || status == PRINTED || status == INITIALIZED || status == CONTINUE){
+      Serial.write(status);
+   }
+   
 }
 
+void queueMove(Message *m){
+   q_motor->enqueue(m);
+}
+
+void show_queues(){
+   Serial.print("q_fresh: ");
+   Serial.print(q_fresh->itemCount());
+   Serial.print(" q_in: ");
+   Serial.print(q_in->itemCount());
+   Serial.print(" q_motor: ");
+
+   Serial.print(q_motor->itemCount());
+
+
+}
+
+Message * unqueueMove(){
+   return q_motor->dequeue();
+}
+
+bool movesOnQueue(){
+   return !q_motor->isEmpty();
+}
+
+bool almostEmpty(){
+   return (q_in->itemCount() <=5) && (q_motor->itemCount() <=5);
+}
+void check_busy(){
+   if (status == BUSY && almostEmpty()){
+      set_status(CONTINUE);
+
+   }
+}
 /**
 -----------------------------
 -----------     Message     -----------
@@ -124,12 +179,14 @@ Message::Message(long*nargs){
     code =0;
     num_args = 0;
     args = nargs;
+    viewed = false;
   }
 
 void Message::rebuild(char nop,long ncode,long *nargs,int nnum_args){
     op = nop;
     code =ncode;
     num_args = nnum_args;
+    viewed = false;
     for (int i =0;i<num_args;i++){
        args[i] = nargs[i];
     }

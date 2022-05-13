@@ -1,4 +1,15 @@
+import enum
 from . import bins
+import time
+import threading
+import numpy as np
+
+
+import sys
+import os.path
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from arm_utils.armTransforms import Angle
 
 __author__ = "Alberto Abarzua"
 
@@ -58,6 +69,14 @@ class MoveCommand(Command):
         command = bins.Message("m",1,rad_times_acc_angles)
         return command
 
+    def add(self,val):
+        res = []
+        for a,b in zip(self.angles,val.angles ):
+            print(a,b)
+            res.append(a.add(b))
+            print(a.add(b))
+        return MoveCommand(self.controller,res)
+
     def send(self):
         """Sends the command to the controllers arduino.
         """
@@ -116,3 +135,53 @@ class HomeComand(Command):
         """
         super().send()
         
+class Agregator():
+    """Class used to combine commands, in order to reduce the number of commands sent to the arduino.
+    """
+
+    def __init__(self,time_window,min_val,receiver) -> None:
+        """Creates a new agregator, this will recieve commands and return a new command when the time_window ends
+        or there is a value bigger than min_val
+
+        Args:
+            time_window (float): max time interval that the agregator will receive commands
+            min_val (int): min value to achieve in less than time_window
+        """
+        self.time_window = time_window
+        self.ini = None
+        self.receiver = receiver
+        self.min_val = min_val
+        self.vals = np.zeros(6)
+        self.commands = []
+        self.t = threading.Timer(time_window,self.send)
+
+    def receive(self,c):
+        print("receiving ",c.angles,end = " ")
+        if (self.ini == None):
+            self.start()
+        args = np.array([x.rad for x in c.angles])
+        print("args are: ",args," max value ",np.max(self.vals))
+        self.vals +=args
+        if (np.max(self.vals)>=self.min_val):
+            self.t.cancel()
+            self.send()
+
+
+    def send(self):
+        print("sending from agregator")
+        print(self.vals)
+        self.receiver.send_command(MoveCommand(self.receiver,[Angle(x,"rad") for x in self.vals]),agreg = True)
+        print("messge sent")
+        self.clear()
+    
+    
+
+    def clear(self):
+        self.ini = None
+        self.vals= np.zeros(6)
+        self.t.join()
+        self.t = threading.Timer(self.time_window,self.send)
+
+    def start(self):
+        self.ini = time.perf_counter()
+        self.t.start()
