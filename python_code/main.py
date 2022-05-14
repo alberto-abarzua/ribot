@@ -12,15 +12,15 @@ if __name__ == "__main__":
         port = sys.argv[1]
         baudrate = 115200
 
-        assert "COM" in port , "Enter a valid port"
-
+        assert "COM" in port or "com" in port, "Enter a valid port"
     c = Controller(port = port,baudrate= baudrate)
     g = ArmGamePad(c)
     sim_thread = Thread(target = sim,args =(c,),name= "Robot Arm Simulation",daemon=True) 
     game_thread = Thread(target = g.run,name= "Gamepad",daemon=True) 
 
     #Run the simulation on another thread.
-    sim_thread.start()
+    if("nosim" not in sys.argv):
+        sim_thread.start()
     game_thread.start()
     c.monitor.run()
 

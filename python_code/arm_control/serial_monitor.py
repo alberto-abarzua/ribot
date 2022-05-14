@@ -161,8 +161,11 @@ class SerialMonitor:
                     with open("arm_control/scripts/"+op) as f:
                         lines = f.readlines()
                         for line in lines:
+                            line = line.strip()
                             new_mes,op,loop = self.interp(line)  
                             self.run_direct(new_mes)
+                            self.upper_read(self.sta_dict[op])
+
                 except Exception as e:
                     print(e)
             elif (loop):

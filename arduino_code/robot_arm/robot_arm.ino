@@ -2,7 +2,6 @@
 #include "Arduino.h"
 #include "coms.h"
 #include "arm.h"
-
 Arm * arm;
 Joint * j1;
 Joint * j2;
@@ -203,8 +202,17 @@ void loop() {
 
 }
 
-int sign(long num){
-  return num>0 ? 1:-1;
+bool eq_sign(long num1,long num2){
+  if(num1 == 0 or num2 ==0){
+    return true;
+  }
+  if(num1>0 and num2>0){
+    return true;
+  }
+  if(num1<0 and num2<0){
+    return true;
+  }
+  return false;
 }
 
 
@@ -215,7 +223,7 @@ void arm_check(){
       Message * new_M = peekNextMove();
       bool same_dir = true;
       for (int i =0;i<arm->num_joins;i++){
-        if (sign(new_M->args[i]) != sign(arm->l_positions[i])){
+        if (eq_sign(new_M->args[i],arm->l_positions[i])){
           same_dir = false;
         }
       }

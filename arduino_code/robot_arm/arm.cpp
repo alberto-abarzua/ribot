@@ -31,7 +31,7 @@ bool Sensor::read(){
 Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers){
     jn_steppers = joint_num_steppers;
 
-    motors =(AccelStepper **) malloc(sizeof (AccelStepper *)*joint_num_steppers);
+    motors =(Stepper **) malloc(sizeof (Stepper *)*joint_num_steppers);
     sensor = (Sensor *) malloc(sizeof(Sensor *));
     for (int i =0;i<jn_steppers;i++) motors[i]=NULL;
     ratio = a_ratio;
@@ -42,7 +42,7 @@ Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int jo
     position =0;
 }
 
-void Joint::home(MultiStepper * m){
+void Joint::home(){
     int times_activated = 0;
     int tolerance = 7;
     while(true){
@@ -71,21 +71,21 @@ void Joint::home(MultiStepper * m){
 void Joint::create_motor(int step_pin,int dir_pin){
     int idx = 0;
     while(motors[idx]!=NULL) idx++;
-    motors[idx] = new AccelStepper(motorInterfaceType, step_pin, dir_pin);
+    motors[idx] = new Stepper(motorInterfaceType, step_pin, dir_pin);
     
  }
 
  void Joint::motor_setup(){
-     double mult = 0.5;
-     double speed = mult*ratio*MICRO_STEPPING;
-     double m_speed = 3.0*mult*ratio*MICRO_STEPPING;
-     double acceleration = 10000.0;
+     double mult = 30.0;
+     double acc_mult = 10.0;
+     double m_speed = mult*ratio*MICRO_STEPPING;
+     double acceleration = acc_mult*(ratio*ratio)*MICRO_STEPPING;
 
      for (int i=0;i<jn_steppers;i++){
          motors[i]->setPinsInverted(inverted,false,false);
          motors[i]->setCurrentPosition(0);
+         motors[i]->setSpeed(m_speed);
          motors[i]->setMaxSpeed(m_speed);
-         motors[i]->setSpeed(speed);
          motors[i]->setAcceleration(acceleration);
          
      }
@@ -102,6 +102,8 @@ void Joint::show(){
     Serial.print(motors[0]->speed());
     Serial.print(" Motor max Speed ");
     Serial.print(motors[0]->maxSpeed());
+    Serial.print(" Joint ratio: ");
+    Serial.print(ratio);
     Serial.println("");
 
 }
@@ -221,7 +223,7 @@ void Arm::home(){
         joints[i]->launch_home();
     }
     for(int i =0;i< num_joins;i++){
-        joints[i]->home(steppers);
+        joints[i]->home();
     }
 
 }
@@ -250,7 +252,7 @@ void Arm::build_joints(){
         num_motors+= joints[i]->jn_steppers; //First count the amount of motors
     }
     //We create an array to store them
-    motors =(AccelStepper **) malloc(sizeof(AccelStepper *)*num_motors);
+    motors =(Stepper **) malloc(sizeof(Stepper *)*num_motors);
     int spot= 0;
     for (int i =0;i<num_joins;i++){
 

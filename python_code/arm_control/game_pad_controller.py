@@ -61,7 +61,13 @@ class XboxController(object):
 
     def _monitor_controller(self):
         while True:
-            events = get_gamepad()
+            try:
+                events = get_gamepad()
+
+            except Exception as e:
+                print(e)
+                return
+                
             for event in events:
                 if event.code == 'ABS_Y':
                     self.buttons["LeftJoystickY"] = self.clean_joy(event.state)
@@ -111,6 +117,7 @@ class ArmGamePad:
 
     def __init__(self,controller) -> None:
         self.joy = XboxController()
+       
         self.buttons =self.joy.buttons
         self.controller = controller
         self.robot = self.controller.robot
@@ -123,6 +130,7 @@ class ArmGamePad:
         self.angle_step = 0.3
         self.fps = 10
         
+
     def run(self):
         t0 = time.perf_counter()
         sign = lambda x :math.copysign(1,x)

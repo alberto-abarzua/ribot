@@ -3,16 +3,16 @@
 
 #include "Arduino.h"
 
-#include <AccelStepper.h>
-#include <MultiStepper.h>
+#include "stepper.h"
+
 #include <Servo.h>
 
 
 
 #define MICRO_STEPPING 16
 #define ACC 10000
-#define motorInterfaceType 1
 
+#define motorInterfaceType 1
 
 /**
  * @brief Sensor class, used to create a sensor that each joint uses
@@ -48,7 +48,8 @@ class Joint{
     long position;
     int jn_steppers;
     Sensor * sensor;
-    AccelStepper ** motors;
+    long motor_speed;
+    Stepper ** motors;
     Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers);
     /**
      * @brief Creates a new accelstepper motor for the joint.
@@ -89,7 +90,7 @@ class Joint{
      * 
      * @param m Multistepper used to run the other steppers.
      */
-    void Joint::home(MultiStepper * m);
+    void Joint::home();
 
 };
 
@@ -108,11 +109,10 @@ class Arm{
     long * l_positions;
 
     Joint ** joints;
-    AccelStepper ** motors;
+    Stepper ** motors;
     Sensor ** sensors;
     Arm::Arm(int n_joints);
     int num_motors;
-    MultiStepper * steppers;
     Servo * gripper;
     /**
      * @brief Registers a joint to the arm
