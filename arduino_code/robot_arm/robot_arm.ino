@@ -84,6 +84,10 @@ void setup() {
 
 }
 
+void arm_check();
+
+
+
 void loop() {
   run_reader();
   if(!new_data()){
@@ -194,12 +198,39 @@ void loop() {
     }
 
   }
+  arm_check();
+  
+
+}
+
+int sign(long num){
+  return num>0 ? 1:-1;
+}
+
+
+void arm_check(){
   check_busy();
-  if (!arm->left_to_go() && movesOnQueue()){//Motors have reached positions.
-    Message * new_M = unqueueMove();
-    arm->add(new_M->args);
-    returnM(new_M);
+  if (movesOnQueue()){ //There are moves in the move queue
+    if(arm->left_to_go()){//Motors are still moving
+      Message * new_M = peekNextMove();
+      bool same_dir = true;
+      for (int i =0;i<arm->num_joins;i++){
+        if (sign(new_M->args[i]) != sign(arm->l_positions[i])){
+          same_dir = false;
+        }
+      }
+      if(same_dir){
+        unqueueMove();
+        arm->add(new_M->args);
+        returnM(new_M);
+      }
+    }else{//Motors have reached their positions.
+      Message * new_M = unqueueMove();
+
+      arm->add(new_M->args);
+      returnM(new_M);
+    }
+    
   }
   arm->run();
-
 }

@@ -13,7 +13,7 @@
 
 #define READING_BUFFER_SIZE  64
 #define MAX_ARGS 8
-#define MESSAGE_BUFFER_SIZE 50
+#define MESSAGE_BUFFER_SIZE 100
 
 
 /**
@@ -178,4 +178,10 @@ bool movesOnQueue();
  */
 void check_busy();
 
+/**
+ * @brief Peeks the next move on the motor queue
+ * 
+ * @return Message* message representing next move.
+ */
+Message * peekNextMove();
 #endif

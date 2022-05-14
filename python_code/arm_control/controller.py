@@ -1,8 +1,9 @@
 import os.path
 import sys
 
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arm_control.commands import Agregator, MoveCommand
+from arm_control.serial_monitor import SerialMonitor
 import numpy as np
 import arm_control.commands as com
 import arm_utils.robotarm as robotarm
@@ -13,9 +14,9 @@ import serial
 from arm_control.arduino_dummy import DummyArduino
 from arm_control.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
 
-from serial.serialutil import SerialException
 from arm_control.status import *
 
+import threading
 __author__ = "Alberto Abarzua"
 
 
@@ -32,21 +33,7 @@ class Controller():
             baudrate (int, optional): BaudRate of the arduino. Defaults to None.
         """
         # Conection to arduino
-        print("Conecting to arduino...")
-
-        if (port is None or baudrate is None):  # Used during testing.
-            self.arduino = DummyArduino()
-        else:
-            self.arduino = serial.Serial(baudrate=baudrate, port=port)
-            try:
-                self.arduino.close()
-                self.arduino.open()
-                if (self.arduino.read(1).decode() == INITIALIZED):
-                    print("Arduino is initialized!")
-            except SerialException as e:
-                print("Error opening serial port: " + str(e))
-        time.sleep(0.5)
-        # Robot arm initialization
+       
 
         self.robot = robotarm.RobotArm()
 
@@ -66,26 +53,22 @@ class Controller():
         self.tool = 100
         self.arduino_angles = [0 for _ in range(self.num_joints)]
         
+        self.coms_lock = threading.Lock()
 
         self.filem = FileManager()
-        self.cur_file = None
-        self.read_val = None
-        self.arduino_status = None
 
-        self.agregator = Agregator(1,0.2,self)
+        self.monitor = SerialMonitor(self,port,baudrate)
+
     
-
-
-    def run_file(self, file_name):
+    def run_file(self,file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
 
         Args:
             file_name (str): name of the file where the instructions are stored.
         """
-        try:
-            self.cur_file = open(file_name, "r")
-        except Exception as e:
-            print("Error opening file: " + str(e))
+        self.filem.run_file(file_name)
+
+    
 
     def step(self):
         """Makes the robot arm take a current step (read a new line from self.cur_file and run it.)
@@ -93,42 +76,25 @@ class Controller():
         Returns:
             bool: Ture if the file has lines left, false otherwise.
         """
-        if (self.cur_file == None or self.cur_file.closed):
-            return False
-        cur_line = self.cur_file.readline()
-        if (cur_line == ""):
-            self.cur_file.close()
+        instruct = self.filem.step()
+
+        if(instruct is None):
             return False
 
-        if (cur_line[0] == "c"):
-            instruct = CordAngleInstruction(cur_line)
+        if(type(instruct) is CordAngleInstruction):
+
             config = instruct.as_config()
             angles = self.robot.inverse_kinematics(config)
             assert angles != None, f"Config that failed: cords: {config.cords} and angles: {config.euler_angles}"
             self.move_to_angle_config(angles)
-        if(cur_line[0] == "t"):
-            instruct = ToolAngleInstruction(cur_line)
+        
+        if(type(instruct) is ToolAngleInstruction):
             tool = instruct.value
             self.move_gripper_to(tool)
 
         return True
 
-    def read(self,nbytes =1):
-        """Read a line from the arduino.
-         Args:
-            nbytes (int): number of bytes that will be read
-        Returns:
-            str: decoded line read from the arduino
-        """
-        if (self.arduino.in_waiting >= 1):
-            val = self.arduino.read(nbytes)
-            try:
-                val.decode()
-            except Exception as e:
-                print(str(e), "value that caused the error: ", val)
-                return None
-            return val.decode().strip()
-        return None
+    
 
     def update_arduino_angles(self, angles):
         """Updates the angles that represnt the current angles array in the arduino. 
@@ -148,31 +114,14 @@ class Controller():
         """
         return [Angle(x/self.acc, "rad") for x in self.arduino_angles]
 
-    def send_command(self, command,agreg = False):
+    def send_command(self, command):
         """Sends a command to the arduino. Sends the command's message to the arduino.
 
         Args:
             command (Command): Calls the send method on a command, (sends it's message to the arduino)
         """
-        self.arduino_status= "0"
-        if (type(command) is MoveCommand and agreg == False):
-            self.agregator.receive(command)
-        else:
-            command.send()
-            print("ELSE: ",command.message)
-        # command.send()
-        # print(command.message)
-        self.wait()
-
-    def wait(self):
-        """Runs a sleep timer until the arduino is ready to receive more data.
-        """
-        if(self.read() == BUSY ):
-            print("Busy...")
-            while (self.read() != CONTINUE):
-                time.sleep(0.0001)
-            print("Continuing")
-        self.arduino.flush()
+        self.monitor.send_command(command)
+        
         
     def move_gripper_to(self,angle):
         """Moves the gripper to a certain angle configuration

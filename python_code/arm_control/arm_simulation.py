@@ -382,6 +382,10 @@ def drawText(textPipeline, string, size, pos):
     textPipeline.setupVAO(gpu_text)
     gpu_text.fillBuffers(shape_text.vertices,
                          shape_text.indices, GL_STATIC_DRAW)
+    textBitsTexture = tx.generateTextBitsTexture()
+    # Moving texture to GPU memory
+    gpuText3DTexture = tx.toOpenGLTexture(textBitsTexture)
+    
     gpu_text.texture = gpuText3DTexture
     glUseProgram(textPipeline.shaderProgram)
     glUniform4f(glGetUniformLocation(textPipeline.shaderProgram,
@@ -395,18 +399,19 @@ def drawText(textPipeline, string, size, pos):
     return gpu_text
 
 
-if __name__ == "__main__":
-    port = None
-    if (len(sys.argv)>1 ):
-        port = sys.argv[1]
-        assert "COM" in port , "Enter a valid port"
-        baudrate = 115200
-    # Creation of robot arm
-    if (port != None):
-        robot_controller = ac.Controller(port,baudrate)
+
+def sim(args):
+    global controller
+    if(type(args) is ac.Controller):
+        robot_controller = args
     else:
-        robot_controller = ac.Controller()
-    robot_controller.arduino.wait = True
+        port,baudrate,controller = args
+        if (port != None):
+            robot_controller = ac.Controller(port,baudrate)
+        else:
+            robot_controller = ac.Controller()
+            
+    robot_controller.monitor.arduino.wait = True
     controller.arm_controller = robot_controller
     robot = robot_controller.robot
 
@@ -469,9 +474,7 @@ if __name__ == "__main__":
 
     bottom = createScene(pipeline)
     # Creating texture with all characters
-    textBitsTexture = tx.generateTextBitsTexture()
-    # Moving texture to GPU memory
-    gpuText3DTexture = tx.toOpenGLTexture(textBitsTexture)
+    
 
     # Setting uniforms that will NOT change on each iteration
     glUseProgram(pipeline.shaderProgram)
@@ -519,6 +522,8 @@ if __name__ == "__main__":
     xyz,euler_angles = robot.config.cords,robot.config.euler_angles
     x, y, z = xyz
     tool_angle = 100
+    times = 0
+    every = 1
     A, B, C = euler_angles
     (x_disp, y_disp, z_disp) = xyz
     A_disp, B_disp, C_disp = euler_angles
@@ -557,7 +562,7 @@ if __name__ == "__main__":
             tool_angle += gripper_step * dt
 
         # Arm controlls
-        movement_step = 25
+        movement_step = 80
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             x += movement_step * dt
         
@@ -637,11 +642,13 @@ if __name__ == "__main__":
                 robot_controller.run_file(controller.cur_file)
 
         else:
-            if (robot_controller.move_to_point(Config([x, y, z], [A, B, C],tool_angle)) != "Angles out of reach"):
-                controller.cords = [x, y, z]
-                controller.euler = [A, B, C]
-                controller.tool = tool_angle
-
+            if (False):
+                times = 0
+                if (robot_controller.move_to_point(Config([x, y, z], [A, B, C],tool_angle)) != "Angles out of reach"):
+                    controller.cords = [x, y, z]
+                    controller.euler = [A, B, C]
+                    controller.tool = tool_angle
+        times +=1
         angs = robot_controller.get_arduino_angles()
         
         setJoints(bottom,angs)
@@ -682,3 +689,15 @@ if __name__ == "__main__":
     [x.clear() for x in point_texts]
     glfw.terminate()
     gpuAxis.clear()
+
+
+
+if __name__ == "__main__":
+    port = None
+    baudrate = None
+    if (len(sys.argv)>1 ):
+        port = sys.argv[1]
+        assert "COM" in port , "Enter a valid port"
+        baudrate = 115200
+    # Creation of robot arm
+    sim(port,baudrate)

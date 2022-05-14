@@ -61,10 +61,9 @@ void Joint::home(MultiStepper * m){
             }
                 break;
         }
-
-        for (int i =0 ;i<jn_steppers;i++){
-                motors[i]->run();
-            }
+        for(int i =0;i<jn_steppers;i++){
+            motors[i]->run();
+        }
     }
 }
 
@@ -77,12 +76,17 @@ void Joint::create_motor(int step_pin,int dir_pin){
  }
 
  void Joint::motor_setup(){
-     double mult = (5.0/8.0)*6.0;
+     double mult = 0.5;
+     double speed = mult*ratio*MICRO_STEPPING;
+     double m_speed = 3.0*mult*ratio*MICRO_STEPPING;
+     double acceleration = 10000.0;
+
      for (int i=0;i<jn_steppers;i++){
          motors[i]->setPinsInverted(inverted,false,false);
-         motors[i]->setMaxSpeed(mult*2.0*ratio*MICRO_STEPPING);
-         motors[i]->setSpeed(mult*ratio*MICRO_STEPPING);
-         motors[i]->setAcceleration(mult*30.0*ratio*MICRO_STEPPING);
+         motors[i]->setCurrentPosition(0);
+         motors[i]->setMaxSpeed(m_speed);
+         motors[i]->setSpeed(speed);
+         motors[i]->setAcceleration(acceleration);
          
      }
 
@@ -94,8 +98,12 @@ void Joint::create_sensor(int pin){
 void Joint::show(){
     Serial.print("Joint ");
     Serial.print(index);
-    Serial.print("  nmotors: ");
-    Serial.println(jn_steppers);
+    Serial.print(" Motor speed ");
+    Serial.print(motors[0]->speed());
+    Serial.print(" Motor max Speed ");
+    Serial.print(motors[0]->maxSpeed());
+    Serial.println("");
+
 }
 
 void Joint::add_angle(long val){
@@ -128,7 +136,6 @@ Arm::Arm(int n_joints){
     sensors =(Sensor **) malloc(sizeof(Sensor *)*n_joints);
     l_positions = (long *) malloc(sizeof(long)*n_joints);
     for(int i =0;i<num_joins;i++)  l_positions[i]=0;
-    steppers = new MultiStepper();
     idx=0;
     m_idx =0;
     num_motors =0;
@@ -180,7 +187,7 @@ void Arm::add(long * args){
 
 }
 void Arm::show_pos(){
-    Serial.print("Arms Positions: ");
+    Serial.print("Arms LPositions: ");
     Serial.print(" ");
     for (int i =0;i<num_joins;i++){
         Serial.print(l_positions[i]);
@@ -216,7 +223,6 @@ void Arm::home(){
     for(int i =0;i< num_joins;i++){
         joints[i]->home(steppers);
     }
-    run();
 
 }
 
@@ -251,7 +257,7 @@ void Arm::build_joints(){
         joints[i]->motor_setup();
         for (int j =0;j<joints[i]->jn_steppers;j++){
             motors[spot] = joints[i]->motors[j];
-            steppers->addStepper(*motors[spot]);
+            //steppers->addStepper(*motors[spot]);
             spot ++;
         }
     }

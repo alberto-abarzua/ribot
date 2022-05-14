@@ -32,7 +32,7 @@ class robot_controller_tests(unittest.TestCase):
 
     def setUp(self):
         self.controller = ctrl.Controller()
-        self.arduino = self.controller.arduino
+        self.arduino = self.controller.monitor.arduino
 
     def test_move_command(self):
         joints = [Angle(np.pi, "rad"), Angle(2*np.pi, "rad"), Angle(np.pi, "rad"),

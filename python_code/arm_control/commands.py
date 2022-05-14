@@ -35,12 +35,16 @@ class Command:
             Message: message to the arduino to do this command
         """
         raise NotImplementedError("This method is not implemented")
-
+    def update(self):
+        pass
     def send(self):
         """Sends the message from this command to the arduino conected to controller.
         """
-        self.controller.arduino.write(self.message.encode())
+        self.update()
+        self.controller.monitor.write(self.message.encode())
 
+    def __str__(self):
+        return str(self.message)
 
 class MoveCommand(Command):
     """MoveCommand class, used to create a command from a list of angles. Subclass of Command.
@@ -55,6 +59,9 @@ class MoveCommand(Command):
         """
         super().__init__(controller=controller)
         self.angles = angles
+        self.rad_times_acc_angles = [
+            str(round(angle.rad*self.controller.acc)) for angle in self.angles]
+        self.angles_for_arduino = self.rad_times_acc_angles[:]
 
     @property
     def message(self):
@@ -63,29 +70,21 @@ class MoveCommand(Command):
         Returns:
             Message: message to the arduino to do this command
         """
-        rad_times_acc_angles = [
-            str(round(angle.rad*self.controller.acc)) for angle in self.angles]
-        self.angles_for_arduino = rad_times_acc_angles[:]
-        command = bins.Message("m",1,rad_times_acc_angles)
+        
+        command = bins.Message("m",1,self.rad_times_acc_angles)
         return command
 
-    def add(self,val):
-        res = []
-        for a,b in zip(self.angles,val.angles ):
-            print(a,b)
-            res.append(a.add(b))
-            print(a.add(b))
-        return MoveCommand(self.controller,res)
 
     def send(self):
         """Sends the command to the controllers arduino.
         """
         super().send()
         # Keep track of the angles sent.
+
+    def update(self):
         self.controller.update_arduino_angles(
             [int(x) for x in self.angles_for_arduino])
         self.controller.robot.angles = self.controller.get_arduino_angles()
-
 
 class GripperCommand(Command):
     """Class used to send a command to the robot's tool (gripper), not yet implemented.
@@ -135,53 +134,3 @@ class HomeComand(Command):
         """
         super().send()
         
-class Agregator():
-    """Class used to combine commands, in order to reduce the number of commands sent to the arduino.
-    """
-
-    def __init__(self,time_window,min_val,receiver) -> None:
-        """Creates a new agregator, this will recieve commands and return a new command when the time_window ends
-        or there is a value bigger than min_val
-
-        Args:
-            time_window (float): max time interval that the agregator will receive commands
-            min_val (int): min value to achieve in less than time_window
-        """
-        self.time_window = time_window
-        self.ini = None
-        self.receiver = receiver
-        self.min_val = min_val
-        self.vals = np.zeros(6)
-        self.commands = []
-        self.t = threading.Timer(time_window,self.send)
-
-    def receive(self,c):
-        print("receiving ",c.angles,end = " ")
-        if (self.ini == None):
-            self.start()
-        args = np.array([x.rad for x in c.angles])
-        print("args are: ",args," max value ",np.max(self.vals))
-        self.vals +=args
-        if (np.max(self.vals)>=self.min_val):
-            self.t.cancel()
-            self.send()
-
-
-    def send(self):
-        print("sending from agregator")
-        print(self.vals)
-        self.receiver.send_command(MoveCommand(self.receiver,[Angle(x,"rad") for x in self.vals]),agreg = True)
-        print("messge sent")
-        self.clear()
-    
-    
-
-    def clear(self):
-        self.ini = None
-        self.vals= np.zeros(6)
-        self.t.join()
-        self.t = threading.Timer(self.time_window,self.send)
-
-    def start(self):
-        self.ini = time.perf_counter()
-        self.t.start()

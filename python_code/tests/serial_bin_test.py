@@ -95,11 +95,7 @@ class serial_bin_test(unittest.TestCase):
     def step2(self):
         self.my_run(Message("m",1,[100,100,100,100,100,100]))
 
-    def step3(self):
-        self.my_run(Message("i",2,[]))
-        res = self.arduino.read_until(PRINTED.encode()).decode()
-        self.assertEqual(res,"Num motors 7  -  \r\nJoint 0  nmotors: 1\r\nJoint 1  nmotors: 2\r\nJoint 2  nmotors: 1\r\nJoint 3  nmotors: 1\r\nJoint 4  nmotors: 1\r\nJoint 5  nmotors: 1\r\n\r\n;")
-
+   
     def step4(self):
         self.my_run(Message("i",1,[]))
         res = self.arduino.read_until(PRINTED.encode()).decode()

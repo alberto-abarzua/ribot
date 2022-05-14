@@ -3,9 +3,11 @@ import os
 import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
-
+from arm_control.commands import *
 __author__ = "Alberto Abarzua"
 
 
@@ -108,7 +110,7 @@ class CordAngleInstruction(Instruction):
         return "c " + " ".join(result) + "\n"
 
 
-class FileManager():
+class FileManager:
     """FileManger class, used to create and read positions scripts of the arm.
     """
 
@@ -117,6 +119,7 @@ class FileManager():
         """
         self.path = "arm_control/data/"
         self.files = os.listdir(self.path)
+        self.cur_file = None
 
     def from_curve_to_instruct(self, curve):
         """Receives an array of positions and returns a list of instructions.
@@ -156,3 +159,35 @@ class FileManager():
         with open(self.path+filename, "w") as file:
             for elem in instruct_sequence:
                 file.write(elem.line)
+
+    def run_file(self, file_name):
+        """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
+
+        Args:
+            file_name (str): name of the file where the instructions are stored.
+        """
+        try:
+            self.cur_file = open(file_name, "r")
+        except Exception as e:
+            print("Error opening file: " + str(e))
+    
+    def step(self):
+        """Makes the robot arm take a current step (read a new line from self.cur_file and run it.)
+
+        Returns:
+            Instruction: Returns the current instruction read from cur_file.
+        """
+        if (self.cur_file == None or self.cur_file.closed):
+            return None
+
+        cur_line = self.cur_file.readline()
+        if (cur_line == ""):
+            self.cur_file.close()
+            return False
+
+        if (cur_line[0] == "c"):
+            return  CordAngleInstruction(cur_line)
+
+        if(cur_line[0] == "t"):
+           return ToolAngleInstruction(cur_line)
+            

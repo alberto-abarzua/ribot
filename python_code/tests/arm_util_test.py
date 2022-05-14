@@ -1,7 +1,7 @@
 import sys
 import os.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_utils.armTransforms import Angle
 import arm_utils.armTransforms as util
 import unittest

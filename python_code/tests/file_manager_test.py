@@ -45,7 +45,7 @@ class file_manager_test(unittest.TestCase):
 
     def test_run(self):
         controller = ctrl.Controller()
-        controller.arduino.set_log_file("test1_arduino.txt")
+        controller.monitor.arduino.set_log_file("test1_arduino.txt")
         p1 = Config([326.55, 1, 334], [Angle(0, "deg"),
               Angle(0, "deg"), Angle(0, "deg")])
         p2 = Config([367, 1, 334], [Angle(10, "deg"), Angle(0, "deg"), Angle(0, "deg")])
@@ -58,7 +58,7 @@ class file_manager_test(unittest.TestCase):
         controller.run_file("arm_control/data/test1.txt")
         while(controller.step()):
             continue
-        controller.arduino.log.close()
+        controller.monitor.arduino.log.close()
         f1 = open("tests/test_data/expected_test1_arduino.txt", "r")
         f2 = open("tests/test_data/test1_arduino.txt", "r")
         self.assertEqual(f1.readlines(), f2.readlines())

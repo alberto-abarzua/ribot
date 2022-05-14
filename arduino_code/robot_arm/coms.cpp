@@ -8,7 +8,7 @@ char status;
 long ** ARGS;
 bool NEW_DATA;
 byte * BUF;
-
+int max_val;
 bool DEBUG;
 ArduinoQueue<Message*> * q_fresh; //Queue to store unused messages.
 ArduinoQueue<Message*> * q_in; // Queue to store messages that need to be executed.
@@ -17,13 +17,13 @@ ArduinoQueue<Message*> * q_motor; // Motor instruct queue.
 Message ** Ms;
 void init_coms(){
    BUF =(byte *) malloc(sizeof(byte)*READING_BUFFER_SIZE);
-   ARGS = (long **) malloc(sizeof(long *)*MESSAGE_BUFFER_SIZE*2);
-   q_fresh = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE*2);
-   q_in = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
+   ARGS = (long **) malloc(sizeof(long *)*MESSAGE_BUFFER_SIZE);
+   q_fresh = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
+   q_in = new  ArduinoQueue<Message*>(4);
    q_motor = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
+   max_val = 0;
 
-
-   for(int i=0;i<MESSAGE_BUFFER_SIZE*2;i++){
+   for(int i=0;i<MESSAGE_BUFFER_SIZE;i++){
       ARGS[i] = (long *)malloc(sizeof(long)*MAX_ARGS);
       Message * m = new Message(ARGS[i]);
       q_fresh->enqueue(m);
@@ -114,6 +114,10 @@ Message * peekM(){
    return M;
 }
 Message * getM(){ // Gets the first message from the message buffer.
+   int c = q_in->itemCount();
+   if (c>max_val){
+      max_val = c;
+   }
    Message * M = q_in->dequeue();
    return M;
 }
@@ -122,7 +126,7 @@ void returnM(Message * M){
    q_fresh->enqueue(M);
 }
 bool can_receive(){
-   return ((q_in->itemCount() <= MESSAGE_BUFFER_SIZE-10) && (q_motor->itemCount() <= MESSAGE_BUFFER_SIZE-10) && (q_fresh->itemCount() >=5));
+   return ((q_in->itemCount() <= 2) && (q_motor->itemCount() <= MESSAGE_BUFFER_SIZE-10) && (q_fresh->itemCount() >=5));
 }
 
 void set_status(char new_status){
@@ -143,8 +147,9 @@ void show_queues(){
    Serial.print(" q_in: ");
    Serial.print(q_in->itemCount());
    Serial.print(" q_motor: ");
-
    Serial.print(q_motor->itemCount());
+   Serial.print(" max val: ");
+   Serial.print(max_val);
 
 
 }
@@ -165,6 +170,10 @@ void check_busy(){
       set_status(CONTINUE);
 
    }
+}
+
+Message * peekNextMove(){
+   return q_motor->getHead();
 }
 /**
 -----------------------------
