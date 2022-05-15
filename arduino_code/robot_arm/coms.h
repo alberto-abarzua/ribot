@@ -3,6 +3,13 @@
 #include "Arduino.h"
 
 #include <ArduinoQueue.h>
+
+
+/**
+ * @brief author Alberto Abarzua
+ * 
+ */
+
 //Statuses
 #define READY_STATUS '1'
 #define INITIALIZED '0'

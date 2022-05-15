@@ -2,12 +2,13 @@
 #define arm_h
 
 #include "Arduino.h"
-
 #include "stepper.h"
-
 #include <Servo.h>
 
-
+/**
+ * @brief author Alberto Abarzua
+ * 
+ */
 
 #define MICRO_STEPPING 16
 #define ACC 10000
@@ -102,7 +103,7 @@ class Joint{
  */
 class Arm{
   public:
-
+  
     int num_joins;
     int idx;
     int  m_idx;
@@ -111,9 +112,11 @@ class Arm{
     Joint ** joints;
     Stepper ** motors;
     Sensor ** sensors;
-    Arm::Arm(int n_joints);
     int num_motors;
     Servo * gripper;
+
+    Arm::Arm(int n_joints);
+
     /**
      * @brief Registers a joint to the arm
      * 

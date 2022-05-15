@@ -1,7 +1,10 @@
 #include "coms.h"
 
 
-
+/**
+ * @brief author Alberto Abarzua
+ * 
+ */
 
 //Global vars
 char status;

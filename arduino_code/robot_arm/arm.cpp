@@ -1,6 +1,13 @@
 #include "Arduino.h"
 #include "arm.h"
 
+
+
+/**
+ * @brief author Alberto Abarzua
+ * 
+ */
+
 /**
 -----------------------------
 -----------     Sensor     -----------
@@ -71,22 +78,17 @@ void Joint::home(){
 void Joint::create_motor(int step_pin,int dir_pin){
     int idx = 0;
     while(motors[idx]!=NULL) idx++;
-    motors[idx] = new Stepper(motorInterfaceType, step_pin, dir_pin);
+    motors[idx] = new Stepper(step_pin, dir_pin);
     
  }
 
  void Joint::motor_setup(){
-     double mult = 30.0;
-     double acc_mult = 10.0;
+     double mult = 10.0;
      double m_speed = mult*ratio*MICRO_STEPPING;
-     double acceleration = acc_mult*(ratio*ratio)*MICRO_STEPPING;
-
      for (int i=0;i<jn_steppers;i++){
-         motors[i]->setPinsInverted(inverted,false,false);
+         motors[i]->invertDirPin(inverted);
          motors[i]->setCurrentPosition(0);
          motors[i]->setSpeed(m_speed);
-         motors[i]->setMaxSpeed(m_speed);
-         motors[i]->setAcceleration(acceleration);
          
      }
 
@@ -99,9 +101,7 @@ void Joint::show(){
     Serial.print("Joint ");
     Serial.print(index);
     Serial.print(" Motor speed ");
-    Serial.print(motors[0]->speed());
-    Serial.print(" Motor max Speed ");
-    Serial.print(motors[0]->maxSpeed());
+    Serial.print(motors[0]->getCurSpeed());
     Serial.print(" Joint ratio: ");
     Serial.print(ratio);
     Serial.println("");
@@ -203,17 +203,33 @@ void Arm::show_pos(){
         Serial.print(" ");
 
     }
-    Serial.print("Motors Positions ");
+    Serial.print("Motors Positions: ");
     Serial.print(" ");
     for (int i =0;i<num_joins;i++){
-        Serial.print(motors[i]->currentPosition());
+        Serial.print(motors[i]->getCurrentPosition());
+        Serial.print(" ");
+
+    }
+    Serial.print("TargetPosition: ");
+    Serial.print(" ");
+    for (int i =0;i<num_joins;i++){
+        Serial.print(motors[i]->getTarget());
         Serial.print(" ");
 
     }
 
     Serial.print("Left To Go?");
     Serial.print(" ");
-    Serial.print(left_to_go());
+    Serial.print(left_to_go()? " MOVING ": " STOPPED ");
+
+    Serial.print("Distance to go: ");
+    Serial.print(" ");
+    for (int i =0;i<num_joins;i++){
+        Serial.print(motors[i]->distanceToGo());
+        Serial.print(" ");
+
+    }
+    
 }
 
 

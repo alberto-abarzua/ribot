@@ -2,6 +2,14 @@
 #include "Arduino.h"
 #include "coms.h"
 #include "arm.h"
+
+/**
+ * @brief author Alberto Abarzua
+ * 
+ */
+
+
+
 Arm * arm;
 Joint * j1;
 Joint * j2;
