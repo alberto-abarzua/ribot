@@ -117,14 +117,14 @@ class ArmGamePad:
 
     def __init__(self,controller) -> None:
         self.joy = XboxController()
-       
+    
         self.buttons =self.joy.buttons
         self.controller = controller
         self.robot = self.controller.robot
         self.robot.direct_kinematics()  # We update the euler angles and xyz
         xyz,euler_angles = self.robot.config.cords,self.robot.config.euler_angles
-        self.x, self.y,self.z = xyz
-        self.A, self.B,self.C = euler_angles
+        x, y,z = xyz
+        A, B,C = euler_angles
         self.tool = 100
         self.dir_step = 70
         self.angle_step = 0.3
@@ -138,24 +138,28 @@ class ArmGamePad:
             t1 = time.perf_counter()
             dt = t1 - t0
             t0 = t1
-
+            self.robot.direct_kinematics()  # We update the euler angles and xyz
+            xyz,euler_angles = self.robot.config.cords,self.robot.config.euler_angles
+            #Previous state:
+            x, y,z = xyz
+            A, B,C = euler_angles
             #CONTROLS FOR POSITIONS
 
             b = self.buttons
             #---y---
             if(b["LeftJoystickX"] !=0):
-                self.y+= sign(b["LeftJoystickX"] )*self.dir_step*dt
+                y+= sign(b["LeftJoystickX"] )*self.dir_step*dt
             #---x---
             if(b["LeftJoystickY"] !=0):
-                self.x+= sign(b["LeftJoystickY"] )*self.dir_step*dt
+                x+= sign(b["LeftJoystickY"] )*self.dir_step*dt
 
             #---Z Down
             if(b["LeftTrigger"] !=0):
-                self.z-= self.dir_step*dt
+                z-= self.dir_step*dt
             
             #---Z up
             if(b["RightTrigger"] !=0):
-                self.z+= self.dir_step*dt
+                z+= self.dir_step*dt
             
             angle_step_positive = Angle(self.angle_step*dt, "rad")
             angle_step_negative = Angle(-self.angle_step*dt, "rad")
@@ -164,31 +168,34 @@ class ArmGamePad:
             #-- A --
 
             if(b["LeftBumper"] !=0):
-                self.A.add(angle_step_negative)
+                A.add(angle_step_negative)
 
             if(b["RightBumper"] !=0):
-                self.A.add(angle_step_positive)
+                A.add(angle_step_positive)
 
                    
             # -- B --
 
             if(b["RightJoystickY"] !=0):
                 if(sign(b["RightJoystickY"] )>=0):
-                    self.B.add(angle_step_positive)
+                    B.add(angle_step_positive)
                 else:
-                    self.B.add(angle_step_negative)
+                    B.add(angle_step_negative)
 
              #-- C --
 
             if(b["RightJoystickX"] !=0):
                 if(sign(b["RightJoystickX"] )>=0):
-                    self.C.add(angle_step_positive)
+                    C.add(angle_step_positive)
                 else:
-                    self.C.add(angle_step_negative)
+                    C.add(angle_step_negative)
            
 
-            
-            self.controller.move_to_point(filemanager.Config([self.x, self.y, self.z], [self.A, self.B,self.C],self.tool))
+            try:
+                self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],self.tool))
+            except:
+                x, y,z = xyz
+                A, B,C = euler_angles
             time.sleep(max(0,(1/self.fps)-dt))
 
 if __name__ == '__main__':

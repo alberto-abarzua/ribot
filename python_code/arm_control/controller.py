@@ -161,7 +161,7 @@ class Controller():
         """
         next_angles = self.robot.inverse_kinematics(config)
         if (next_angles is None):
-            return "Angles out of reach"
+            raise Exception("Angles out of reach.")
         self.move_to_angle_config(next_angles)
         self.move_gripper_to(config.tool)
 

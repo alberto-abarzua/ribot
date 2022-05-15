@@ -83,13 +83,20 @@ void ComsManager::read(){
 
 
 bool ComsManager::run_coms(){
+   avg_loop_time = avg_loop_time*0.3 + (0.7)*(micros() -last_dt);   
+   
    NEW_DATA = true;
    read();//Reads from serial
+   if (cur_message != NULL){ // Return the current message.
+      q_fresh->enqueue(cur_message);
+      cur_message = NULL;
+   }
    if(!NEW_DATA){
       cur_message =  q_fresh->dequeue();//Get an unused message
       getMessage(cur_message); //New message is complete
    }
    check_busy();
+   last_dt = micros();
    return !NEW_DATA;
 }
 
@@ -113,6 +120,7 @@ void ComsManager::set_status(char new_status){
 }
 
 void ComsManager::addRunQueue(Message *m){
+   cur_message = NULL; 
    q_run->enqueue(m);
 }
 
@@ -121,6 +129,8 @@ void ComsManager::show_queues(){
    Serial.print(q_fresh->itemCount());
    Serial.print(" q_run: ");
    Serial.print(q_run->itemCount());
+   Serial.print(" Avg loop in micros: ");
+   Serial.print(avg_loop_time);
 }
 
 Message * ComsManager::peekRunQueue(){
