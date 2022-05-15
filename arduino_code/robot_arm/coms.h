@@ -33,8 +33,7 @@ class Message{
     long code;
     long * args;
     int num_args;
-    bool viewed;
-    
+
     Message(long*nargs);
     /**
      * @brief Prints to serial a string representation of this message
@@ -57,6 +56,122 @@ class Message{
     void rebuild(char nop,long ncode,long *nargs,int nnum_args);
     
 };
+
+class ComsManager{
+  private:
+    char status; //Current status
+    bool NEW_DATA;
+    byte * BUF;
+    int max_val;
+    bool DEBUG;
+    ArduinoQueue<Message*> * q_fresh; //Queue to store unused messages.
+    ArduinoQueue<Message*> * q_run; // Queue to store messages that need to be executed.
+    Message * cur_message;
+
+    long ComsManager::get_long(byte * buf,int offset);
+    /**
+     * @brief Reads from serial, and stores it in BUF.
+     * 
+     * @param buf 
+     * @param max_size 
+     * @param newData 
+     */
+    void ComsManager::read();
+    /**
+     * @brief Interpretes the bytes stored in BUF as a message and stores it in m.
+     * 
+     * @param m Message object where the contents of buf are going to be stored.
+     */
+    void ComsManager::getMessage(Message *m);
+
+    /**
+     * @brief Checks if the run queue is almost emtpy
+     * 
+     * @return true if there are few elements in q_run
+     * @return false ...
+     */
+    bool ComsManager::almostEmpty();
+    /**
+     * @brief Checks if the ComsManager is busy. If it is not it updates the status to CONTINUE.
+     * 
+     */
+    void ComsManager::check_busy();
+  public:
+  /**
+   * @brief Initializes all the variables used during comunication.
+   * 
+   */
+    ComsManager::init_coms();
+    /**
+     * @brief Construct a new Coms Manager::prints num elements the array buf as char.
+     * 
+     * @param buf byte array to read from
+     * @param num number of elements
+     */
+    void ComsManager::printBuf(byte * buf,int num);
+    
+    /**
+     * @brief Runs the ComsManager. Reads from serial and interprets new messages. Must be called as often as possible (every loop)
+     * 
+     * @return true If there is a new message ready to be read.
+     * @return false If there is no new message.
+     */
+    bool ComsManager::run_coms();
+    
+    /**
+     * @brief Gets the current message
+     * 
+     * @return cur_message
+     */
+    Message* ComsManager::getCurrentMessage();
+    /**
+     * @brief Determines if the ComsManager can receive new messages.
+     * 
+     * @return true if new messages can be received.
+     * @return false if no new messages can be received.
+     */
+    bool ComsManager::can_receive();
+
+    /**
+     * @brief Sets the current status, and writes it to serial.
+     * 
+     * @param status 
+     */
+    void ComsManager::set_status(char new_status);
+    
+    /**
+     * @brief Adds a new message m to the run queue.
+     * 
+     * @param m new message to be added.
+     */
+    void ComsManager::addRunQueue(Message *m);
+
+    /**
+     * @brief Prints to serial the status of the queues (q_run and q_fresh)
+     * 
+     */
+    void ComsManager::show_queues();
+    /**
+     * @brief Removes a message from the run queue and returns it.
+     * 
+     * @return Message* Message removed from q_run
+     */
+    Message * ComsManager::popRunQueue();
+    /**
+     * @brief Checks if the run queue is empty or not
+     * 
+     * @return true if run queue is emtpy
+     * @return false if runQueue is not empty
+     */
+    bool ComsManager::isEmptyRunQueue();
+    /**
+     * @brief Peeks the run queue
+     * 
+     * @return Message* peeks the first message form the run queue (does not remove it) 
+     */
+    Message * ComsManager::peekRunQueue();
+};
+
 
 /**
  * @brief Gets the message from the buffer buf

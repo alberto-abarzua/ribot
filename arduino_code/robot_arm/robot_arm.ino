@@ -8,9 +8,12 @@
  * 
  */
 
+//Serial Manager
 
+ComsManager com;
 
 Arm * arm;
+
 Joint * j1;
 Joint * j2;
 Joint * j3;
@@ -85,8 +88,8 @@ void setup() {
   arm->register_joint(j6);
   arm->create_gripper(gripper_pin);
   arm->build_joints();
-  init_coms();
-  set_status(INITIALIZED);
+  com.init_coms(); // Initialize the variable for comManager.
+  com.set_status(INITIALIZED);
   
 
 }
@@ -95,12 +98,10 @@ void arm_check();
 
 
 
-void loop() {
-  run_reader();
-  if(!new_data()){
+void loop(){
+  if(com.run_coms()){
     //Get the info from the message:
-    Message * M = getM();
-    bool should_return = true;
+    Message * M = com.getCurrentMessage();
     char op = M->op;
     int code =  M->code;
     int numArgs =  M->num_args;
@@ -110,13 +111,12 @@ void loop() {
       case 'm': 
         switch (code){
           case 1:
-            queueMove(M);
-            should_return = false;
-            set_status(READY_STATUS);
+            com.addRunQueue(M);
+            com.set_status(READY_STATUS);
 
             break;
           default:
-            set_status(UNK);
+            com.set_status(UNK);
             break;
         }
         break;
@@ -125,28 +125,28 @@ void loop() {
         switch (code){
           case 1:
             arm->show_pos();
-            set_status(PRINTED);
+            com.set_status(PRINTED);
 
             
             break;
           case 2:
             arm->show();
 
-            set_status(PRINTED);
+            com.set_status(PRINTED);
             break;
           case 3:
             arm->show_sensors();
 
-            set_status(PRINTED);
+            com.set_status(PRINTED);
             break;
           case 4:
-            show_queues();
+            com.show_queues();
 
-            set_status(PRINTED);
+            com.set_status(PRINTED);
             break;
           default:
 
-            set_status(UNK);
+            com.set_status(UNK);
             break;
         }
         break;
@@ -156,12 +156,12 @@ void loop() {
           case 0:
             arm->home();
 
-            set_status(READY_STATUS);
+            com.set_status(READY_STATUS);
             
             break;
           default:
 
-            set_status(UNK);
+            com.set_status(UNK);
             break;
         }
         break;
@@ -172,10 +172,10 @@ void loop() {
           
             arm->set_gripper_angle(args[0]);
 
-            set_status(READY_STATUS);
+            com.set_status(READY_STATUS);
             break;
           default:
-            set_status(UNK);
+            com.set_status(UNK);
             break;
         }
         break;
@@ -183,7 +183,6 @@ void loop() {
       case 's':
         switch (code){
           case 1:
-            toggle_debug();
             break;
           case 2:
 
@@ -198,37 +197,33 @@ void loop() {
       default:
         break;
     }
-
-
-    if(should_return){
-      returnM(M);
-    }
-
   }
-  arm_check();
-  
+
+  arm_check(); // Runs the checks to run pending messages.
 
 }
 
+
+/**
+ * @brief Checks if two numbers have the same sign.
+ * 
+ * @param num1 first number
+ * @param num2 second number
+ * @return true if their signs are equal
+ * @return false if signs are not the same
+ */
 bool eq_sign(long num1,long num2){
-  if(num1 == 0 or num2 ==0){
-    return true;
-  }
-  if(num1>0 and num2>0){
-    return true;
-  }
-  if(num1<0 and num2<0){
-    return true;
-  }
-  return false;
+  return (num1^ num2) >= 0;
 }
 
-
+/**
+ * @brief Checks if there are pending messages to be executed and runs them.
+ * 
+ */
 void arm_check(){
-  check_busy();
-  if (movesOnQueue()){ //There are moves in the move queue
+  if (!com.isEmptyRunQueue()){ //There are moves in the move queue
     if(arm->left_to_go()){//Motors are still moving
-      Message * new_M = peekNextMove();
+      Message * new_M = com.peekRunQueue();
       bool same_dir = true;
       for (int i =0;i<arm->num_joins;i++){
         if (eq_sign(new_M->args[i],arm->l_positions[i])){
@@ -236,15 +231,13 @@ void arm_check(){
         }
       }
       if(same_dir){
-        unqueueMove();
+        com.popRunQueue();
         arm->add(new_M->args);
-        returnM(new_M);
       }
     }else{//Motors have reached their positions.
-      Message * new_M = unqueueMove();
+      Message * new_M = com.popRunQueue();
 
       arm->add(new_M->args);
-      returnM(new_M);
     }
     
   }
