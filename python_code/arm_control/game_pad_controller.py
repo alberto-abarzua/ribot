@@ -128,7 +128,7 @@ class ArmGamePad:
         self.tool = 100
         self.dir_step = 70
         self.angle_step = 0.3
-        self.fps = 10
+        self.fps = 20
         
 
     def run(self):

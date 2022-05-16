@@ -83,7 +83,7 @@ void ComsManager::read(){
 
 
 bool ComsManager::run_coms(){
-   avg_loop_time = avg_loop_time*0.3 + (0.7)*(micros() -last_dt);   
+   avg_loop_time = avg_loop_time*0.9 + (0.1)*(micros() -last_dt);   
    
    NEW_DATA = true;
    read();//Reads from serial
