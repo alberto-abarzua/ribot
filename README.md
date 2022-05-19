@@ -20,7 +20,7 @@ roll, pitch and yaw also known as euler angles.
 
 
 ### Current version of the arm using stepper motors and Arduino Mega.
-![Whole view](https://i.ibb.co/4WtFVFL/8-E2-F34-B1-2-A22-40-E4-8-CC6-2-BCDFD35-D6-A7.jpg)
+![Whole view](https://i.ibb.co/3yFSxkv/16750-C46-705-C-4-CE6-94-A2-35-F1-C98-ADB11.jpg)
 Video of the current version of the arm working:
 <https://youtu.be/Nz6M56jV3Vw>
 
