@@ -133,4 +133,6 @@ class HomeComand(Command):
         """Sends the command to the controllers arduino.
         """
         super().send()
+    def update(self):
+        self.controller.is_homed = True
         

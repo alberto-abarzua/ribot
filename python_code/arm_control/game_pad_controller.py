@@ -99,17 +99,26 @@ class XboxController(object):
                 elif event.code == 'BTN_THUMBR':
                     self.buttons["RightThumb"] = event.state
                 elif event.code == 'BTN_SELECT':
-                    self.buttons["Back"] = event.state
-                elif event.code == 'BTN_START':
                     self.buttons["Start"] = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY1':
-                    self.buttons["LeftDPad"] = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY2':
-                    self.buttons["RightDPad"] = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY3':
-                    self.buttons["UpDPad"] = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY4':
-                    self.buttons["DownDPad"] = event.state
+                elif event.code == 'BTN_START':
+                    self.buttons["Back"] = event.state
+                elif event.code == 'ABS_HAT0X' :
+                    if(event.state==-1):
+                        self.buttons["LeftDPad"] = abs(event.state)
+                    elif(event.state ==1):
+                        self.buttons["RightDPad"] = abs(event.state)
+                    else:
+                        self.buttons["LeftDPad"] = abs(event.state)
+                        self.buttons["RightDPad"] = abs(event.state)
+
+                elif event.code == 'ABS_HAT0Y' :
+                    if(event.state==-1):
+                        self.buttons["UpDPad"] = abs(event.state)
+                    elif(event.state ==1):
+                        self.buttons["DownDPad"] = abs(event.state)
+                    else:
+                        self.buttons["UpDPad"] = abs(event.state)
+                        self.buttons["DownDPad"] = abs(event.state)
 
 
 
@@ -128,7 +137,7 @@ class ArmGamePad:
         self.tool = 100
         self.dir_step = 70
         self.angle_step = 0.3
-        self.fps = 20
+        self.fps = 80
         
 
     def run(self):
@@ -189,7 +198,9 @@ class ArmGamePad:
                     C.add(angle_step_positive)
                 else:
                     C.add(angle_step_negative)
-           
+            if(b["Back"]!=0): #Try and home the arm
+                self.controller.home_arm()
+                continue
 
             try:
                 self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],self.tool))
@@ -201,4 +212,5 @@ class ArmGamePad:
 if __name__ == '__main__':
     joy = XboxController()
     while True:
+        #joy.read()
         print(joy.read())

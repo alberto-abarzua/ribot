@@ -156,7 +156,7 @@ class SerialMonitor:
             except:
                 print("Please enter a valid input.")
                 continue;
-            if m is "text":
+            if m == "text":
                 try:
                     with open("arm_control/scripts/"+op) as f:
                         lines = f.readlines()
@@ -187,4 +187,4 @@ if __name__ == "__main__":
         m = SerialMonitor(None,PORT,115200)
         m.run()
     
-    
+    # m1 0 0 0 0 15707 0 

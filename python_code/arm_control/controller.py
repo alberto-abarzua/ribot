@@ -52,7 +52,8 @@ class Controller():
         self.angles = [Angle(0, "rad") for _ in range(self.num_joints)]
         self.tool = 100
         self.arduino_angles = [0 for _ in range(self.num_joints)]
-        
+        self.is_homed = False
+
         self.coms_lock = threading.Lock()
 
         self.filem = FileManager()
@@ -133,10 +134,12 @@ class Controller():
             return None
         self.send_command(com.GripperCommand(self,int(angle)))
         self.tool = int(angle)
-
+    
     def home_arm(self):
         """Homes all the joints of the arm (runs the home command)"""
-        self.send_command(com.HomeComand(self))
+        if not self.is_homed:
+            print("\nHoming all joints!")
+            self.send_command(com.HomeComand(self))
         
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).
