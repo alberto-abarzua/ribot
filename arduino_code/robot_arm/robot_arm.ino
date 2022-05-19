@@ -60,13 +60,13 @@ const int offsets[] = {-3234*(MICRO_STEPPING/8),-1250*(MICRO_STEPPING/8),(-5186+
 void setup() {
   Serial.begin(115200);
   arm = new Arm(6);
-  // Joint(double a_ratio,bool a_inverted,int a_homing_dir,int joint_num_steppers);
-  j1 = new Joint(9.3,false,1,-3234*(MICRO_STEPPING/8),1);
-  j2 = new Joint(5.357,false,1,-1250*(MICRO_STEPPING/8),2);
-  j3 = new Joint(4.5*5.0,true,1,(-5186+8998)*(MICRO_STEPPING/8),1);
-  j4 = new Joint(1.0,false,-1,-435*(MICRO_STEPPING/8),1,6.0);
-  j5 = new Joint(3.5,true,1,-566*(MICRO_STEPPING/8),1,3.0);
-  j6 = new Joint(1.0,false,-1,-75*(MICRO_STEPPING/8),1,6.0);
+  //Joint:: Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
+  j1 = new Joint(9.3,false,1,-6468*(MICRO_STEPPING/16),1);
+  j2 = new Joint(5.357,false,1,-2500*(MICRO_STEPPING/16),2);
+  j3 = new Joint(4.5*5.0,true,1,10321*(MICRO_STEPPING/16),1);
+  j4 = new Joint(1.0,true,-1,-670*(MICRO_STEPPING/16),1,8.0);
+  j5 = new Joint(3.5,true,1,-1132*(MICRO_STEPPING/16),1,10.0);
+  j6 = new Joint(1.0,true,-1,-1700*(MICRO_STEPPING/16),1,8.0);
   j1->create_motor(stepPin1,dirPin1);
   j2->create_motor(stepPin2,dirPin2);
   j2->create_motor(stepPin3,dirPin3);
@@ -145,8 +145,13 @@ void loop(){
             com.set_status(PRINTED);
             break;
           case 5:
-            Serial.print("Gripper servo is at: ");
-            Serial.println(arm->gripper->read());
+            arm->show_gripper();
+            
+            com.set_status(PRINTED);
+
+            break;
+          case 6:
+            arm->show_offsets();
             com.set_status(PRINTED);
 
             break;
@@ -166,8 +171,8 @@ void loop(){
             
             break;
           default:
-
-            com.set_status(UNK);
+            arm->home_joint(code);
+            com.set_status(READY_STATUS);
             break;
         }
         break;
@@ -186,15 +191,13 @@ void loop(){
         }
         break;
 
-      case 's':
+      case 'o':
         switch (code){
           case 1:
             break;
-          case 2:
 
-            break;
           default:
-
+            arm->joints[code]->set_offset(args[0]);
             break;
         }
         break;

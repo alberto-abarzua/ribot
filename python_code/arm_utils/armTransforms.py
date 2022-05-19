@@ -57,6 +57,8 @@ class Config:
     euler_angles: List[Angle]
     tool: int = 0
 
+    def __str__(self):
+        return "cords: [x: {:.2f}, y: {:.2f}, z: {:.2f}] angles: [A: {:.2f}, B: {:.2f}, C:{:.2f}] tool: {}".format(*(self.cords+[x.rad for x in self.euler_angles]+[self.tool]))
 
 def rad2degree(angle):
     """Converts angles in radians to degrees
@@ -242,3 +244,24 @@ def nearest_to_prev_aux(angle,prev):
         return nearest_to_prev_aux(2*np.pi+angle,prev)
     if (abs(angle -np.pi*2-prev)<abs(angle-prev)):
         return nearest_to_prev_aux(angle - 2*np.pi,prev)
+
+
+class OutOfBoundsError(Exception):
+    """OutOfBoundsEror, used to raise an exception when inverse kinematics does not 
+    find a solution within the restraints.
+
+    """
+
+    def __init__(self, config, message="Out of bounds."):
+        """Creates a new exception, with a set of angles as input and a message.
+
+        Args:
+            angles (Config): arm configuration that raised the exception
+            message (str, optional): eror message.. Defaults to "Out of bounds.".
+        """
+        super().__init__(message)
+        self.config = config
+        self.message = message
+
+    def __str__(self):
+        return f'{self.config} -> {self.message}'

@@ -132,11 +132,9 @@ class ArmGamePad:
         self.robot = self.controller.robot
         self.robot.direct_kinematics()  # We update the euler angles and xyz
         xyz,euler_angles = self.robot.config.cords,self.robot.config.euler_angles
-        x, y,z = xyz
-        A, B,C = euler_angles
-        self.tool = 100
         self.dir_step = 70
         self.angle_step = 0.3
+        self.tool_step =80
         self.fps = 80
         
 
@@ -148,10 +146,11 @@ class ArmGamePad:
             dt = t1 - t0
             t0 = t1
             self.robot.direct_kinematics()  # We update the euler angles and xyz
-            xyz,euler_angles = self.robot.config.cords,self.robot.config.euler_angles
+            xyz,euler_angles,tool = self.robot.config.cords,self.robot.config.euler_angles,self.robot.config.tool
             #Previous state:
             x, y,z = xyz
             A, B,C = euler_angles
+            tang = tool
             #CONTROLS FOR POSITIONS
 
             b = self.buttons
@@ -178,8 +177,13 @@ class ArmGamePad:
 
             if(b["LeftBumper"] !=0):
                 A.add(angle_step_negative)
+                A.add(angle_step_negative)
+                A.add(angle_step_negative)
+
 
             if(b["RightBumper"] !=0):
+                A.add(angle_step_positive)
+                A.add(angle_step_positive)
                 A.add(angle_step_positive)
 
                    
@@ -201,16 +205,30 @@ class ArmGamePad:
             if(b["Back"]!=0): #Try and home the arm
                 self.controller.home_arm()
                 continue
+            
+
+            #tools controls:
+
+            if(b["LeftDPad"] != 0):
+                tang+=dt*self.tool_step
+
+            if(b["RightDPad"] != 0):
+                tang-=dt*self.tool_step
+
 
             try:
-                self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],self.tool))
-            except:
+                self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],round(tang)))
+            except Exception as e:
+                print(e)
                 x, y,z = xyz
                 A, B,C = euler_angles
+                tang = tool
+
+
             time.sleep(max(0,(1/self.fps)-dt))
 
 if __name__ == '__main__':
     joy = XboxController()
     while True:
-        #joy.read()
+        #joy.read()c
         print(joy.read())

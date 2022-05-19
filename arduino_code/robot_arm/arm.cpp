@@ -84,6 +84,9 @@ void Joint::home(){
                 break;
         }
         for(int i =0;i<jn_steppers;i++){
+            if(motors[i]->distanceToGo() == 0){ // Homing failed, we return to avoid soft lock.
+                return;
+            }
             motors[i]->run();
         }
     }
@@ -131,12 +134,21 @@ void Joint::add_angle(long val){
 }
 
 void Joint::launch_home(){
-    add_angle(3.1415*ACC*homing_dir);
+    add_angle(1.3*3.1415*ACC*homing_dir);
     for (int i =0 ;i<jn_steppers;i++){
       motors[i]->moveTo(position);
     }
 }
 
+void Joint::set_offset(long new_offset){
+    offset = new_offset;
+}
+void Joint::show_offset(){
+    Serial.print("Joint ");
+    Serial.print(index);
+    Serial.print(" current offset: ");
+    Serial.print(offset);
+}
 
 /**
 -----------------------------
@@ -169,6 +181,8 @@ void Arm::show(){
 
 }
 
+
+
 bool Arm::left_to_go(){
     for (int i =0;i<num_joins;i++){
         int tolerance = 30*joints[i]->ratio;
@@ -182,6 +196,7 @@ bool Arm::left_to_go(){
 void Arm::create_gripper(int pin){
     gripper = new Servo();
     gripper->attach(pin);
+    gripper->write(100);
 }
 
 void Arm::set_gripper_angle(int val){
@@ -256,7 +271,11 @@ void Arm::home(){
     for(int i =0;i< num_joins;i++){
         joints[i]->home();
     }
+}
 
+void Arm::home_joint(int join_idx){
+        joints[join_idx]->launch_home();
+        joints[join_idx]->home();
 }
 
 void Arm::show_sensors(){
@@ -295,4 +314,17 @@ void Arm::build_joints(){
         }
     }
 
+}
+
+
+void Arm::show_offsets(){
+    for(int i =0;i<num_joins;i++){
+        joints[i]->show_offset();
+        Serial.print("\n");
+    }
+}
+
+void Arm::show_gripper(){
+    Serial.print("Gripper servo is at: ");
+    Serial.println(gripper->read());   
 }

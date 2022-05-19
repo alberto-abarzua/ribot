@@ -90,10 +90,11 @@ class SerialMonitor:
         Args:
             command (Command): Calls the send method on a command, (sends it's message to the arduino)
         """
-        self.lock.acquire()
-        command.send()
-        self.wait()
-        self.lock.release()
+        if (command.is_correct()):
+            self.lock.acquire()
+            command.send()
+            self.wait()
+            self.lock.release()
 
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.

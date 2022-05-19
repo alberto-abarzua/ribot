@@ -1,4 +1,6 @@
 import enum
+
+from torch import true_divide
 from . import bins
 import time
 import threading
@@ -9,7 +11,7 @@ import sys
 import os.path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Angle, OutOfBoundsError
 
 __author__ = "Alberto Abarzua"
 
@@ -36,7 +38,17 @@ class Command:
         """
         raise NotImplementedError("This method is not implemented")
     def update(self):
+        """Used to update the status of the controller.
+        """
         pass
+
+    def is_correct(self):
+        """Checks if the command and it's values are correct
+
+        Returns:
+            bool: true if the command is correct, false otherwise.
+        """
+        return True
     def send(self):
         """Sends the message from this command to the arduino conected to controller.
         """
@@ -85,7 +97,7 @@ class MoveCommand(Command):
         self.controller.update_arduino_angles(
             [int(x) for x in self.angles_for_arduino])
         self.controller.robot.angles = self.controller.get_arduino_angles()
-
+   
 class GripperCommand(Command):
     """Class used to send a command to the robot's tool (gripper), not yet implemented.
 
@@ -114,6 +126,11 @@ class GripperCommand(Command):
         """Sends the command to the controllers arduino.
         """
         super().send()
+    def update(self):
+        self.controller.tool = self.angle
+
+    def is_correct(self):
+        return self.angle in range(60,150)
 
 class HomeComand(Command):
     """Command used to home the joints of the robot arm, gets the arm to it's home position"""

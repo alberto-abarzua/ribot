@@ -1,3 +1,4 @@
+from doctest import OutputChecker
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -44,9 +45,25 @@ class RobotArm:
         self.a6z = 0
         self.a6y = 0
 
+        #constraints. (should be a tuple of Angle's )
+
+        #           (Angle(min_val), Angle(max_val))
+        default_min = -2*np.pi
+        default_max = 2*np.pi
+        
+        self.j1_range = lambda x: x>default_min and x<default_max
+        self.j1_range = lambda x: x>default_min and x<default_max
+        self.j2_range = lambda x: x>default_min and x<default_max
+        self.j3_range = lambda x: x>default_min and x<default_max
+        self.j4_range = lambda x: x>default_min and x<default_max
+        self.j5_range = lambda x: x>default_min and x<default_max
+        self.j6_range = lambda x: x>default_min and x<default_max
+
         # Joints angles
         self.angles = [Angle(0, "rad") for i in range(6)]
-        self.config = None
+        self.config = Config([],[],100)
+        self.direct_kinematics() #update self.config with initial values.
+        print("this is config:", self.config)
 
 
 # -----------------------------------------------------------------------------------
@@ -54,6 +71,10 @@ class RobotArm:
 # FORWARD KINEMATCIS
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
+
+    @property
+    def constraints(self):
+        return [self.j1_range,self.j2_range,self.j3_range,self.j4_range,self.j5_range,self.j6_range]
 
     def direct_kinematics(self, angles=None):
         """Direct Kinematics function,takes a configuration of angles for all the robots joints and 
@@ -124,15 +145,35 @@ class RobotArm:
         rotation = R1@R2@R3@R4@R5@R6
         euler_angles = rotationMatrixToEulerAngles(rotation)
         pos = list(position[:3, 0])
-        self.config = Config(pos,euler_angles)
+        
+        self.config.cords = pos
+        self.config.euler_angles = euler_angles
         return self.config
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
 # INVERSE KINEMATICS
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
+    def inverse_kinematics(self,config = None):
+        """Safe version of inverse kinematics, calls not_safe_IK that does all the calculations.
 
-    def inverse_kinematics(self, config=None):
+        Args:
+            config (Config), optional): configuration of the robot to reach. Defaults to None.
+
+        Raises:
+            OutOfBoundsError: if the config is not achievable an exception is raised.
+
+        Returns:
+            list[Angle]: list of Angles the robot arm should have to reach config.
+        """
+        try:
+            res = self.not_safe_IK(config)
+            if (res == None):
+                raise  OutOfBoundsError(config)
+        except Exception as e:
+            raise  OutOfBoundsError(config,str(e))
+        return res
+    def not_safe_IK(self, config=None):
         """Gets the angles that the robots joints should have so that the tool is in the position and
         euler angles given by config. If config is None the current config of the robot arm is used.
 
@@ -142,8 +183,7 @@ class RobotArm:
         Returns:
             list[Angle]: list of Angles the robot arm should have to reach config.
         """
-        prev = self.angles[:
-                           ]  # Current angles of the robot (used to choose the closest angles to achieve config)
+        prev = self.angles[:]  # Current angles of the robot (used to choose the closest angles to achieve config)
         if (config == None):
             config = self.config
         xyz, euler_angles = config.cords,config.euler_angles
@@ -191,7 +231,7 @@ class RobotArm:
             J5 = Angle(np.arctan2(
                 np.sqrt(1-Rwrist[0, 0]**2), Rwrist[0, 0]), "rad")
             if J5.rad == 0:  # Singularity
-                J4 = self.angles[3]
+                J4 = self.angles[3] #keep the current angle of J4.
                 J6 = Angle(np.arctan2(
                     Rwrist[2, 1], Rwrist[2, 2]), "rad").sub(J4)
             else:

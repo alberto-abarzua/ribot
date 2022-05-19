@@ -12,7 +12,7 @@
 
 #define MICRO_STEPPING 16
 #define ACC 10000
-#define SPEED_CONSTANT 20.0 // Speed base mutliplier for all joints.
+#define SPEED_CONSTANT 13.0 // Speed base mutliplier for all joints.
 #define motorInterfaceType 1
 
 /**
@@ -94,6 +94,17 @@ class Joint{
      * @param m Multistepper used to run the other steppers.
      */
     void Joint::home();
+    /**
+     * @brief Sets a new offset for the joint
+     * 
+     * @param new_offset new value for offset
+     */
+    void Joint::set_offset(long new_offset);
+    /**
+     * @brief prints the offset of the joint.
+     * 
+     */
+    void Joint::show_offset();
 
 };
 
@@ -181,6 +192,22 @@ class Arm{
      * @return false if the motors have reached their desired positions.
      */
     bool Arm::left_to_go();
+    /**
+     * @brief Starts and runs the homing procedure for a certain joint (determined by their index.)
+     * 
+     * @param join_idx joint index of the joint that will be homed.
+     */
+    void Arm::home_joint(int join_idx);
+    /**
+     * @brief Shows the offsets of each joint of the arm (prints to serial.)
+     * 
+     */
+    void Arm::show_offsets();
+    /**
+     * @brief Prints to serial the current angle of the gripper.
+     * 
+     */
+    void Arm::show_gripper();
     
 };
 

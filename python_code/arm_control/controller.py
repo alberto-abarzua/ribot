@@ -1,5 +1,7 @@
 import os.path
+from re import L
 import sys
+from xml.sax.handler import property_declaration_handler
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -7,7 +9,7 @@ from arm_control.serial_monitor import SerialMonitor
 import numpy as np
 import arm_control.commands as com
 import arm_utils.robotarm as robotarm
-from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Angle, OutOfBoundsError
 from arm_utils.armTransforms import Config
 import time
 import serial
@@ -47,11 +49,18 @@ class Controller():
         self.robot.a5x = 64.1
         self.robot.a6x = 169
 
+        #physical constraints
+        
+        self.robot.j1_range = lambda x: x>-np.pi/2 and x<np.pi/2
+        self.robot.j2_range = lambda x: x>-1.39626 and x<1.57
+        self.robot.j3_range = lambda x: x>-np.pi/2 and x<np.pi/2
+        self.robot.j5_range = lambda x: x>-np.pi/2 and x<np.pi/2
+
+
         self.acc = 10000  # Acurray of the angles sent to the arduino.
         self.num_joints = 6
-        self.angles = [Angle(0, "rad") for _ in range(self.num_joints)]
-        self.tool = 100
-        self.arduino_angles = [0 for _ in range(self.num_joints)]
+        self.arduino_angles = [0 for _ in range(self.num_joints)] # Array used to store the exact same values the arduino
+
         self.is_homed = False
 
         self.coms_lock = threading.Lock()
@@ -60,7 +69,36 @@ class Controller():
 
         self.monitor = SerialMonitor(self,port,baudrate)
 
-    
+    @property
+    def tool(self):
+        """Gets the angle of the robots tool
+
+        Returns:
+            int: angle of the tool servo
+        """
+        return self.robot.config.tool
+
+    @tool.setter
+    def tool(self,new_angle):
+        """Sets the angle of the robot's tool servo
+
+        Args:
+            new_angle (int): new angle (0-180)
+        """
+        self.robot.config.tool = new_angle
+    @property
+    def angles(self):
+        """Gets the current angles of the joints of the robot arm.
+
+        Returns:
+            list[Angle]: list of angles for every joint. (current.)
+        """
+        return self.robot.angles
+
+    @property
+    def config(self):
+        return self.robot.config
+
     def run_file(self,file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
 
@@ -130,9 +168,12 @@ class Controller():
         Args:
             angle (int): integer that represents the angle configuration of the gripper
         """
-        if (self.tool == int(angle)):
+        if (self.tool == round(angle)):
             return None
-        self.send_command(com.GripperCommand(self,int(angle)))
+        c = com.GripperCommand(self,int(angle))
+        if not c.is_correct():
+            raise OutOfBoundsError(self.config,"Tool out of bounds.")
+        self.send_command(c)
         self.tool = int(angle)
     
     def home_arm(self):
@@ -140,13 +181,21 @@ class Controller():
         if not self.is_homed:
             print("\nHoming all joints!")
             self.send_command(com.HomeComand(self))
-        
+    
+
+
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).
 
         Args:
             angles (list[Angles]): Angles to go to.
         """
+        cons = self.robot.constraints
+        angles_rads = [x.rad for x in angles]
+        for i,(con,elem )in enumerate(zip(cons,angles_rads)):
+            if not con(elem):
+                raise OutOfBoundsError(self.config,f"Joint {i} range constraint")
+
         cur_angles = self.get_arduino_angles()
         dif = [Angle(fin.rad-ini.rad, "rad")
                for ini, fin in zip(cur_angles, angles)]
@@ -154,6 +203,7 @@ class Controller():
         if (all([abs(x.rad)<1/self.acc for x in dif])): #Check, so that only usefull commands are sent.
             return None
         command = com.MoveCommand(self, dif)
+        
         self.send_command(command)
 
     def move_to_point(self, config):
@@ -163,8 +213,6 @@ class Controller():
             config (Config) : Point described as a config.
         """
         next_angles = self.robot.inverse_kinematics(config)
-        if (next_angles is None):
-            raise Exception("Angles out of reach.")
         self.move_to_angle_config(next_angles)
         self.move_gripper_to(config.tool)
 

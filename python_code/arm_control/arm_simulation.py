@@ -668,16 +668,16 @@ def sim(args):
 
         point_texts = []
         # Instructions to create new demo files
-        title_text = drawText(
-                textPipeline, f"Recorded points list: press C to clear |G to play last demo| R to record | T to save demo{FileManager().get_demo_number()}.txt", 0.02, [-0.95, 0.95, 0])
-        for i, elem in enumerate(controller.cur_point_list): #Only display the last 5 points
-            cord, angle = elem.cords,elem.euler_angles
-            tool = elem.tool
-            x_disp, y_disp, z_disp = cord
-            A_disp, B_disp, C_disp = angle
-            elem_text = drawText(
-                textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f} A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f} TOOL = {tool}", 0.02, [-0.95, 0.9-i*0.05, 0])
-            point_texts.append(elem_text)
+        # title_text = drawText(
+        #         textPipeline, f"Recorded points list: press C to clear |G to play last demo| R to record | T to save demo{FileManager().get_demo_number()}.txt", 0.02, [-0.95, 0.95, 0])
+        # for i, elem in enumerate(controller.cur_point_list): #Only display the last 5 points
+        #     cord, angle = elem.cords,elem.euler_angles
+        #     tool = elem.tool
+        #     x_disp, y_disp, z_disp = cord
+        #     A_disp, B_disp, C_disp = angle
+        #     elem_text = drawText(
+        #         textPipeline, f"x = {x_disp:.2f} y = {y_disp:.2f} z = {z_disp:.2f} A = {A_disp.deg:.2f} B = {B_disp.deg:.2f} C = {C_disp.deg:.2f} TOOL = {tool}", 0.02, [-0.95, 0.9-i*0.05, 0])
+        #     point_texts.append(elem_text)
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)
 

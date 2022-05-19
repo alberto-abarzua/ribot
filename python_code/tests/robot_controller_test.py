@@ -57,14 +57,6 @@ class robot_controller_tests(unittest.TestCase):
 
     def test_move_to_point(self):
         
-        cords = self.controller.robot.direct_kinematics([Angle(0,"rad") for i in range(6)]).cords
-        euler = [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")]
-        # Moving to initial position
-        self.controller.move_to_point(Config(cords,euler))
-        self.assertTrue("m1 0 0 0 0 0 0", self.arduino.received_lines[0])
-        self.assertTrue(self.angleAllClose(
-            [Angle(0, "rad") for _ in range(6)], self.controller.get_arduino_angles()))
-
         joints = [Angle(np.pi/8, "rad"), Angle(2*np.pi/8, "rad"), Angle(np.pi/8, "rad"),
                   Angle(np.pi/8, "rad"), Angle(np.pi/8, "rad"), Angle(np.pi/8, "rad")]
         conf = self.controller.robot.direct_kinematics(joints)
@@ -72,7 +64,7 @@ class robot_controller_tests(unittest.TestCase):
         # Moving to initial position
         self.controller.move_to_point(conf)
         self.assertEqual("m1 3927 7854 3927 3927 3927 3927",
-                         self.arduino.received_lines[1])
+                         self.arduino.received_lines[0])
         self.assertTrue(self.angleAllClose(
             joints, self.controller.get_arduino_angles()))
 
