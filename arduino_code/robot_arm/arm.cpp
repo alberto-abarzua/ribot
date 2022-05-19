@@ -48,6 +48,21 @@ Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int jo
     angle =0;
     position =0;
 }
+Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier){
+    jn_steppers = joint_num_steppers;
+
+    motors =(Stepper **) malloc(sizeof (Stepper *)*joint_num_steppers);
+    sensor = (Sensor *) malloc(sizeof(Sensor *));
+    for (int i =0;i<jn_steppers;i++) motors[i]=NULL;
+    ratio = a_ratio;
+    inverted = a_inverted;
+    homing_dir = a_homing_dir;
+    offset = a_offset;
+    angle =0;
+    position =0;
+    speed_multiplier = a_speed_multiplier;
+}
+
 
 void Joint::home(){
     int times_activated = 0;
@@ -83,8 +98,7 @@ void Joint::create_motor(int step_pin,int dir_pin){
  }
 
  void Joint::motor_setup(){
-     double mult = 10.0;
-     double m_speed = mult*ratio*MICRO_STEPPING;
+     double m_speed = speed_multiplier*SPEED_CONSTANT*ratio*MICRO_STEPPING;
      for (int i=0;i<jn_steppers;i++){
          motors[i]->invertDirPin(inverted);
          motors[i]->setCurrentPosition(0);
@@ -157,7 +171,8 @@ void Arm::show(){
 
 bool Arm::left_to_go(){
     for (int i =0;i<num_joins;i++){
-        if(motors[i]->distanceToGo() != 0){
+        int tolerance = 30*joints[i]->ratio;
+        if(abs(motors[i]->distanceToGo()) >= tolerance){
             return true;
         }
     }

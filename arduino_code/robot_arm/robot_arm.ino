@@ -22,26 +22,26 @@ Joint * j5;
 Joint * j6;
 
 // Motor 1
-const int stepPin1 = 52;
-const int dirPin1 = 53;
+const int dirPin1 = 8;
+const int stepPin1 = 9;
 // Motor 2
-const int stepPin2 = 51;
-const int dirPin2 = 50;
+const int dirPin2 = 10;
+const int stepPin2 = 11;
 // Motor 3
-const int stepPin3 =49;
-const int dirPin3=48;
+const int dirPin3=32;
+const int stepPin3 =33;
 // Motor 4
-const int stepPin4 = 47;
-const int dirPin4 = 46;
+const int dirPin4 = 34;
+const int stepPin4 = 35;
 // Motor 5
-const int stepPin5 = 45;
-const int dirPin5 = 44;
+const int dirPin5 = 36;
+const int stepPin5 = 37;
 //Motor 6
-const int stepPin6 = 43;
-const int dirPin6 = 42;
+const int dirPin6 = 38;
+const int stepPin6 = 39;
 //Motor 7
-const int stepPin7 = 10;
-const int dirPin7 = 11;
+const int dirPin7 = 40;
+const int stepPin7 = 41;
 
 // Joint 1
 const int hall_1 = 7;
@@ -51,7 +51,7 @@ const int hall_4 = 4;
 const int hall_5 = 3;
 const int hall_6 = 2;
 
-const int gripper_pin = 8;
+const int gripper_pin = 12;
 
 const int offsets[] = {-3234*(MICRO_STEPPING/8),-1250*(MICRO_STEPPING/8),(-5186+8998)*(MICRO_STEPPING/8),-435*(MICRO_STEPPING/8),-566*(MICRO_STEPPING/8),-75*(MICRO_STEPPING/8)}; // Offsets of each joint in steps
 
@@ -61,12 +61,12 @@ void setup() {
   Serial.begin(115200);
   arm = new Arm(6);
   // Joint(double a_ratio,bool a_inverted,int a_homing_dir,int joint_num_steppers);
-  j1 = new Joint(9.3,true,1,-3234*(MICRO_STEPPING/8),1);
+  j1 = new Joint(9.3,false,1,-3234*(MICRO_STEPPING/8),1);
   j2 = new Joint(5.357,false,1,-1250*(MICRO_STEPPING/8),2);
-  j3 = new Joint(4.5*5.0,false,1,(-5186+8998)*(MICRO_STEPPING/8),1);
-  j4 = new Joint(1.0,false,1,-435*(MICRO_STEPPING/8),1);
-  j5 = new Joint(3.5,true,-1,-566*(MICRO_STEPPING/8),1);
-  j6 = new Joint(1.0,false,-1,-75*(MICRO_STEPPING/8),1);
+  j3 = new Joint(4.5*5.0,true,1,(-5186+8998)*(MICRO_STEPPING/8),1);
+  j4 = new Joint(1.0,false,-1,-435*(MICRO_STEPPING/8),1,6.0);
+  j5 = new Joint(3.5,true,1,-566*(MICRO_STEPPING/8),1,3.0);
+  j6 = new Joint(1.0,false,-1,-75*(MICRO_STEPPING/8),1,6.0);
   j1->create_motor(stepPin1,dirPin1);
   j2->create_motor(stepPin2,dirPin2);
   j2->create_motor(stepPin3,dirPin3);
@@ -143,6 +143,12 @@ void loop(){
             com.show_queues();
 
             com.set_status(PRINTED);
+            break;
+          case 5:
+            Serial.print("Gripper servo is at: ");
+            Serial.println(arm->gripper->read());
+            com.set_status(PRINTED);
+
             break;
           default:
 
@@ -224,16 +230,19 @@ void arm_check(){
   if (!com.isEmptyRunQueue()){ //There are moves in the move queue
     if(arm->left_to_go()){//Motors are still moving
       Message * new_M = com.peekRunQueue();
-      bool same_dir = true;
-      for (int i =0;i<arm->num_joins;i++){
-        if (eq_sign(new_M->args[i],arm->l_positions[i])){
-          same_dir = false;
+      if (new_M->op == 'm' && new_M->code == 1){
+        bool same_dir = true;
+        for (int i =0;i<arm->num_joins;i++){
+          if (eq_sign(new_M->args[i],arm->l_positions[i])){
+            same_dir = false;
+          }
+        }
+        if(same_dir){
+          com.popRunQueue();
+          arm->add(new_M->args);
         }
       }
-      if(same_dir){
-        com.popRunQueue();
-        arm->add(new_M->args);
-      }
+      
     }else{//Motors have reached their positions.
       Message * new_M = com.popRunQueue();
 

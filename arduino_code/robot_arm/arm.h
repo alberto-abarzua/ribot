@@ -12,7 +12,7 @@
 
 #define MICRO_STEPPING 16
 #define ACC 10000
-
+#define SPEED_CONSTANT 20.0 // Speed base mutliplier for all joints.
 #define motorInterfaceType 1
 
 /**
@@ -51,7 +51,9 @@ class Joint{
     Sensor * sensor;
     long motor_speed;
     Stepper ** motors;
+    double speed_multiplier =1.0;
     Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers);
+    Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
     /**
      * @brief Creates a new accelstepper motor for the joint.
      * 
