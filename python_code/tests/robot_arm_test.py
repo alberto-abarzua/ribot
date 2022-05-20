@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import unittest
 import arm_utils.armTransforms as util
 from arm_utils.armTransforms import Angle, Config
-import arm_utils.robotarm as robotarm
+import arm_control.robotarm as robotarm
 import numpy as np
 
 __author__ = "Alberto Abarzua"

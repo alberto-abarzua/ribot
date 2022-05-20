@@ -76,16 +76,16 @@ class serial_bin_test(unittest.TestCase):
         arduino.open()
         self.arduino = arduino
         time.sleep(0.5)
-        if (self.arduino.read(1).decode() == bins.INITIALIZED):
+        if (self.arduino.read(1).decode() == status.INITIALIZED):
             self.ini = True
             print("Arduino initialized!")
 
     def step1(self):
-        self.my_run(status.Message("m",1,[100,100,100,100,100,100]))
+        self.my_run(bins.Message("m",1,[100,100,100,100,100,100]))
         time.sleep(0.2)
-        self.my_run(status.Message("i",1,[]))
+        self.my_run(bins.Message("i",1,[]))
 
-        res = self.arduino.read_until(bins.PRINTED.encode()).decode()
+        res = self.arduino.read_until(status.PRINTED.encode()).decode()
         self.assertTrue("angles:  100 100 100 100 100 100" in res)
 
 

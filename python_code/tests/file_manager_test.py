@@ -1,14 +1,15 @@
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import arm_control.filemanager as filem
-import arm_control.commands as com
+import arm_utils.filemanager as filem
+import arm_utils.commands as com
 import unittest
 import arm_control.controller as ctrl
 import arm_utils.armTransforms as util
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
-import arm_utils.robotarm as robotarm
+from arm_utils.armTransforms import gen_curve_points,generate_curve_ptp
+import arm_control.robotarm as robotarm
 import numpy as np
 
 __author__ = "Alberto Abarzua"
@@ -44,27 +45,43 @@ class file_manager_test(unittest.TestCase):
         self.assertTrue(self.angleAllClose(p2.euler_angles, p2_fromstring.as_config().euler_angles))
 
     def test_run(self):
-        controller = ctrl.Controller()
-        controller.monitor.arduino.set_log_file("test1_arduino.txt")
-        p1 = Config([326.55, 1, 334], [Angle(0, "deg"),
+        
+        self.controller.monitor.arduino.set_log_file("test1_arduino.txt")
+        p1 = Config([359, 0, 345], [Angle(0, "deg"),
               Angle(0, "deg"), Angle(0, "deg")])
-        p2 = Config([367, 1, 334], [Angle(10, "deg"), Angle(0, "deg"), Angle(0, "deg")])
-        curve = controller.generate_curve_ptp(p1=p1, p2=p2, n=500)
+        p2 = Config([357, -2.67, 300.49], [Angle(0, "deg"), Angle(-20.73, "deg"), Angle(-39.58, "deg")])
+        curve = generate_curve_ptp(p1=p1, p2=p2, n=100)
 
         f = filem.FileManager()
         instructions = f.from_curve_to_instruct(curve)
         f.write_file(instructions, "test1.txt")
 
-        controller.run_file("arm_control/data/test1.txt")
-        while(controller.step()):
+        self.controller.run_file("arm_control/data/test1.txt")
+        while(self.controller.step()):
             continue
-        controller.monitor.arduino.log.close()
+        self.controller.monitor.arduino.log.close()
         f1 = open("tests/test_data/expected_test1_arduino.txt", "r")
         f2 = open("tests/test_data/test1_arduino.txt", "r")
         self.assertEqual(f1.readlines(), f2.readlines())
         f1.close()
         f2.close()
 
+    def setUp(self) -> None:
+        self.controller = ctrl.Controller()
+        self.controller.robot.a2x = 0
+        self.controller.robot.a2z = 172.48
+        self.controller.robot.a3z = 173.5
+        self.controller.robot.a4z = 0
 
+        self.controller.robot.a4x = 126.2
+        self.controller.robot.a5x = 64.1
+        self.controller.robot.a6x = 169
+
+        #physical constraints
+        
+        self.controller.robot.j1_range = lambda x: x>-np.pi/2 and x<np.pi/2
+        self.controller.robot.j2_range = lambda x: x>-1.39626 and x<1.57
+        self.controller.robot.j3_range = lambda x: x>-np.pi/2 and x<np.pi/2
+        self.controller.robot.j5_range = lambda x: x>-np.pi/2 and x<np.pi/2
 if __name__ == '__main__':
     unittest.main()
