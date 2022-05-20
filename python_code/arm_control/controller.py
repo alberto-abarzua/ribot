@@ -15,8 +15,9 @@ import time
 import serial
 from arm_utils.arduino_dummy import DummyArduino
 from arm_utils.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
-
+from arm_utils.game_pad_controller import ArmGamePad
 from arm_utils.status import *
+from arm_control import arm_simulation as arm_sim
 
 import threading
 __author__ = "Alberto Abarzua"
@@ -39,22 +40,6 @@ class Controller():
 
         self.robot = robotarm.RobotArm()
 
-        # Physical paramters in mm.
-        self.robot.a2x = 0
-        self.robot.a2z = 172.48
-        self.robot.a3z = 173.5
-        self.robot.a4z = 0
-
-        self.robot.a4x = 126.2
-        self.robot.a5x = 64.1
-        self.robot.a6x = 169
-
-        #physical constraints
-        
-        self.robot.j1_range = lambda x: x>-np.pi/2 and x<np.pi/2
-        self.robot.j2_range = lambda x: x>-1.39626 and x<1.57
-        self.robot.j3_range = lambda x: x>-np.pi/2 and x<np.pi/2
-        self.robot.j5_range = lambda x: x>-np.pi/2 and x<np.pi/2
 
 
         self.acc = 10000  # Acurray of the angles sent to the arduino.
@@ -67,6 +52,7 @@ class Controller():
 
         self.filem = FileManager()
 
+        self.gamepad = ArmGamePad(self)
         self.monitor = SerialMonitor(self,port,baudrate)
 
     @property
@@ -108,6 +94,20 @@ class Controller():
         self.filem.run_file(file_name)
 
     
+    def run(self,simulation):
+        """Starts the threads to run the arm,
+
+        Args:
+            simulation (bool): If true the arm simulation will be started on another thread.
+        """
+        game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
+        game_pad_thread.start()
+        if simulation:
+            sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
+            sim_thread.start()
+        self.monitor.run()
+
+
 
     def step(self):
         """Makes the robot arm take a current step (read a new line from self.cur_file and run it.)

@@ -264,4 +264,4 @@ class OutOfBoundsError(Exception):
         self.message = message
 
     def __str__(self):
-        return f'{self.config} -> {self.message}'
+        return self.message

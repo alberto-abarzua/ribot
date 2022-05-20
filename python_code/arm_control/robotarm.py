@@ -63,7 +63,6 @@ class RobotArm:
         self.angles = [Angle(0, "rad") for i in range(6)]
         self.config = Config([],[],100)
         self.direct_kinematics() #update self.config with initial values.
-        print("this is config:", self.config)
 
 
 # -----------------------------------------------------------------------------------
