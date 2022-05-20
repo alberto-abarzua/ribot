@@ -1,7 +1,19 @@
 import sys
 import numpy as np
 from arm_control.controller import Controller
+
+
+
 if __name__ == "__main__":
+
+    """
+    Ways of running main.py
+
+    'python main.py <port> nosim' // Runs the controller without the simulation to a real arduino conected to a port.
+    'python main.py <port>'  // Runs the controller with the simulation to a real arduino conected to a port.
+    'python main.py'  // Runs the simulation without an arduino. (arduino dummy)
+
+    """
     port = None
     baudrate = None
     if (len(sys.argv)>1 ):
