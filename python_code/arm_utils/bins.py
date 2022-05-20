@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 from numpy import character
 import struct
-
-from  . import commands
+from . import commands
 class Message():
     """This class is used to encode the messages to the arduino as a series of bytes.
     All messages should follow this syntax:

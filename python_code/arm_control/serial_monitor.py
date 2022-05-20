@@ -9,10 +9,10 @@ import time
 from sklearn.linear_model import ARDRegression
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from arm_control.status import *
-from arm_control.bins import *
-from arm_control.arduino_dummy import DummyArduino
-from arm_control.bins import message2command
+from arm_utils.status import *
+from arm_utils.bins import *
+from arm_utils.arduino_dummy import DummyArduino
+from arm_utils.bins import message2command
 
 from serial.serialutil import SerialException
 

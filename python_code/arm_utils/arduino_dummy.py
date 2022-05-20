@@ -1,6 +1,6 @@
 
 import time
-from . import bins
+from arm_utils import bins
 __author__ = "Alberto Abarzua"
 
 

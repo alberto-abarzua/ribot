@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
-from arm_control.commands import *
+from arm_utils.commands import *
 __author__ = "Alberto Abarzua"
 
 

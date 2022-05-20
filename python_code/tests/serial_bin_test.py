@@ -8,8 +8,8 @@ import os
 import sys
 import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arm_control.bins import *
-from arm_control.status import *
+import arm_utils.bins as bins
+import arm_utils.status as status
 
 import unittest
 
@@ -37,7 +37,7 @@ class serial_bin_test(unittest.TestCase):
             res = self.arduino.read(1)
             try:
                 res = res.decode()
-                assert(res == READY_STATUS)
+                assert(res == status.READY_STATUS)
                 
             except:
                 print("invalid char {}".format(res))
@@ -45,11 +45,11 @@ class serial_bin_test(unittest.TestCase):
     def readBussy(self):
         if self.arduino.in_waiting>=1:
             res= self.arduino.read(1).decode()
-            if(res == BUSY ):
+            if(res == status.BUSY ):
                 while True:
                     if self.arduino.in_waiting>=1:
                         res= self.arduino.read(1).decode()
-                        if (res == CONTINUE):
+                        if (res == status.CONTINUE):
                             break;
         self.arduino.flush()
 
@@ -61,7 +61,7 @@ class serial_bin_test(unittest.TestCase):
             print(i,"/",iters,end = "\r")
             op,code = random.choice(commands)
             start = time.perf_counter()
-            self.my_run(Message(op,code,[random.randint(-200,200) for _ in range(6)]))
+            self.my_run(bins.Message(op,code,[random.randint(-200,200) for _ in range(6)]))
             self.readBussy()
             end = time.perf_counter()
             results[i] += (end-start)
@@ -76,16 +76,16 @@ class serial_bin_test(unittest.TestCase):
         arduino.open()
         self.arduino = arduino
         time.sleep(0.5)
-        if (self.arduino.read(1).decode() == INITIALIZED):
+        if (self.arduino.read(1).decode() == bins.INITIALIZED):
             self.ini = True
             print("Arduino initialized!")
 
     def step1(self):
-        self.my_run(Message("m",1,[100,100,100,100,100,100]))
+        self.my_run(status.Message("m",1,[100,100,100,100,100,100]))
         time.sleep(0.2)
-        self.my_run(Message("i",1,[]))
+        self.my_run(status.Message("i",1,[]))
 
-        res = self.arduino.read_until(PRINTED.encode()).decode()
+        res = self.arduino.read_until(bins.PRINTED.encode()).decode()
         self.assertTrue("angles:  100 100 100 100 100 100" in res)
 
 
@@ -93,12 +93,12 @@ class serial_bin_test(unittest.TestCase):
 
 
     def step2(self):
-        self.my_run(Message("m",1,[100,100,100,100,100,100]))
+        self.my_run(bins.Message("m",1,[100,100,100,100,100,100]))
 
    
     def step4(self):
-        self.my_run(Message("i",1,[]))
-        res = self.arduino.read_until(PRINTED.encode()).decode()
+        self.my_run(bins.Message("i",1,[]))
+        res = self.arduino.read_until(status.PRINTED.encode()).decode()
         print(repr(str(res)))
         self.assertTrue("angles:  200 200 200 200 200 200" in res)
 
@@ -113,16 +113,16 @@ class serial_bin_test(unittest.TestCase):
         time.sleep(1)
         self.readBussy()
 
-        self.my_run(Message("i",3,[]))
-        res = self.arduino.read_until(PRINTED.encode()).decode()
+        self.my_run(bins.Message("i",3,[]))
+        res = self.arduino.read_until(status.PRINTED.encode()).decode()
         self.assertEqual(res,"Sensors:  S1 OFF S2 OFF S3 OFF S4 OFF S5 OFF S6 OFF;")
     def step7(self):
         """make sure that all the messages in queues add up to MESSAGE_BUFFER_SIZE *2 -1
         """
         self.readBussy()
         time.sleep(1)
-        self.my_run(Message("i",4))
-        res = self.arduino.read_until(PRINTED.encode()).decode()
+        self.my_run(bins.Message("i",4))
+        res = self.arduino.read_until(status.PRINTED.encode()).decode()
         print(res)
         res  = res.split(" ")
         n = 0

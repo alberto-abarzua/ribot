@@ -13,11 +13,11 @@ import grafica.lighting_shaders as ls
 import grafica.performance_monitor as pm
 from grafica.gpu_shape import GPUShape
 from grafica.assets_path import getAssetPath
-from arm_control.filemanager import FileManager
+from arm_utils.filemanager import FileManager
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
 import arm_control.controller as ac
-import arm_utils.robotarm as ra
+import arm_control.robotarm as ra
 import grafica.text_renderer as tx
 
 __author__ = "Alberto Abarzua"

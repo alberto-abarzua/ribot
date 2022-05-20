@@ -4,8 +4,10 @@ from arm_control.arm_simulation import sim
 from threading import Thread
 from arm_control.serial_monitor import SerialMonitor
 from arm_control.controller import Controller
-from arm_control.game_pad_controller import ArmGamePad
+from arm_utils.game_pad_controller import ArmGamePad
 if __name__ == "__main__":
+
+    
     port = None
     baudrate = None
     if (len(sys.argv)>1 ):

@@ -7,16 +7,16 @@ from xml.sax.handler import property_declaration_handler
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.serial_monitor import SerialMonitor
 import numpy as np
-import arm_control.commands as com
-import arm_utils.robotarm as robotarm
+import arm_utils.commands as com
+import arm_control.robotarm as robotarm
 from arm_utils.armTransforms import Angle, OutOfBoundsError
 from arm_utils.armTransforms import Config
 import time
 import serial
-from arm_control.arduino_dummy import DummyArduino
-from arm_control.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
+from arm_utils.arduino_dummy import DummyArduino
+from arm_utils.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
 
-from arm_control.status import *
+from arm_utils.status import *
 
 import threading
 __author__ = "Alberto Abarzua"
