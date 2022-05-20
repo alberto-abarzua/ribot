@@ -10,10 +10,15 @@ import time
 from arm_utils import filemanager
 from arm_utils.armTransforms import Angle
 class XboxController(object):
+    """XboxController class, used to get inputs from an xbox controller.
+
+    """
     MAX_TRIG_VAL = math.pow(2, 8)
     MAX_JOY_VAL = math.pow(2, 15)
 
     def __init__(self):
+        """XboxController, creates buttons dictionary and starts the monitor thread.
+        """
         self.buttons = {
             "buttons" : 0,
             "LeftJoystickY" : 0,
@@ -43,16 +48,29 @@ class XboxController(object):
         self._monitor_thread.start()
 
 
-    def read(self): 
-        return self.buttons
-
     def clean_trigger(self,val):
+        """Used to get a clean value from a trigger event
+
+        Args:
+            val (float): input form trigger event
+
+        Returns:
+            int: cleaned value
+        """
         tolerance = 0.1
         pre = val/XboxController.MAX_TRIG_VAL
         if (abs(pre)<tolerance):
             return 0
         return pre
     def clean_joy(self,val):
+        """Used to get a clean value from a joystick event
+
+        Args:
+            val (float): input form trigger event
+
+        Returns:
+            int: cleaned value
+        """
         tolerance = 0.3
         pre = val/XboxController.MAX_JOY_VAL
         if (abs(pre)<tolerance):
@@ -60,6 +78,8 @@ class XboxController(object):
         return pre
 
     def _monitor_controller(self):
+        """Gets the events from the gamepad and modifies the buttons dictionary accordingly
+        """
         while True:
             try:
                 events = get_gamepad()
@@ -123,15 +143,21 @@ class XboxController(object):
 
 
 class ArmGamePad:
+    """ArmGamePad, uses an XboxController to control the postion and euler angles of the arm. Moves the arm joints to their positions.
+    """
 
     def __init__(self,controller) -> None:
+        """Starts the gamepad xbox controller.
+
+        Args:
+            controller (Controller): arm controller wich will receive the positional information from the GamePad.
+        """
+
         self.joy = XboxController()
-    
-        self.buttons =self.joy.buttons
+        self.buttons =self.joy.buttons 
         self.controller = controller
         self.robot = self.controller.robot
-        self.robot.direct_kinematics()  # We update the euler angles and xyz
-        xyz,euler_angles = self.robot.config.cords,self.robot.config.euler_angles
+        #steps
         self.dir_step = 70
         self.angle_step = 0.3
         self.tool_step =80
@@ -139,6 +165,8 @@ class ArmGamePad:
         
 
     def run(self):
+        """Starts the main loop of the controlls.
+        """
         t0 = time.perf_counter()
         sign = lambda x :math.copysign(1,x)
         while(True):
@@ -226,10 +254,10 @@ class ArmGamePad:
                 tang = tool
 
 
-            time.sleep(max(0,(1/self.fps)-dt))
+            time.sleep(max(0,(1/self.fps)-dt)) #adjust for the required fps
 
 if __name__ == '__main__':
+    """ Used to test the inputs of the xbox controller."""
     joy = XboxController()
     while True:
-        #joy.read()c
-        print(joy.read())
+        print(joy.buttons) #Print the inputs.

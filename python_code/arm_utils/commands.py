@@ -91,9 +91,10 @@ class MoveCommand(Command):
         """Sends the command to the controllers arduino.
         """
         super().send()
-        # Keep track of the angles sent.
 
     def update(self):
+        """Used to update the status of the controller.
+        """
         self.controller.update_arduino_angles(
             [int(x) for x in self.angles_for_arduino])
         self.controller.robot.angles = self.controller.get_arduino_angles()
@@ -127,6 +128,8 @@ class GripperCommand(Command):
         """
         super().send()
     def update(self):
+        """Used to update the status of the controller.
+        """
         self.controller.tool = self.angle
 
     def is_correct(self):
@@ -151,5 +154,7 @@ class HomeComand(Command):
         """
         super().send()
     def update(self):
+        """Used to update the status of the controller.
+        """
         self.controller.is_homed = True
         

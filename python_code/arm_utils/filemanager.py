@@ -110,6 +110,8 @@ class CordAngleInstruction(Instruction):
         return "c " + " ".join(result) + "\n"
 
 
+
+
 class FileManager:
     """FileManger class, used to create and read positions scripts of the arm.
     """

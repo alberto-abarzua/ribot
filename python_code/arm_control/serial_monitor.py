@@ -20,8 +20,18 @@ import keyboard
 
 
 class SerialMonitor:
-
+    """Serial monitor class, used to manage the serial comunications to the arduino for the controller. Also an interactive console
+    program can be ran to send commands directly to the arduino.
+    """
     def __init__(self,controller= None,port = None,baudrate = None ) -> None:
+        """Serial monitor constructor starts the comunications with the arduino (opens serial port.)
+        If port and buadrate are none, the serial monitor will run with an arduino dummy (arm_utils/arduino_dummy)
+
+        Args:
+            controller (Controller, optional): Controller that will use the serial monitor. Defaults to None.
+            port (str, optional): Port to use in serial connection. Defaults to None.
+            baudrate (int, optional): baudrate to use in serial connection. Defaults to None.
+        """
         self.sta_dict = defaultdict(lambda : UNK)
         self.sta_dict["m"] = READY_STATUS
         self.sta_dict["i"] = PRINTED
@@ -69,7 +79,12 @@ class SerialMonitor:
             return val.decode().strip()
         return None
 
-    def upper_read(self,status):
+    def monitor_read(self,status):
+        """Used to read (receive responses) from the arduino when running the interactive console version of the serial monitor.    
+
+        Args:
+            status (int): Status that should be expected whehn reading.
+        """
         if (status == PRINTED):
             self.lock.acquire()
             res = self.arduino.read_until(PRINTED.encode())
@@ -165,7 +180,7 @@ class SerialMonitor:
                             line = line.strip()
                             new_mes,op,loop = self.interp(line)  
                             self.run_direct(new_mes)
-                            self.upper_read(self.sta_dict[op])
+                            self.monitor_read(self.sta_dict[op])
 
                 except Exception as e:
                     print(e)
@@ -175,10 +190,10 @@ class SerialMonitor:
                         break
                     time.sleep(0.1)
                     self.run_direct(m)
-                    self.upper_read(self.sta_dict[op])
+                    self.monitor_read(self.sta_dict[op])
             else:   
                 self.run_direct(m)
-                self.upper_read(self.sta_dict[op])
+                self.monitor_read(self.sta_dict[op])
 
 if __name__ == "__main__":
    
@@ -188,4 +203,3 @@ if __name__ == "__main__":
         m = SerialMonitor(None,PORT,115200)
         m.run()
     
-    # m1 0 0 0 0 15707 0 
