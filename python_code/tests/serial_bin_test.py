@@ -61,7 +61,7 @@ class serial_bin_test(unittest.TestCase):
             print(i,"/",iters,end = "\r")
             op,code = random.choice(commands)
             start = time.perf_counter()
-            self.my_run(Message(op,code,[random.randint(-50,50) for _ in range(6)]))
+            self.my_run(Message(op,code,[random.randint(-200,200) for _ in range(6)]))
             self.readBussy()
             end = time.perf_counter()
             results[i] += (end-start)
@@ -105,7 +105,7 @@ class serial_bin_test(unittest.TestCase):
     def step5(self):
         "Stress test"
         s_start= time.perf_counter()
-        r = self.stress(200)
+        r = self.stress(500)
         s_end = time.perf_counter()
         print("Average time between command and response",np.average(r),"lasting overall ",(s_end-s_start),"seconds")
 

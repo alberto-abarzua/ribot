@@ -135,7 +135,7 @@ class ArmGamePad:
         self.dir_step = 70
         self.angle_step = 0.3
         self.tool_step =80
-        self.fps = 80
+        self.fps = 60
         
 
     def run(self):
@@ -218,6 +218,7 @@ class ArmGamePad:
 
             try:
                 self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],round(tang)))
+                assert  self.controller.coms_lock.locked() == False #Check that the controller arduino is not BUSY
             except Exception as e:
                 print(e)
                 x, y,z = xyz

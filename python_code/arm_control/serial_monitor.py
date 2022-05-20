@@ -91,19 +91,19 @@ class SerialMonitor:
             command (Command): Calls the send method on a command, (sends it's message to the arduino)
         """
         if (command.is_correct()):
-            self.lock.acquire()
-            command.send()
-            self.wait()
-            self.lock.release()
+            with self.lock:
+                command.send()
+                self.wait()
 
     def wait(self):
         """Runs a sleep timer until the arduino is ready to receive more data.
         """
+
         if(self.read() == BUSY ):
-            print("Busy...")
+            print("\nBusy...\n")
             while (self.read() != CONTINUE):
-                time.sleep(0.0001)
-            print("Continuing")
+                pass
+            print("\nContinuing\n")
         self.arduino.flush()
 
     def run_direct(self,message):
