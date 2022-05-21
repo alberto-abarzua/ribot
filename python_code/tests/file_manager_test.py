@@ -36,6 +36,7 @@ class file_manager_test(unittest.TestCase):
         
         p1_instruction = filem.CordAngleInstruction(p1)
         p2_instruction = filem.CordAngleInstruction(p2)
+
         self.assertEqual("c 300 0 300 0 0 0\n", p1_instruction.line)
         self.assertEqual("c 320 0 320 0 1.57079633 0\n", p2_instruction.line)
         p2_fromstring = filem.CordAngleInstruction(
@@ -43,6 +44,11 @@ class file_manager_test(unittest.TestCase):
         self.assertEqual("c 320 0 320 0 1.57079633 0\n", p2_fromstring.line)
         self.assertEqual(p2.cords, p2_fromstring.as_config().cords)
         self.assertTrue(self.angleAllClose(p2.euler_angles, p2_fromstring.as_config().euler_angles))
+
+        sleep_instruct = filem.SleepInstruction(0.5)
+        self.assertEqual(sleep_instruct.line ,"s 0.500\n")
+        sleep_from_string = filem.SleepInstruction("s 0.500\n")
+        self.assertEqual(sleep_from_string.value,0.5)
 
     def test_run(self):
         

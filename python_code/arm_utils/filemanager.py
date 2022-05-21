@@ -1,7 +1,9 @@
+from ast import In
 from dataclasses import astuple
 import os
 import os.path
 import sys
+from time import sleep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -61,7 +63,19 @@ class ToolAngleInstruction(Instruction):
         """
         return "t {}\n".format(int(self.value))
 
+class SleepInstruction(Instruction):
+    def __init__(self, value) -> None:
+        """Creates a new sleep instruction,
 
+        Args:
+            value (float): time in seconds to wait.
+        """
+        super().__init__(value)
+        if (type(value) is str):
+            self.value = float(value[2:].strip())
+    @property
+    def line(self):
+        return "s {:.3f}\n".format(self.value)
 
 class CordAngleInstruction(Instruction):
     """Used to store in a file a position and angles for the tcp
@@ -123,14 +137,17 @@ class FileManager:
         self.files = os.listdir(self.path)
         self.cur_file = None
 
-    def from_curve_to_instruct(self, curve):
+    def from_curve_to_instruct(self, curve,sleep_idxs =[]):
         """Receives an array of positions and returns a list of instructions.
 
         Args:
             curve (np.array): array with positions
         """
+
         result = []
-        for elem in curve:
+        for i,elem in enumerate(curve):
+            if i in sleep_idxs:
+                result.append(SleepInstruction(1.0))
             cord = elem[:3]
             angle = [Angle(x, "rad") for x in elem[3:-1]]
             tool = elem[6]
@@ -146,6 +163,7 @@ class FileManager:
             int: current demo number
         """
         nums = []
+        self.files = os.listdir(self.path)
         for elem in self.files:
             if ("demo" in elem):
                 nums.append(int(elem[4:elem.index(".txt")]))
@@ -161,7 +179,15 @@ class FileManager:
         with open(self.path+filename, "w") as file:
             for elem in instruct_sequence:
                 file.write(elem.line)
-
+    def interrupt_file(self):
+        """Closes the current file.
+        """
+        try:
+            self.cur_file.close()
+            self.cur_file = None
+        except:
+            print("File was already closed.")
+            
     def run_file(self, file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
 
@@ -192,4 +218,7 @@ class FileManager:
 
         if(cur_line[0] == "t"):
            return ToolAngleInstruction(cur_line)
+        
+        if(cur_line[0] == "s"):
+            return SleepInstruction(cur_line)
             

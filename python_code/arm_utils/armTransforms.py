@@ -271,7 +271,7 @@ def generate_curve_ptp(p1, p2, n=None):
             dist1 = np.linalg.norm(cords_ini-cords_fin)
             dist2 = np.linalg.norm(euler_ini-euler_fin)*60
             dist = max(dist1,dist2,1/5)
-            n = int(dist*1.5)
+            n = int(dist*0.2)
         t = 0
         if (n ==0): #This means only the tool was changed
             n = abs(tool_ini-tool_fin)
@@ -281,7 +281,6 @@ def generate_curve_ptp(p1, p2, n=None):
             cur_cords = cords_ini * (1-t) + cords_fin*(t)
             cur_tool =  tool_ini * (1-t) + tool_fin*(t) 
             cur_euler = euler_ini*(1-t) + euler_fin*(t)
-            cur_config = Config(cur_cords,[Angle(angle,"rad") for angle in cur_euler],cur_tool)
             cur_post = np.append(cur_cords, cur_euler, axis=0)
             cur_post= np.append(cur_post,np.array([cur_tool]),axis=0)
             cur_post = np.transpose(cur_post)
@@ -299,13 +298,15 @@ def gen_curve_points( points):
         Returns:
             np.array: array with all the positions the tcp should follow
         """
+        sleep_idxs = []
         for i in range(len(points)-1):
             if (i == 0):
                 result = generate_curve_ptp(points[i], points[i+1])
                 continue
+            sleep_idxs.append(len(result))
             result = np.append(result, generate_curve_ptp(
                 points[i], points[i+1]), axis=0)
-        return result
+        return result,sleep_idxs
 
 
 class OutOfBoundsError(Exception):

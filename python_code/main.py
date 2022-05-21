@@ -19,7 +19,6 @@ if __name__ == "__main__":
     if (len(sys.argv)>1 ):
         port = sys.argv[1]
         baudrate = 115200
-        assert "COM" in port or "com" in port, "Enter a valid port"
 
 
     #Create a new controller (robot arm)

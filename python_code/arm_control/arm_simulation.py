@@ -636,18 +636,18 @@ def sim(args):
 
         glUniformMatrix4fv(glGetUniformLocation(
             pipeline.shaderProgram, "model"), 1, GL_TRUE, tr.rotationX(np.pi/2))
-        if (robot_controller.step() or controller.new_file):
-            if (controller.new_file):
-                controller.new_file = False
-                robot_controller.run_file(controller.cur_file)
+        # if (robot_controller.step() or controller.new_file):
+        #     if (controller.new_file):
+        #         controller.new_file = False
+        #         robot_controller.run_file(controller.cur_file)
 
-        else:
-            if (False):
-                times = 0
-                if (robot_controller.move_to_point(Config([x, y, z], [A, B, C],tool_angle)) != "Angles out of reach"):
-                    controller.cords = [x, y, z]
-                    controller.euler = [A, B, C]
-                    controller.tool = tool_angle
+        # else:
+        #     if (False):
+        #         times = 0
+        #         if (robot_controller.move_to_point(Config([x, y, z], [A, B, C],tool_angle)) != "Angles out of reach"):
+        #             controller.cords = [x, y, z]
+        #             controller.euler = [A, B, C]
+        #             controller.tool = tool_angle
         times +=1
         angs = robot_controller.get_arduino_angles()
         

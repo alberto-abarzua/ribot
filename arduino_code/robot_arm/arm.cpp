@@ -185,7 +185,7 @@ void Arm::show(){
 
 bool Arm::left_to_go(){
     for (int i =0;i<num_joins;i++){
-        int tolerance = 30*joints[i]->ratio;
+        int tolerance = 10*joints[i]->ratio;
         if(abs(motors[i]->distanceToGo()) >= tolerance){
             return true;
         }

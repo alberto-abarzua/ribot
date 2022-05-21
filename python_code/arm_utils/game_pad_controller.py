@@ -8,7 +8,8 @@ import math
 import threading
 import time
 from arm_utils import filemanager
-from arm_utils.armTransforms import Angle
+from arm_utils.armTransforms import Angle,gen_curve_points
+from collections import defaultdict
 class XboxController(object):
     """XboxController class, used to get inputs from an xbox controller.
 
@@ -42,10 +43,11 @@ class XboxController(object):
             "UpDPad" : 0,
             "DownDPad" : 0
             }
-
+        self.cooldowns = defaultdict(lambda : 0)
         self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
         self._monitor_thread.daemon = True
         self._monitor_thread.start()
+        
 
 
     def clean_trigger(self,val):
@@ -77,6 +79,7 @@ class XboxController(object):
             return 0
         return pre
 
+ 
     def _monitor_controller(self):
         """Gets the events from the gamepad and modifies the buttons dictionary accordingly
         """
@@ -107,11 +110,12 @@ class XboxController(object):
                 elif event.code == 'BTN_TR':
                     self.buttons["RightBumper"] = event.state
                 elif event.code == 'BTN_SOUTH':
+                    
                     self.buttons["A"] = event.state
                 elif event.code == 'BTN_NORTH':
-                    self.buttons["X"] = event.state
-                elif event.code == 'BTN_WEST':
                     self.buttons["Y"] = event.state
+                elif event.code == 'BTN_WEST':
+                    self.buttons["X"] = event.state
                 elif event.code == 'BTN_EAST':
                     self.buttons["B"] = event.state
                 elif event.code == 'BTN_THUMBL':
@@ -161,8 +165,33 @@ class ArmGamePad:
         self.dir_step = 70
         self.angle_step = 0.3
         self.tool_step =80
-        self.fps = 60
+        self.fps = 150
+        self.point_list = []
+        self.cooldown =0
+        self.def_cooldown = 20
+        self.loop = False
         
+    def create_file_point_list(self):
+        """Creates a curve (set of instructions) and stores them in a text file.
+        """
+        curve,sleep= gen_curve_points(self.point_list) 
+        f = self.controller.filem
+        n = f.get_demo_number()
+        instructions = f.from_curve_to_instruct(curve,sleep)
+        f.write_file(instructions, "demo{}.txt".format(n))
+
+        self.point_list.clear()
+    def run_file(self):
+        """Gets input from terminal to run a file."""
+        file_name = input("\nPlease enter a file name:")
+        self.controller.run_file("arm_control/data/" + file_name)
+    def run_last_demo(self):
+        """Runs the last demo file"""
+        self.controller.run_file("arm_control/data/demo{}.txt".format(self.controller.filem.get_demo_number()-1))
+    def run_loop_last_demo(self):
+        """Runs on a loop the last demo file"""
+        self.run_last_demo()
+        self.loop = True
 
     def run(self):
         """Starts the main loop of the controlls.
@@ -243,9 +272,56 @@ class ArmGamePad:
             if(b["RightDPad"] != 0):
                 tang-=dt*self.tool_step
 
+            #file and point management.
 
+            if (b["Y"] !=0): #Save a new point
+                if(b["X"] !=0):
+                    self.point_list.clear()
+                    self.cooldown =self.def_cooldown
+                    continue
+                if(self.cooldown ==0):
+                    self.point_list.append(filemanager.Config([x, y, z], [A, B,C],round(tang)))
+                    [print(x, end = " ") for x in self.point_list]
+                    print()
+                    self.cooldown =self.def_cooldown
+            
+            if (b["X"] !=0): #Save file and clear point list.
+                if(self.cooldown ==0):
+                    self.cooldown =self.def_cooldown
+                    try:
+                        self.create_file_point_list()
+                        print("File demo{}.txt created!".format(self.controller.filem.get_demo_number()))
+                    except:
+                        print("point list not valid")
+
+                
+            
+            if (b["A"] !=0):
+                if(self.cooldown ==0):
+                    self.run_last_demo()
+                    self.cooldown =self.def_cooldown
+
+
+            if (b["B"] !=0):
+                if(self.cooldown ==0):
+                    [print(x, end = " ") for x in self.point_list]
+                    print()
+                    self.cooldown =self.def_cooldown
+            if (b["Start"] !=0):
+                 if(self.cooldown ==0):
+                    if(self.loop == True):
+                        self.loop = False
+                        self.cooldown =self.def_cooldown
+                        self.controller.filem.interrupt_file()
+                        continue
+                    self.run_loop_last_demo()
+                    self.cooldown =self.def_cooldown
             try:
-                self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],round(tang)))
+                if (not self.controller.step()):
+                    if(self.loop):
+                        self.run_last_demo()
+                        continue
+                    self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],round(tang)))
                 assert  self.controller.coms_lock.locked() == False #Check that the controller arduino is not BUSY
             except Exception as e:
                 print(e)
@@ -253,7 +329,8 @@ class ArmGamePad:
                 A, B,C = euler_angles
                 tang = tool
 
-
+            if (self.cooldown>0):
+                self.cooldown-=1
             time.sleep(max(0,(1/self.fps)-dt)) #adjust for the required fps
 
 if __name__ == '__main__':
@@ -261,3 +338,4 @@ if __name__ == '__main__':
     joy = XboxController()
     while True:
         print(joy.buttons) #Print the inputs.
+        continue

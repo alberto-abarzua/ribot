@@ -61,12 +61,12 @@ void setup() {
   Serial.begin(115200);
   arm = new Arm(6);
   //Joint:: Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
-  j1 = new Joint(9.3,false,1,-6468*(MICRO_STEPPING/16),1);
-  j2 = new Joint(5.357,false,1,-2500*(MICRO_STEPPING/16),2);
-  j3 = new Joint(4.5*5.0,true,1,10321*(MICRO_STEPPING/16),1);
-  j4 = new Joint(1.0,true,-1,-670*(MICRO_STEPPING/16),1,8.0);
-  j5 = new Joint(3.5,true,1,-1132*(MICRO_STEPPING/16),1,10.0);
-  j6 = new Joint(1.0,true,-1,-1700*(MICRO_STEPPING/16),1,8.0);
+  j1 = new Joint(9.3,false,1,-6468*(MICRO_STEPPING/16),1,4.0);
+  j2 = new Joint(5.357,false,1,-2500*(MICRO_STEPPING/16),2,5.0);
+  j3 = new Joint(4.5*5.0,true,1,10321*(MICRO_STEPPING/16),1,5.0);
+  j4 = new Joint(1.0,true,-1,-670*(MICRO_STEPPING/16),1,15.0);
+  j5 = new Joint(3.5,true,1,-1132*(MICRO_STEPPING/16),1,5.0);
+  j6 = new Joint(1.0,true,-1,-1700*(MICRO_STEPPING/16),1,15.0);
   j1->create_motor(stepPin1,dirPin1);
   j2->create_motor(stepPin2,dirPin2);
   j2->create_motor(stepPin3,dirPin3);
@@ -180,10 +180,9 @@ void loop(){
       case 'g':
         switch (code){
           case 1:
-          
-            arm->set_gripper_angle(args[0]);
-
+            com.addRunQueue(M);
             com.set_status(READY_STATUS);
+            
             break;
           default:
             com.set_status(UNK);
@@ -248,8 +247,12 @@ void arm_check(){
       
     }else{//Motors have reached their positions.
       Message * new_M = com.popRunQueue();
-
-      arm->add(new_M->args);
+      if(new_M->op == 'g' && new_M->code == 1){
+          arm->set_gripper_angle(new_M->args[0]);
+     }
+      else if(new_M->op == 'm' && new_M->code == 1){
+        arm->add(new_M->args);
+      }
     }
     
   }

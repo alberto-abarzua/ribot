@@ -14,7 +14,7 @@ from arm_utils.armTransforms import Config
 import time
 import serial
 from arm_utils.arduino_dummy import DummyArduino
-from arm_utils.filemanager import CordAngleInstruction, FileManager, ToolAngleInstruction 
+from arm_utils.filemanager import CordAngleInstruction, FileManager, SleepInstruction, ToolAngleInstruction 
 from arm_utils.game_pad_controller import ArmGamePad
 from arm_utils.status import *
 from arm_control import arm_simulation as arm_sim
@@ -130,9 +130,11 @@ class Controller():
         if(type(instruct) is ToolAngleInstruction):
             tool = instruct.value
             self.move_gripper_to(tool)
-
+        if(type(instruct) is SleepInstruction):
+            time.sleep(instruct.value)
         return True
 
+    
     
 
     def update_arduino_angles(self, angles):
