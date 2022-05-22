@@ -118,7 +118,7 @@ void Joint::show(){
     Serial.print("Joint ");
     Serial.print(index);
     Serial.print(" Motor speed ");
-    Serial.print(motors[0]->getCurSpeed());
+    Serial.print(motors[0]->getSetSpeed());
     Serial.print(" Joint ratio: ");
     Serial.print(ratio);
     Serial.println("");

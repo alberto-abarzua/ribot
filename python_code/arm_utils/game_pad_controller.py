@@ -162,10 +162,11 @@ class ArmGamePad:
         self.controller = controller
         self.robot = self.controller.robot
         #steps
-        self.dir_step = 70
-        self.angle_step = 0.3
-        self.tool_step =80
-        self.fps = 150
+        self.mult = self.controller.control_speed_multiplier
+        self.dir_step = 70*self.mult
+        self.angle_step = 0.3*self.mult
+        self.tool_step =80*self.mult
+        self.cps = self.controller.cps
         self.point_list = []
         self.cooldown =0
         self.def_cooldown = 20
@@ -282,7 +283,6 @@ class ArmGamePad:
                 if(self.cooldown ==0):
                     self.point_list.append(filemanager.Config([x, y, z], [A, B,C],round(tang)))
                     [print(x, end = " ") for x in self.point_list]
-                    print()
                     self.cooldown =self.def_cooldown
             
             if (b["X"] !=0): #Save file and clear point list.
@@ -294,8 +294,19 @@ class ArmGamePad:
                     except:
                         print("point list not valid")
 
-                
-            
+            if (b["UpDPad"]!=0): #save log file
+                    if(self.cooldown ==0):
+                        print("saving log!")
+
+                        self.controller.save_log()
+                        self.cooldown =self.def_cooldown*3
+
+            if (b["DownDPad"]!=0): #create log file.
+                    if(self.cooldown ==0):
+                        print("creating new  log!")
+
+                        self.controller.create_log()
+                        self.cooldown =self.def_cooldown*3
             if (b["A"] !=0):
                 if(self.cooldown ==0):
                     self.run_last_demo()
@@ -305,8 +316,8 @@ class ArmGamePad:
             if (b["B"] !=0):
                 if(self.cooldown ==0):
                     [print(x, end = " ") for x in self.point_list]
-                    print()
                     self.cooldown =self.def_cooldown
+
             if (b["Start"] !=0):
                  if(self.cooldown ==0):
                     if(self.loop == True):
@@ -324,14 +335,15 @@ class ArmGamePad:
                     self.controller.move_to_point(filemanager.Config([x, y, z], [A, B,C],round(tang)))
                 assert  self.controller.coms_lock.locked() == False #Check that the controller arduino is not BUSY
             except Exception as e:
-                print(e)
+                if len(str(e))>0:
+                    print(e)
                 x, y,z = xyz
                 A, B,C = euler_angles
                 tang = tool
 
             if (self.cooldown>0):
                 self.cooldown-=1
-            time.sleep(max(0,(1/self.fps)-dt)) #adjust for the required fps
+            time.sleep(max(0,(1/self.cps)-dt)) #adjust for the required fps
 
 if __name__ == '__main__':
     """ Used to test the inputs of the xbox controller."""

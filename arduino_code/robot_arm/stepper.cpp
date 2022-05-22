@@ -129,3 +129,6 @@ long Stepper::getCurSpeed(){
 long Stepper::getTarget(){
     return desired_pos;
 }
+long Stepper::getSetSpeed(){
+    return set_speed;
+}

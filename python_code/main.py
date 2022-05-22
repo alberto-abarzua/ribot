@@ -44,7 +44,12 @@ if __name__ == "__main__":
     robot_controller.robot.j3_range = lambda x: x>-np.pi/2 and x<np.pi/2
     robot_controller.robot.j5_range = lambda x: x>-np.pi/2 and x<np.pi/2
 
+    robot_controller.robot.joint_ratios = [9.3,5.36,22.5,1,3.5,1] #ratios bewtween stepper and joint.
+
     #Accurracy of the angles sent to the arduino.
     robot_controller.acc = 10000
+    robot_controller.micro_stepping = 8
+    robot_controller.cps = 30
+    robot_controller.control_speed_multiplier = 0.4
     #Start the robot arm.
     robot_controller.run(simulation="nosim" not in sys.argv)

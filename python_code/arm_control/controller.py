@@ -1,7 +1,9 @@
+import enum
 import os.path
 from re import L
 import sys
 from xml.sax.handler import property_declaration_handler
+import csv
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -41,9 +43,14 @@ class Controller():
         self.robot = robotarm.RobotArm()
 
 
+        self.cps = 50 # commands per second
+        self.control_speed_multiplier = 1.0
 
-        self.acc = 10000  # Acurray of the angles sent to the arduino.
+        self.acc = None  # Acurray of the angles sent to the arduino.
+        self.micro_stepping = None
+
         self.num_joints = 6
+
         self.arduino_angles = [0 for _ in range(self.num_joints)] # Array used to store the exact same values the arduino
 
         self.is_homed = False
@@ -54,7 +61,54 @@ class Controller():
 
         self.gamepad = ArmGamePad(self)
         self.monitor = SerialMonitor(self,port,baudrate)
+        self.enable_log = False
+        self.log_commands = None
+        self.log_angles = None
+        self.prev_time_stamp = None
 
+
+    def create_log(self):
+        self.enable_log = True
+        try:
+            self.log_commands = open("logs/log_commands.csv","w",newline='')
+            self.log_angles = open("logs/log_angles.csv","w",newline='')
+        except Exception as e:
+            print(e)
+        
+        self.writer_commands = csv.writer(self.log_commands)
+        self.writer_angles = csv.writer(self.log_angles)
+        self.writer_commands.writerow(["time","steps_j1","steps_j2","steps_j3","steps_j4","steps_j5","steps_j6"]) #Write the header.
+        self.writer_angles.writerow(["time","angles_j1","angles_j2","angles_j3","angles_j4","angles_j5","angles_j6"]) #Write the header.
+
+
+    def log(self,time_stamp,steps,angles):
+        """Adds a new entry to the log dataframe.
+
+        Args:
+            time_stamp (float): timestamp in seconds
+            steps (list[int]): List of steps 
+
+
+        """
+        if (self.prev_time_stamp == None): #Create initial time_stamp
+            self.prev_time_stamp = time_stamp
+            return
+        time_to_write = time_stamp- self.prev_time_stamp
+        self.writer_angles.writerow([time_to_write] + angles)
+        
+        self.writer_commands.writerow([time_to_write] + steps)
+        self.prev_time_stamp = time_stamp
+
+    def save_log(self):
+        """Saves the log to a csv file.
+        """
+        try:
+            self.log_commands.close()
+            self.log_angles.close()
+            self.enable_log = False
+        except Exception as e:
+            print(e)
+            
     @property
     def tool(self):
         """Gets the angle of the robots tool

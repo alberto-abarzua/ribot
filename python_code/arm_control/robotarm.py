@@ -45,6 +45,10 @@ class RobotArm:
         self.a6z = 0
         self.a6y = 0
 
+        #joints stepper ratios
+
+        self.joint_ratios = []
+
         #constraints. (should be a tuple of Angle's )
 
         #           (Angle(min_val), Angle(max_val))
@@ -58,11 +62,14 @@ class RobotArm:
         self.j4_range = lambda x: x>default_min and x<default_max
         self.j5_range = lambda x: x>default_min and x<default_max
         self.j6_range = lambda x: x>default_min and x<default_max
+        
 
         # Joints angles
         self.angles = [Angle(0, "rad") for i in range(6)]
         self.config = Config([],[],100)
         self.direct_kinematics() #update self.config with initial values.
+
+        
 
 
 # -----------------------------------------------------------------------------------

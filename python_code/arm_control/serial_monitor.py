@@ -191,9 +191,11 @@ class SerialMonitor:
                     time.sleep(0.1)
                     self.run_direct(m)
                     self.monitor_read(self.sta_dict[op])
-            else:   
+            else:
                 self.run_direct(m)
+
                 self.monitor_read(self.sta_dict[op])
+
 
 if __name__ == "__main__":
    

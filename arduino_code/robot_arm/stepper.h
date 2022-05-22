@@ -132,6 +132,14 @@ class Stepper {
      * @return long current position of the motor.
      */
     long Stepper::getCurSpeed();
+
+    /**
+     * @brief Gets the set_speed of this stepper
+     * 
+     * @return long set_speed parameter
+     */
+    long Stepper::getSetSpeed();
+
     /**
      * @brief Gets the target position of the motor. (desired_pos)
      * 

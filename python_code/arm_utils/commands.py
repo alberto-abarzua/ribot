@@ -1,6 +1,7 @@
 import enum
 
 from torch import true_divide
+from zmq import Message
 from . import bins
 import time
 import threading
@@ -71,6 +72,7 @@ class MoveCommand(Command):
         """
         super().__init__(controller=controller)
         self.angles = angles
+        self.angles_rad = [x.rad for x in self.angles]
         self.rad_times_acc_angles = [
             str(round(angle.rad*self.controller.acc)) for angle in self.angles]
         self.angles_for_arduino = self.rad_times_acc_angles[:]
@@ -83,7 +85,7 @@ class MoveCommand(Command):
             Message: message to the arduino to do this command
         """
         
-        command = bins.Message("m",1,self.rad_times_acc_angles)
+        command = bins.Message("m",1,self.angles_for_arduino)
         return command
 
 
@@ -92,12 +94,35 @@ class MoveCommand(Command):
         """
         super().send()
 
+
     def update(self):
         """Used to update the status of the controller.
         """
-        self.controller.update_arduino_angles(
-            [int(x) for x in self.angles_for_arduino])
+        angles_int = [int(x) for x in self.angles_for_arduino]
+        self.controller.update_arduino_angles(angles_int)
         self.controller.robot.angles = self.controller.get_arduino_angles()
+        if self.controller.enable_log:
+            ratios = self.controller.robot.joint_ratios
+            angles = angles_int
+            micro_stepping = self.controller.micro_stepping
+            acc = self.controller.acc
+            values = []
+            for ratio,angle in zip(ratios,angles):
+                values +=[int((ratio*angle*100*micro_stepping)/(np.pi*acc))]
+            self.controller.log(time.perf_counter(),values,self.angles_rad)
+    
+
+    def __str__(self):
+        ratios = self.controller.robot.joint_ratios
+        angles = [int(x) for x in self.angles_for_arduino]
+        micro_stepping = self.controller.micro_stepping
+        acc = self.controller.acc
+        values = []
+        for ratio,angle in zip(ratios,angles):
+            values +=[(ratio*angle*100*micro_stepping)/(np.pi*acc)]
+        return "m1_positions {:2f} {:2f} {:2f} {:2f} {:2f} {:2f}".format(*values)
+
+        
    
 class GripperCommand(Command):
     """Class used to send a command to the robot's tool (gripper), not yet implemented.

@@ -1,7 +1,6 @@
 #ifndef coms_h
 #define coms_h
 #include "Arduino.h"
-
 #include <ArduinoQueue.h>
 
 
@@ -68,6 +67,7 @@ class ComsManager{
     ArduinoQueue<Message*> * q_run; // Queue to store messages that need to be executed.
     unsigned long avg_loop_time =0; //Rolling average.
     unsigned long last_dt=0;
+
     Message * cur_message;
 
     long ComsManager::get_long(byte * buf,int offset);
