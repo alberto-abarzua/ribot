@@ -4,7 +4,9 @@ from re import L
 import sys
 from xml.sax.handler import property_declaration_handler
 import csv
+import socket
 
+from zmq import Message
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.serial_monitor import SerialMonitor
@@ -19,6 +21,7 @@ from arm_utils.arduino_dummy import DummyArduino
 from arm_utils.filemanager import CordAngleInstruction, FileManager, SleepInstruction, ToolAngleInstruction 
 from arm_utils.game_pad_controller import ArmGamePad
 from arm_utils.status import *
+from arm_utils.bins import *
 from arm_control import arm_simulation as arm_sim
 
 import threading
@@ -37,6 +40,10 @@ class Controller():
             port (string, optional): COM port of the arduino. Defaults to None.
             baudrate (int, optional): BaudRate of the arduino. Defaults to None.
         """
+        #Conection to unity
+        self.host = None
+        self.port = None
+
         # Conection to arduino
        
 
@@ -157,7 +164,8 @@ class Controller():
         game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
         game_pad_thread.start()
         if simulation:
-            sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
+            #sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
+            sim_thread = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
             sim_thread.start()
         self.monitor.run()
 
@@ -238,7 +246,24 @@ class Controller():
             print("\nHoming all joints!")
             self.send_command(com.HomeComand(self))
     
-
+    def unity_server(self):
+        """Used to send the angles of the robot arm to the unity simulation.
+        """
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((self.host, self.port))
+            s.listen()
+            conn, addr = s.accept() #Waits for conection
+            with conn:
+                print(f"Connected by {addr}")
+                while True:
+                    in_data = conn.recv(1024)
+                    if not in_data:
+                        continue
+                    if (struct.unpack_from("i",in_data,offset = 0)[0] == 0):
+                        #send the current angles of the arm.
+                        data = Message("u",1,[int(x) for x in self.arduino_angles]+[self.tool]) 
+                        conn.sendall(data.encode())
+                        in_data = None
 
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).

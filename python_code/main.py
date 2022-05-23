@@ -50,6 +50,8 @@ if __name__ == "__main__":
     robot_controller.acc = 10000
     robot_controller.micro_stepping = 8
     robot_controller.cps = 30
+    robot_controller.host = "127.0.0.1"
+    robot_controller.port = 65433
     robot_controller.control_speed_multiplier = 0.4
     #Start the robot arm.
     robot_controller.run(simulation="nosim" not in sys.argv)
