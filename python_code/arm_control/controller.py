@@ -302,10 +302,10 @@ class Controller():
         self.sim_server.start()
         if simulation:
             if (not mac_os):
-                self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
+                self.proc_sim  = subprocess.Popen(os.path.abspath("../unity/windows_app/arm_sim.exe")) #Starts the simulation.
             else:
-                path = os.path.abspath("../arm_sim_app_mac.app")
-                path_m = os.path.abspath("../arm_sim_app_mac.app/Contents/MacOS")
+                path = os.path.abspath("../unity/mac_os_app.app")
+                path_m = os.path.abspath("../unity/mac_os_app.app/Contents/MacOS")
                 subprocess.Popen(["chmod","-R","+x",path_m])
                 self.proc_sim = subprocess.Popen(["open",path]) #Starts the simulation.
         self.monitor.run()
