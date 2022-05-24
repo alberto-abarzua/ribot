@@ -57,8 +57,7 @@ gives the inputs to the serial monitor, and runs the simulation with the current
 
     `python main.py <port> nosim` // Runs the controller without the simulation to a real arduino conected to a port.
     `python main.py <port>`  // Runs the controller with the simulation to a real arduino conected to a port.
-    'python main.py'  // Runs the simulation without an arduino. (arduino dummy)
-    
+    'python main.py None mac_os'  // Runs the simulation without an arduino and starts the macOS simulation.
     Requirements:
 
     Python 3.10
