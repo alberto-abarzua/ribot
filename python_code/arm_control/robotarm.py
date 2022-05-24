@@ -1,11 +1,7 @@
-from doctest import OutputChecker
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
-from numpy.lib.function_base import angle
-import serial
-import time
 from arm_utils.armTransforms import *
 
 __author__ = "Alberto Abarzua"

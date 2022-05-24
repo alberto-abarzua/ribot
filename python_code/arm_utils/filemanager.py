@@ -1,7 +1,6 @@
 import os
 import os.path
 import sys
-from time import sleep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 

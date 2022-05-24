@@ -1,8 +1,6 @@
-import enum
 
 from . import bins
 import time
-import threading
 import numpy as np
 
 
