@@ -298,9 +298,9 @@ class Controller():
                 self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
             else:
                 path = os.path.abspath("../arm_sim_app_mac.app")
-                os.chmod(path,~stat.S_IREAD  & stat.S_IXUSR )
-                os.chmod(path,)
-                self.proc_sim = subprocess.Popen(path) #Starts the simulation.
+                path_m = os.path.abspath("../arm_sim_app_mac.app/Contents/MacOS")
+                subprocess.Popen(["chmod","-R","+x",path_m])
+                self.proc_sim = subprocess.Popen(["open",path]) #Starts the simulation.
         self.monitor.run()
 
     def end(self):
