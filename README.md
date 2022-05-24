@@ -46,8 +46,8 @@ Video of the current version of the arm working:
 
 - Inverse Kinematics: This is the mathematical process of calculating the angles that every joint should have so that the TCP reaches a certain position (x,y,z) with certain angles (roll,pitch,yaw). (Code in armUtils/robotarm.py)
 
-- Simulation of the robot arm using openGL (arm_simulation.py), this is a simulated version of the robot arm (6DOF stepper motor) shown in the previous photos. (Code in Main/arm_simulation.py). This part of the code uses the library "grafica" from <https://github.com/ivansipiran/grafica>. This is the GitHub repository used in the course "CC3501-Modelación y Computación Gráfica para Ingenieros" which is part of the study plan for "Licenciatura en Ciencias de la Ingeniería, Mención Computación v5- Universidad de Chile".    
-![Simulation](https://i.ibb.co/xCFvBVg/2021-11-19-15-19-43-Settings.png)
+- Arm simulation: Created using unity, receives the angles from python code using a socket displaying the current configuration of the robot arm.
+![Simulation](https://i.ibb.co/7bJFz8Q/img.png)
 
 - Arm Controller: The arm controller takes charge of all the controlls and comunication to the arduino. The controller runs the controll logic with an xbox controller,
 gives the inputs to the serial monitor, and runs the simulation with the current angles of the robot 
@@ -61,9 +61,7 @@ gives the inputs to the serial monitor, and runs the simulation with the current
     
     Requirements:
 
-    Python 3.8.2
+    Python 3.10
 
-    Libraries installation:
-
-     `pip install numpy scipy matplotlib pyopengl glfw ipython jupyter pillow imgui[glfw]`
+    Libraries installation are in requirements.txt
 
