@@ -68,6 +68,7 @@ class Controller():
         self.log_commands = None
         self.log_angles = None
         self.prev_time_stamp = None
+        self.mac_os = False
 
 
     def create_log(self):
@@ -240,6 +241,7 @@ class Controller():
                     in_data = conn.recv(1024)
                     if not in_data:
                         continue
+            
                     if (struct.unpack_from("i",in_data,offset = 0)[0] == 0):
                         #send the current angles of the arm.
                         data = Message("u",1,[int(x) for x in self.arduino_angles]+[self.tool]) 
@@ -291,7 +293,10 @@ class Controller():
         sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
         sim_server.start()
         if simulation:
-            self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
+            if (not self.mac_os):
+                self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
+            else:
+                self.proc_sim = subprocess.Popen(os.path.abspath("../arm_sim_app_mac.app")) #Starts the simulation.
         self.monitor.run()
 
     def end(self):
