@@ -50,7 +50,7 @@ public class camera : MonoBehaviour
         
         transform.position += Camera.main.transform.forward*vert*Time.deltaTime + Camera.main.transform.right*hori*Time.deltaTime;
         if(locked){
-             yaw += speedH*Input.GetAxis("Mouse X");
+            yaw += speedH*Input.GetAxis("Mouse X");
             pitch -= speedV*Input.GetAxis("Mouse Y");
 
             //the rotation range

@@ -27,7 +27,9 @@ public class controller : MonoBehaviour{
     public TMP_Text  tip_location;
     public Text text_angles;
     
-
+    /// <summary>
+    /// Sets the localEulerAngles for each GameObject joint.
+    /// </summary>
     public void set_angles(){
         for(int i=0;i<6;i++){
             GameObject joint = joints[i];
@@ -46,8 +48,12 @@ public class controller : MonoBehaviour{
     
 
 
-
+    /// <summary>
+    /// Gets the message stored in buff, (op,code,args)
+    /// </summary>
+    /// <param name="buf"></param>
     void read_message(byte[] buf){
+        
         this.op = (char) buf[0];
         this.code = BitConverter.ToInt32(buf,1);
         this.num_args = BitConverter.ToInt32(buf,5); 
@@ -55,6 +61,9 @@ public class controller : MonoBehaviour{
             this.args[i] = BitConverter.ToInt32(buf,i*4+9);
         }
     }
+    /// <summary>
+    /// Transforms the values received in args and stores them in angles.
+    /// </summary>
     public void update_angles(){
         for (int i =0;i<6;i++){
             this.angles[i] =(float) (((float)this.args[i]/(float)this.acc)/Math.PI)*(float)180.0;
@@ -64,7 +73,9 @@ public class controller : MonoBehaviour{
 
 
 
-
+    /// <summary>
+    /// Called at the start of the prgram.
+    /// </summary>
     void Start(){
         tip = GameObject.Find("tip");
         joints = new GameObject[6];
@@ -88,7 +99,9 @@ public class controller : MonoBehaviour{
 
     }
 
-    // Update is called once per frame
+    /// <summary>
+    /// Called once per frame, receives data from the socket and reads the message to show the robot's angles.
+    /// </summary>
     void Update(){
         if (this.s != null){
             this.s.Send(BitConverter.GetBytes(0)); 
