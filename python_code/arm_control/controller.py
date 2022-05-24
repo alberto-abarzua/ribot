@@ -281,7 +281,7 @@ class Controller():
         self.move_gripper_to(config.tool)
        
 
-    def start(self,simulation):
+    def start(self,simulation,mac_os):
         """Starts the threads to run the arm,
 
         Args:
@@ -293,7 +293,7 @@ class Controller():
         sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
         sim_server.start()
         if simulation:
-            if (not self.mac_os):
+            if (not mac_os):
                 self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
             else:
                 self.proc_sim = subprocess.Popen(os.path.abspath("../arm_sim_app_mac.app")) #Starts the simulation.

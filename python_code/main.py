@@ -17,8 +17,9 @@ if __name__ == "__main__":
     port = None
     baudrate = None
     if (len(sys.argv)>1 ):
-        port = sys.argv[1]
-        baudrate = 115200
+        if (sys.argv[1] != "None"):
+            port = sys.argv[1]
+            baudrate = 115200
 
 
     #Create a new controller (robot arm)
@@ -54,4 +55,4 @@ if __name__ == "__main__":
     robot_controller.port = 65433
     robot_controller.control_speed_multiplier = 0.4
     #Start the robot arm.
-    robot_controller.start(simulation="nosim" not in sys.argv)
+    robot_controller.start(simulation="nosim" not in sys.argv,mac_os = "mac_os" in sys.argv)
