@@ -61,6 +61,7 @@ public class controller : MonoBehaviour{
 
 
     void Start(){
+
         joints = new GameObject[6];
         angles = new float[6];
         inverted = new int[] {1,-1,-1,1,-1,1};

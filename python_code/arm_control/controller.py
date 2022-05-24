@@ -1,9 +1,14 @@
+import math
+from re import X
+from signal import signal
+import subprocess
 import os.path
 import sys
 import csv
 import socket
 import time
-
+import signal
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.serial_monitor import SerialMonitor
@@ -11,13 +16,11 @@ import arm_utils.commands as com
 import arm_control.robotarm as robotarm
 from arm_utils.armTransforms import Angle, OutOfBoundsError
 from arm_utils.armTransforms import Config
-from arm_utils.arduino_dummy import DummyArduino
+import arm_utils.armTransforms as at
 from arm_utils.filemanager import CordAngleInstruction, FileManager, SleepInstruction, ToolAngleInstruction 
-from arm_utils.game_pad_controller import ArmGamePad
 from arm_utils.status import *
 from arm_utils.bins import *
-from arm_control import arm_simulation as arm_sim
-
+from arm_utils.game_pad_controller import XboxController
 import threading
 __author__ = "Alberto Abarzua"
 
@@ -149,22 +152,7 @@ class Controller():
         self.filem.run_file(file_name)
 
     
-    def run(self,simulation):
-        """Starts the threads to run the arm,
-
-        Args:
-            simulation (bool): If true the arm simulation will be started on another thread.
-        """
-        game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
-        game_pad_thread.start()
-        if simulation:
-            sim_thread1 = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
-            sim_thread2 = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
-            sim_thread1.start()
-            sim_thread2.start()
-        self.monitor.run()
-
-
+    
 
     def step(self):
         """Makes the robot arm take a current step (read a new line from self.cur_file and run it.)
@@ -291,5 +279,236 @@ class Controller():
         next_angles = self.robot.inverse_kinematics(config)
         self.move_to_angle_config(next_angles)
         self.move_gripper_to(config.tool)
+       
 
-    
+    def start(self,simulation):
+        """Starts the threads to run the arm,
+
+        Args:
+            simulation (bool): If true the arm simulation will be started on another thread.
+        """
+        game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
+        game_pad_thread.start()
+        signal.signal(signal.SIGINT,self.signal_handler)
+        if simulation:
+            self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
+            sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
+            sim_server.start()
+        self.monitor.run()
+
+    def end(self):
+        """Terminates the unity simulation process. Other processes are deamons so they are terminated when this parent process ends.
+        """
+        self.proc_sim.terminate()
+
+    def signal_handler(self,sig,frame):
+        """Used to handle Ctr + c SIGINT signal, calls self.end() to properly end the progra.
+
+        Args:
+            sig (_type_): _description_
+            frame (_type_): _description_
+        """
+        print("\nCTRL + C ... \nEnding program")
+        self.end()
+        sys.exit(0)
+
+
+
+class ArmGamePad:
+    """ArmGamePad, uses an XboxController to control the postion and euler angles of the arm. Moves the arm joints to their positions.
+    """
+
+    def __init__(self,controller) -> None:
+        """Starts the gamepad xbox controller.
+
+        Args:
+            controller (Controller): arm controller wich will receive the positional information from the GamePad.
+        """
+
+        self.joy = XboxController()
+        self.buttons =self.joy.buttons 
+        self.controller = controller
+        self.robot = self.controller.robot
+        #steps
+        self.mult = self.controller.control_speed_multiplier
+        self.dir_step = 70*self.mult
+        self.angle_step = 0.3*self.mult
+        self.tool_step =80*self.mult
+        self.cps = self.controller.cps
+        self.point_list = []
+        self.cooldown =0
+        self.def_cooldown = 20
+        self.loop = False
+        
+    def create_file_point_list(self):
+        """Creates a curve (set of instructions) and stores them in a text file.
+        """
+        curve,sleep= at.gen_curve_points(self.point_list) 
+        f = self.controller.filem
+        n = f.get_demo_number()
+        instructions = f.from_curve_to_instruct(curve,sleep)
+        f.write_file(instructions, "demo{}.txt".format(n))
+
+        self.point_list.clear()
+    def run_file(self):
+        """Gets input from terminal to run a file."""
+        file_name = input("\nPlease enter a file name:")
+        self.controller.run_file("arm_control/data/" + file_name)
+    def run_last_demo(self):
+        """Runs the last demo file"""
+        self.controller.run_file("arm_control/data/demo{}.txt".format(self.controller.filem.get_demo_number()-1))
+    def run_loop_last_demo(self):
+        """Runs on a loop the last demo file"""
+        self.run_last_demo()
+        self.loop = True
+
+    def run(self):
+        """Starts the main looop of the controlls
+        """
+        t0 = time.perf_counter()
+        sign = lambda x :math.copysign(1,x)
+        while(True):
+            t1 = time.perf_counter()
+            dt = t1 - t0
+            t0 = t1
+            self.robot.direct_kinematics()  # We update the euler angles and xyz
+            xyz,euler_angles,tool = self.robot.config.cords,self.robot.config.euler_angles,self.robot.config.tool
+            #Previous state:
+            x, y,z = xyz
+            A, B,C = euler_angles
+            tang = tool
+            #CONTROLS FOR POSITIONS
+
+            b = self.buttons
+            #---y---
+            if(b["LeftJoystickX"] !=0):
+                y+= sign(b["LeftJoystickX"] )*self.dir_step*dt
+            #---x---
+            if(b["LeftJoystickY"] !=0):
+                x+= sign(b["LeftJoystickY"] )*self.dir_step*dt
+
+            #---Z Down
+            if(b["LeftTrigger"] !=0):
+                z-= self.dir_step*dt
+            
+            #---Z up
+            if(b["RightTrigger"] !=0):
+                z+= self.dir_step*dt
+            
+            angle_step_positive = Angle(self.angle_step*dt, "rad")
+            angle_step_negative = Angle(-self.angle_step*dt, "rad")
+
+
+            #-- A --
+
+            if(b["LeftBumper"] !=0):
+                A.add(angle_step_negative)
+                A.add(angle_step_negative)
+                A.add(angle_step_negative)
+
+
+            if(b["RightBumper"] !=0):
+                A.add(angle_step_positive)
+                A.add(angle_step_positive)
+                A.add(angle_step_positive)
+
+                   
+            # -- B --
+
+            if(b["RightJoystickY"] !=0):
+                if(sign(b["RightJoystickY"] )>=0):
+                    B.add(angle_step_positive)
+                else:
+                    B.add(angle_step_negative)
+
+             #-- C --
+
+            if(b["RightJoystickX"] !=0):
+                if(sign(b["RightJoystickX"] )>=0):
+                    C.add(angle_step_positive)
+                else:
+                    C.add(angle_step_negative)
+            if(b["Back"]!=0): #Try and home the arm
+                self.controller.home_arm()
+                continue
+            
+
+            #tools controls:
+
+            if(b["LeftDPad"] != 0):
+                tang+=dt*self.tool_step
+
+            if(b["RightDPad"] != 0):
+                tang-=dt*self.tool_step
+
+            #file and point management.
+
+            if (b["Y"] !=0): #Save a new point
+                if(b["X"] !=0):
+                    self.point_list.clear()
+                    self.cooldown =self.def_cooldown
+                    continue
+                if(self.cooldown ==0):
+                    self.point_list.append(Config([x, y, z], [A, B,C],round(tang)))
+                    [print(x, end = " ") for x in self.point_list]
+                    self.cooldown =self.def_cooldown
+            
+            if (b["X"] !=0): #Save file and clear point list.
+                if(self.cooldown ==0):
+                    self.cooldown =self.def_cooldown
+                    try:
+                        self.create_file_point_list()
+                        print("File demo{}.txt created!".format(self.controller.filem.get_demo_number()))
+                    except:
+                        print("point list not valid")
+
+            if (b["UpDPad"]!=0): #save log file
+                    if(self.cooldown ==0):
+                        print("saving log!")
+
+                        self.controller.save_log()
+                        self.cooldown =self.def_cooldown*3
+
+            if (b["DownDPad"]!=0): #create log file.
+                    if(self.cooldown ==0):
+                        print("creating new  log!")
+
+                        self.controller.create_log()
+                        self.cooldown =self.def_cooldown*3
+            if (b["A"] !=0):
+                if(self.cooldown ==0):
+                    self.run_last_demo()
+                    self.cooldown =self.def_cooldown
+
+
+            if (b["B"] !=0):
+                if(self.cooldown ==0):
+                    [print(x, end = " ") for x in self.point_list]
+                    self.cooldown =self.def_cooldown
+
+            if (b["Start"] !=0):
+                 if(self.cooldown ==0):
+                    if(self.loop == True):
+                        self.loop = False
+                        self.cooldown =self.def_cooldown
+                        self.controller.filem.interrupt_file()
+                        continue
+                    self.run_loop_last_demo()
+                    self.cooldown =self.def_cooldown
+            try:
+                if (not self.controller.step()):
+                    if(self.loop):
+                        self.run_last_demo()
+                        continue
+                    self.controller.move_to_point(Config([x, y, z], [A, B,C],round(tang)))
+                assert  self.controller.coms_lock.locked() == False #Check that the controller arduino is not BUSY
+            except Exception as e:
+                if len(str(e))>0:
+                    print(e)
+                x, y,z = xyz
+                A, B,C = euler_angles
+                tang = tool
+
+            if (self.cooldown>0):
+                self.cooldown-=1
+            time.sleep(max(0,(1/self.cps)-dt)) #adjust for the required fps

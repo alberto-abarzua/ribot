@@ -54,4 +54,4 @@ if __name__ == "__main__":
     robot_controller.port = 65433
     robot_controller.control_speed_multiplier = 0.4
     #Start the robot arm.
-    robot_controller.run(simulation="nosim" not in sys.argv)
+    robot_controller.start(simulation="nosim" not in sys.argv)

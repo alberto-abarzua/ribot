@@ -1,5 +1,3 @@
-from math import e
-from pickletools import ArgumentDescriptor
 import serial
 import sys
 import os
@@ -164,7 +162,7 @@ class SerialMonitor:
         """
         while(True):
             
-            mes = input("Please enter Message:")
+            mes = input("Please enter Message:\n")
             
             try:
                m,op,loop = self.interp(mes)    
