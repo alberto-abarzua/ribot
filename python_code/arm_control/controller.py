@@ -1,5 +1,6 @@
 import math
 from signal import signal
+import stat
 import subprocess
 import os.path
 import sys
@@ -296,7 +297,10 @@ class Controller():
             if (not mac_os):
                 self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
             else:
-                self.proc_sim = subprocess.Popen(os.path.abspath("../arm_sim_app_mac.app")) #Starts the simulation.
+                path = os.path.abspath("../arm_sim_app_mac.app")
+                os.chmod(path,-stat.S_IREAD)
+                os.chmod(path,stat.S_IXUSR )
+                self.proc_sim = subprocess.Popen(path) #Starts the simulation.
         self.monitor.run()
 
     def end(self):
