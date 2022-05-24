@@ -1,5 +1,4 @@
 import math
-from re import X
 from signal import signal
 import subprocess
 import os.path
@@ -237,7 +236,6 @@ class Controller():
             s.listen()
             conn, addr = s.accept() #Waits for conection
             with conn:
-                print(f"Connected by {addr}")
                 while True:
                     in_data = conn.recv(1024)
                     if not in_data:
