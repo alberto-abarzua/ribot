@@ -69,7 +69,7 @@ class Controller():
         self.log_commands = None
         self.log_angles = None
         self.prev_time_stamp = None
-        self.mac_os = False
+        self.proc_sim = None
 
 
     def create_log(self):
@@ -239,15 +239,22 @@ class Controller():
             conn, addr = s.accept() #Waits for conection
             with conn:
                 while True:
-                    in_data = conn.recv(1024)
-                    if not in_data:
-                        continue
-            
-                    if (struct.unpack_from("i",in_data,offset = 0)[0] == 0):
-                        #send the current angles of the arm.
-                        data = Message("u",1,[int(x) for x in self.arduino_angles]+[self.tool]) 
-                        conn.sendall(data.encode())
-                        in_data = None
+                    try:
+                        in_data = conn.recv(1024)
+                        if not in_data:
+                            continue
+                
+                        if (struct.unpack_from("i",in_data,offset = 0)[0] == 0):
+                            #send the current angles of the arm.
+                            data = Message("u",1,[int(x) for x in self.arduino_angles]+[self.tool]) 
+                            conn.sendall(data.encode())
+                            in_data = None
+                    except:
+
+                        print("Conection failed!")
+                        self.end()
+                        
+                        
 
     def move_to_angle_config(self, angles):
         """Makes the robot go to a certain angle configuration (this is absolute positioning).
@@ -288,11 +295,11 @@ class Controller():
         Args:
             simulation (bool): If true the arm simulation will be started on another thread.
         """
-        game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
-        game_pad_thread.start()
+        self.game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
+        self.game_pad_thread.start()
         signal.signal(signal.SIGINT,self.signal_handler)
-        sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
-        sim_server.start()
+        self.sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
+        self.sim_server.start()
         if simulation:
             if (not mac_os):
                 self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
@@ -306,7 +313,10 @@ class Controller():
     def end(self):
         """Terminates the unity simulation process. Other processes are deamons so they are terminated when this parent process ends.
         """
-        self.proc_sim.terminate()
+        if (self.proc_sim != None):
+            self.proc_sim.terminate()
+        os.kill(os.getpid(),9)
+        sys.exit(0)
 
     def signal_handler(self,sig,frame):
         """Used to handle Ctr + c SIGINT signal, calls self.end() to properly end the progra.
