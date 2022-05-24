@@ -288,10 +288,10 @@ class Controller():
         game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
         game_pad_thread.start()
         signal.signal(signal.SIGINT,self.signal_handler)
+        sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
+        sim_server.start()
         if simulation:
             self.proc_sim  = subprocess.Popen(os.path.abspath("../arm_sim_app/arm_sim.exe")) #Starts the simulation.
-            sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
-            sim_server.start()
         self.monitor.run()
 
     def end(self):

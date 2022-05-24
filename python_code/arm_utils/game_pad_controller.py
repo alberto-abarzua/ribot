@@ -1,6 +1,8 @@
 import sys
 import os.path
 
+from matplotlib.pyplot import connect
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from inputs import get_gamepad
@@ -83,12 +85,13 @@ class XboxController(object):
     def _monitor_controller(self):
         """Gets the events from the gamepad and modifies the buttons dictionary accordingly
         """
+        connected = True
         while True:
             try:
                 events = get_gamepad()
 
             except Exception as e:
-                print(e)
+                print("No GamePad Connected!")
                 return
                 
             for event in events:

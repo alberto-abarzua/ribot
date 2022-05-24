@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Net.Sockets;
 using System.Text;  
 using System;
+using UnityEngine.UI;
 
 public class controller : MonoBehaviour{
 
@@ -18,6 +19,7 @@ public class controller : MonoBehaviour{
     private float[] angles;
     private int acc =10000;
 
+    public Text text_angles;
     private GameObject[] joints; //Joints
     private int[] inverted;
     // Start is called before the first frame update
@@ -69,19 +71,17 @@ public class controller : MonoBehaviour{
             joints[i] = GameObject.Find("J"+(i+1));
             
         }
+       
         this.s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         this.port = 65433;
         this.ip = "127.0.0.1";
         this.args = new Int32[7];
-        int tries = 10;
-        while(tries!=0){
-            try{
-             this.s.Connect(this.ip, this.port);
+        try{
+            this.s.Connect(this.ip, this.port);
         }catch{
-            Console.WriteLine("Reconecting");
-            tries--;
+            this.s = null;
         }
-        }
+            
 
     }
 
@@ -96,9 +96,21 @@ public class controller : MonoBehaviour{
                 this.read_message(bytesRec);
                 this.update_angles();
                 this.set_angles();
-                Debug.Log(this.op+this.code+" ["+string.Join(" ,",this.angles)+ "]"); 
                 this.s.Send(BitConverter.GetBytes(0)); 
             }
+            int[] angles_round = new int[6];
+            for(int i=0;i<6;i++){
+                angles_round[i] = (int)Math.Round(this.angles[i])*inverted[i];
+            } 
+            this.text_angles.text = "cur_angles ["+string.Join(" ,",angles_round)+ "]"; 
+        }else{
+             int[] angles_round = new int[6];
+                for(int i=0;i<6;i++){
+                    angles_round[i] = (int)Math.Round(this.angles[i]);
+                } 
+            text_angles.text = " ["+string.Join(" ,",angles_round)+ "]"; 
+
+
         }
        
                 
