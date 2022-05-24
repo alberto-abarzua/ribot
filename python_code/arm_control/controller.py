@@ -1,22 +1,16 @@
-import enum
 import os.path
-from re import L
 import sys
-from xml.sax.handler import property_declaration_handler
 import csv
 import socket
+import time
 
-from zmq import Message
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arm_control.serial_monitor import SerialMonitor
-import numpy as np
 import arm_utils.commands as com
 import arm_control.robotarm as robotarm
 from arm_utils.armTransforms import Angle, OutOfBoundsError
 from arm_utils.armTransforms import Config
-import time
-import serial
 from arm_utils.arduino_dummy import DummyArduino
 from arm_utils.filemanager import CordAngleInstruction, FileManager, SleepInstruction, ToolAngleInstruction 
 from arm_utils.game_pad_controller import ArmGamePad
@@ -164,8 +158,8 @@ class Controller():
         game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
         game_pad_thread.start()
         if simulation:
-            #sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
-            sim_thread = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
+            sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
+            #sim_thread = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
             sim_thread.start()
         self.monitor.run()
 

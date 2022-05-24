@@ -6,7 +6,6 @@ import os
 from collections import defaultdict
 import time
 
-from sklearn.linear_model import ARDRegression
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from arm_utils.status import *

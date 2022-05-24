@@ -17,7 +17,6 @@ from arm_utils.filemanager import FileManager
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
 import arm_control.controller as ac
-import arm_control.robotarm as ra
 import grafica.text_renderer as tx
 
 __author__ = "Alberto Abarzua"
