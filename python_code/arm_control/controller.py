@@ -158,9 +158,10 @@ class Controller():
         game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
         game_pad_thread.start()
         if simulation:
-            sim_thread = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
-            #sim_thread = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
-            sim_thread.start()
+            sim_thread1 = threading.Thread(target = arm_sim.sim,args =(self,),name= "Robot Arm Simulation",daemon=True) 
+            sim_thread2 = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
+            sim_thread1.start()
+            sim_thread2.start()
         self.monitor.run()
 
 

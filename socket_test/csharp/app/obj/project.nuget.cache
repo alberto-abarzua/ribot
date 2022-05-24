@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fG6VdpY8b3ebNLobxZjIjKWeYxjuG+NCt9N6lcmWloC+4qYhjiZKsJ4D/hudzfzXOIy3Z/O3wg5ySHCJdj267A==",
+  "dgSpecHash": "xZ3X8GqXgxCbZagb8CCrX9+qK44IMZclR4lBGOQVId7S4UO+QglR5zoXAVF8qx9gOorsr6tLUGAoV9ZTJPAJRw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\corlg\\Desktop\\socket_test\\csharp\\app\\app.csproj",
+  "projectFilePath": "C:\\Users\\corlg\\git-local\\3d_printed_robot_arm\\socket_test\\csharp\\app\\app.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }
