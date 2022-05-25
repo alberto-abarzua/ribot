@@ -50,9 +50,9 @@ if __name__ == "__main__":
     #Accurracy of the angles sent to the arduino.
     robot_controller.acc = 10000
     robot_controller.micro_stepping = 8
-    robot_controller.cps = 30
+    robot_controller.cps = 60
     robot_controller.host = "127.0.0.1"
     robot_controller.port = 65433
-    robot_controller.control_speed_multiplier = 0.4
+    robot_controller.control_speed_multiplier = 1.0
     #Start the robot arm.
     robot_controller.start(simulation="nosim" not in sys.argv,mac_os = "mac_os" in sys.argv)

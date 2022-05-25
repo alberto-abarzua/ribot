@@ -47,13 +47,13 @@ class Controller():
         self.robot = robotarm.RobotArm()
 
 
-        self.cps = 50 # commands per second
         self.control_speed_multiplier = 1.0
 
         self.acc = None  # Acurray of the angles sent to the arduino.
         self.micro_stepping = None
 
         self.num_joints = 6
+        self.cps = None
 
         self.arduino_angles = [0 for _ in range(self.num_joints)] # Array used to store the exact same values the arduino
 
@@ -63,7 +63,7 @@ class Controller():
 
         self.filem = FileManager()
 
-        self.gamepad = ArmGamePad(self)
+
         self.monitor = SerialMonitor(self,port,baudrate)
         self.enable_log = False
         self.log_commands = None
@@ -295,6 +295,8 @@ class Controller():
         Args:
             simulation (bool): If true the arm simulation will be started on another thread.
         """
+        self.gamepad = ArmGamePad(self)
+
         self.game_pad_thread = threading.Thread(target = self.gamepad.run,name= "Gamepad",daemon=True) 
         self.game_pad_thread.start()
         signal.signal(signal.SIGINT,self.signal_handler)
@@ -388,6 +390,7 @@ class ArmGamePad:
             t1 = time.perf_counter()
             dt = t1 - t0
             t0 = t1
+
             self.robot.direct_kinematics()  # We update the euler angles and xyz
             xyz,euler_angles,tool = self.robot.config.cords,self.robot.config.euler_angles,self.robot.config.tool
             #Previous state:
@@ -467,7 +470,9 @@ class ArmGamePad:
                     continue
                 if(self.cooldown ==0):
                     self.point_list.append(Config([x, y, z], [A, B,C],round(tang)))
+                    print("Adding new point to list :",end = " ")
                     [print(x, end = " ") for x in self.point_list]
+                    print("")
                     self.cooldown =self.def_cooldown
             
             if (b["X"] !=0): #Save file and clear point list.
@@ -501,6 +506,7 @@ class ArmGamePad:
             if (b["B"] !=0):
                 if(self.cooldown ==0):
                     [print(x, end = " ") for x in self.point_list]
+                    print("")
                     self.cooldown =self.def_cooldown
 
             if (b["Start"] !=0):
@@ -528,4 +534,11 @@ class ArmGamePad:
 
             if (self.cooldown>0):
                 self.cooldown-=1
-            time.sleep(max(0,(1/self.cps)-dt)) #adjust for the required fps
+            
+            m = max(0,(1/self.cps)-(time.perf_counter()-t1))
+            #print(dt)
+            #d1 = time.perf_counter()
+            #print(1/self.cps,m,end = "  --> ")
+            time.sleep(m) #adjust for the required fps
+            #print(time.perf_counter()-m-d1)
+            
