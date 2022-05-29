@@ -1,7 +1,9 @@
 import sys
 import numpy as np
 from arm_control.controller import Controller
+import argparse
 
+DEFAULT_BAUDRATE = 115200
 
 
 if __name__ == "__main__":
@@ -14,12 +16,21 @@ if __name__ == "__main__":
     'python main.py'  // Runs the simulation without an arduino. (arduino dummy)
 
     """
-    port = None
-    baudrate = None
-    if (len(sys.argv)>1 ):
-        if (sys.argv[1] != "None"):
-            port = sys.argv[1]
-            baudrate = 115200
+    parser = argparse.ArgumentParser(description='Parameters to run robot arm')
+    parser.add_argument("--no_simulation","-ns",dest = "no_simulation",action="store_true",help = "Used to run the program without the simulation.")
+    parser.add_argument("--mac_os","-m",dest = "mac_os",action="store_true",help = "Used to run the program on macOS")
+    parser.add_argument("--port","-p",type = str,dest = "port",help = "Selects the port to control arm if arduino is conected.")
+    parser.add_argument("--baudrate","-b",type = int,dest = "baud_rate",default=DEFAULT_BAUDRATE,help = "Selects the port to control arm if arduino is conected.")
+    
+    args = parser.parse_args()
+
+    port = args.port
+    baudrate = args.baud_rate
+    no_sim = not args.no_simulation
+    mac_os = args.mac_os
+
+    if(port == None):
+        baudrate = None
 
 
     #Create a new controller (robot arm)
@@ -55,4 +66,4 @@ if __name__ == "__main__":
     robot_controller.port = 65433
     robot_controller.control_speed_multiplier = 1.0
     #Start the robot arm.
-    robot_controller.start(simulation="nosim" not in sys.argv,mac_os = "mac_os" in sys.argv)
+    robot_controller.start(simulation=no_sim,mac_os = mac_os)

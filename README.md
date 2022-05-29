@@ -53,14 +53,21 @@ Video of the current version of the arm working:
 gives the inputs to the serial monitor, and runs the simulation with the current angles of the robot 
 
 
-<p>The controller can be started in a few different ways:
+The controller can be started in a few different ways, these include:
 
-    `python main.py <port> nosim` // Runs the controller without the simulation to a real arduino conected to a port.
-    `python main.py <port>`  // Runs the controller with the simulation to a real arduino conected to a port.
-    'python main.py None mac_os'  // Runs the simulation without an arduino and starts the macOS simulation.
+ * Support for macOS
+ * Run the program with or without the unity simulation displaying the current configuration of the arm.
+ * Run the controller conected to a real arduino or without one (if no port is specified)
+
+```
+    To view information on how to run the controller, run
+
+    'python arm.py --help'
+
     Requirements:
 
     Python 3.10
 
-    Libraries installation are in requirements.txt
-
+    Libraries installation are in 
+    requirements.txt
+```
