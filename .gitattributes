@@ -1,1 +1,1 @@
-unity/ linguist-vendored
+unity/*  linguist-vendored = true
