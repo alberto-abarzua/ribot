@@ -1,7 +1,8 @@
-
-
 import struct
 from . import commands
+
+__author__ = "Alberto Abarzua"
+
 class Message():
     """This class is used to encode the messages to the arduino as a series of bytes.
     All messages should follow this syntax:

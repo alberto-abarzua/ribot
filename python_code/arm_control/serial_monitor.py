@@ -15,6 +15,8 @@ from serial.serialutil import SerialException
 
 import keyboard
 
+__author__ = "Alberto Abarzua"
+
 
 class SerialMonitor:
     """Serial monitor class, used to manage the serial comunications to the arduino for the controller. Also an interactive console

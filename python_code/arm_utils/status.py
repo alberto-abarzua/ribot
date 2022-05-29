@@ -1,3 +1,7 @@
+
+__author__ = "Alberto Abarzua"
+
+
 """
 
 File used to store the statuses possible status of the arduino.

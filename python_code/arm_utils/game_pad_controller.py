@@ -6,12 +6,18 @@ from matplotlib.pyplot import connect
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from inputs import get_gamepad
+from inputs import get_key
+import keyboard
 import math
 import threading
 import time
 from arm_utils import filemanager
 from arm_utils.armTransforms import Angle,gen_curve_points
 from collections import defaultdict
+
+__author__ = "Alberto Abarzua"
+
+
 class XboxController(object):
     """XboxController class, used to get inputs from an xbox controller.
 
@@ -51,7 +57,7 @@ class XboxController(object):
         self._monitor_thread.start()
         
 
-
+    
     def clean_trigger(self,val):
         """Used to get a clean value from a trigger event
 
@@ -93,8 +99,8 @@ class XboxController(object):
             except Exception as e:
                 print("No GamePad Connected!")
                 return
-                
             for event in events:
+                print(event.code)
                 if event.code == 'ABS_Y':
                     self.buttons["LeftJoystickY"] = self.clean_joy(event.state)
                 elif event.code == 'ABS_X':
@@ -154,5 +160,7 @@ if __name__ == '__main__':
     """ Used to test the inputs of the xbox controller."""
     joy = XboxController()
     while True:
-        print(joy.buttons) #Print the inputs.
+        b ={x:y for x,y in joy.buttons.items() if y!=0}
+        print(b) #Print the inputs.
         continue
+    

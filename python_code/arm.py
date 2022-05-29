@@ -1,34 +1,28 @@
-import sys
-import numpy as np
+import sys,argparse,numpy as np
 from arm_control.controller import Controller
 import argparse
+import platform
+
+__author__ = "Alberto Abarzua"
 
 DEFAULT_BAUDRATE = 115200
 
 
 if __name__ == "__main__":
 
-    """
-    Ways of running main.py
-
-    'python main.py <port> nosim' // Runs the controller without the simulation to a real arduino conected to a port.
-    'python main.py <port>'  // Runs the controller with the simulation to a real arduino conected to a port.
-    'python main.py'  // Runs the simulation without an arduino. (arduino dummy)
-
-    """
     parser = argparse.ArgumentParser(description='Parameters to run robot arm')
-    parser.add_argument("--no_simulation","-ns",dest = "no_simulation",action="store_true",help = "Used to run the program without the simulation.")
-    parser.add_argument("--mac_os","-m",dest = "mac_os",action="store_true",help = "Used to run the program on macOS")
+    parser.add_argument("--no_simulation","-n",dest = "no_simulation",action="store_false",help = "Used to run the program without the simulation.")
     parser.add_argument("--port","-p",type = str,dest = "port",help = "Selects the port to control arm if arduino is conected.")
     parser.add_argument("--baudrate","-b",type = int,dest = "baud_rate",default=DEFAULT_BAUDRATE,help = "Selects the port to control arm if arduino is conected.")
     
     args = parser.parse_args()
-
     port = args.port
     baudrate = args.baud_rate
-    no_sim = not args.no_simulation
-    mac_os = args.mac_os
-
+    no_sim = args.no_simulation
+    mac_os = True
+    #Platform check
+    if platform.system() == "Windows":
+        mac_os = False
     if(port == None):
         baudrate = None
 

@@ -1,6 +1,5 @@
 import math
 from signal import signal
-import stat
 import subprocess
 import os.path
 import sys
@@ -9,8 +8,10 @@ import socket
 import time
 import signal
 import sys
+import threading
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from arm_control.serial_monitor import SerialMonitor
 import arm_utils.commands as com
 import arm_control.robotarm as robotarm
@@ -21,7 +22,7 @@ from arm_utils.filemanager import CordAngleInstruction, FileManager, SleepInstru
 from arm_utils.status import *
 from arm_utils.bins import *
 from arm_utils.game_pad_controller import XboxController
-import threading
+
 __author__ = "Alberto Abarzua"
 
 
@@ -290,10 +291,11 @@ class Controller():
        
 
     def start(self,simulation,mac_os):
-        """Starts the threads to run the arm,
+        """Starts all the threads and functions to run the robot arm.
 
         Args:
-            simulation (bool): If true the arm simulation will be started on another thread.
+            simulation (bool): True if the controller should start with the unity simulation
+            mac_os (bool): true if the current platform is mac_os
         """
         self.gamepad = ArmGamePad(self)
 
