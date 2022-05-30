@@ -1,2 +1,2 @@
-unity/**  linguist-vendored
+unity/builds/**  linguist-vendored
 *.ipynb linguist-vendored
