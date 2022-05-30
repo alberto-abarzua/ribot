@@ -1,2 +1,2 @@
 unity/**  linguist-vendored
-python_code/logs/log_analysis.ipynb linguist-vendored
+*.ipynb linguist-vendored
