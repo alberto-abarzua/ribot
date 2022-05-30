@@ -1,7 +1,9 @@
-import sys,argparse,numpy as np
+import sys,argparse,numpy as np,warnings
 from arm_control.controller import Controller
 import argparse
 import platform
+
+warnings.simplefilter("error")
 
 __author__ = "Alberto Abarzua"
 

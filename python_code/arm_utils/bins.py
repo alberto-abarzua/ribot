@@ -72,10 +72,10 @@ def message2command(message,controller):
     if controller is None:
         return None
     op,code,args = message.op,message.code,message.args
-    if op is "m" and code is  1:
+    if op == "m" and code ==  1:
         angles = [commands.Angle(float(int(x)/controller.acc),"rad") for x in args]
         return commands.MoveCommand(controller,angles)
-    if op is "g" and code is 1:
+    if op == "g" and code == 1:
         return commands.GripperCommand(controller,int(args[0]))
     return None
 

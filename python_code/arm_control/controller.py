@@ -73,6 +73,9 @@ class Controller():
         self.proc_sim = None
 
 
+        self.path_unity_builds = "../unity/builds/"
+
+
     def create_log(self):
         self.enable_log = True
         try:
@@ -305,11 +308,12 @@ class Controller():
         self.sim_server = threading.Thread(target = self.unity_server,name= "Robot Arm Simulation",daemon=True) 
         self.sim_server.start()
         if simulation:
+            pre_path = self.path_unity_builds
             if (not mac_os):
-                self.proc_sim  = subprocess.Popen(os.path.abspath("../unity/windows_app/arm_sim.exe")) #Starts the simulation.
+                self.proc_sim  = subprocess.Popen(os.path.abspath(pre_path+"windows_app/arm_sim.exe")) #Starts the simulation.
             else:
-                path = os.path.abspath("../unity/mac_os_app.app")
-                path_m = os.path.abspath("../unity/mac_os_app.app/Contents/MacOS")
+                path = os.path.abspath(pre_path+"mac_os_app.app")
+                path_m = os.path.abspath(pre_path+"mac_os_app.app/Contents/MacOS")
                 subprocess.Popen(["chmod","-R","+x",path_m])
                 self.proc_sim = subprocess.Popen(["open",path]) #Starts the simulation.
         self.monitor.run()
