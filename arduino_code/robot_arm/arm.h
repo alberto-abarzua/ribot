@@ -12,7 +12,7 @@
 
 #define MICRO_STEPPING 8
 #define ACC 10000
-#define SPEED_CONSTANT 5.0// Speed base mutliplier for all joints.
+#define SPEED_CONSTANT 800// Speed base mutliplier for all joints.
 #define motorInterfaceType 1
 
 /**

@@ -56,17 +56,16 @@ const int gripper_pin = 12;
 const int offsets[] = {-3234*(MICRO_STEPPING/8),-1250*(MICRO_STEPPING/8),(-5186+8998)*(MICRO_STEPPING/8),-435*(MICRO_STEPPING/8),-566*(MICRO_STEPPING/8),-75*(MICRO_STEPPING/8)}; // Offsets of each joint in steps
 
 
-
 void setup() {
   Serial.begin(115200);
   arm = new Arm(6);
   //Joint:: Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
-  j1 = new Joint(9.3,false,1,(long)(-6468*(MICRO_STEPPING/16.0)),1,4.0);
-  j2 = new Joint(5.357,false,1,(long)(-2500*(MICRO_STEPPING/16.0)),2,5.0);
-  j3 = new Joint(4.5*5.0,true,1,(long)(10321*(MICRO_STEPPING/16.0)),1,5.0);
-  j4 = new Joint(1.0,true,-1,(long)(-670*(MICRO_STEPPING/16.0)),1,15.0);
-  j5 = new Joint(3.5,true,1,(long)(-1132*(MICRO_STEPPING/16.0)),1,5.0);
-  j6 = new Joint(1.0,true,-1,(long)(-1700*(MICRO_STEPPING/16.0)),1,15.0);
+  j1 = new Joint(9.3,false,1,(long)(-6468*(MICRO_STEPPING/16.0)),1,0.2);
+  j2 = new Joint(5.357,false,1,(long)(-2500*(MICRO_STEPPING/16.0)),2,0.2 );
+  j3 = new Joint(4.5*5.0,true,1,(long)(10321*(MICRO_STEPPING/16.0)),1,2.2);
+  j4 = new Joint(1.0,true,-1,(long)(-670*(MICRO_STEPPING/16.0)),1,4.5);
+  j5 = new Joint(3.5,true,1,(long)(-1132*(MICRO_STEPPING/16.0)),1,0.25);
+  j6 = new Joint(1.0,true,-1,(long)(-1700*(MICRO_STEPPING/16.0)),1,4.5);
   j1->create_motor(stepPin1,dirPin1);
   j2->create_motor(stepPin2,dirPin2);
   j2->create_motor(stepPin3,dirPin3);

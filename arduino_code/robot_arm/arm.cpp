@@ -101,7 +101,7 @@ void Joint::create_motor(int step_pin,int dir_pin){
  }
 
  void Joint::motor_setup(){
-     double m_speed = speed_multiplier*SPEED_CONSTANT*ratio*MICRO_STEPPING;
+     double m_speed = speed_multiplier*SPEED_CONSTANT*(MICRO_STEPPING/8);
      for (int i=0;i<jn_steppers;i++){
          motors[i]->invertDirPin(inverted);
          motors[i]->setCurrentPosition(0);
