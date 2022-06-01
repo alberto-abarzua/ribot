@@ -100,7 +100,6 @@ class XboxController(object):
                 print("No GamePad Connected!")
                 return
             for event in events:
-                print(event.code)
                 if event.code == 'ABS_Y':
                     self.buttons["LeftJoystickY"] = self.clean_joy(event.state)
                 elif event.code == 'ABS_X':

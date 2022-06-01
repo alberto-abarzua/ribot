@@ -76,7 +76,7 @@ void Joint::home(){
 
         if (times_activated>=tolerance){
             for (int i =0 ;i<jn_steppers;i++){
-                motors[i]->setCurrentPosition(offset*homing_dir*-1);
+                motors[i]->setCurrentPosition(offset*-1);
                 position=0;
                 angle=0;
                 motors[i]->moveTo(position);
@@ -210,6 +210,12 @@ void Arm::run(){
         motors[i]->run();
     }
 }
+
+void Arm::add_to_joint(int idx,long val){
+    joints[idx]->add_angle(val);
+    l_positions[idx] = (joints[idx]->position);
+}
+
 void Arm::add(long * args){
     for(int i =0;i<num_joins;i++){
         joints[i]->add_angle(args[i]);

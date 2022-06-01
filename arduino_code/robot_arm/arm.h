@@ -209,6 +209,13 @@ class Arm{
      */
     void Arm::show_gripper();
     
+    /**
+     * @brief Adds val to the current joint angles
+     * 
+     * @param idx index of the joint that will be modified.
+     * @param val new angle to add.
+     */
+    void Arm::add_to_joint(int idx,long val);
 };
 
 
