@@ -130,7 +130,7 @@ class FileManager:
     def __init__(self) -> None:
         """FileManager constructor
         """
-        self.path = "arm_control/data/"
+        self.path = os.path.abspath("arm_control/data/")
         self.files = os.listdir(self.path)
         self.cur_file = None
 
