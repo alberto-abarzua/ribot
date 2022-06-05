@@ -62,7 +62,6 @@ class ComsManager{
     bool NEW_DATA;
     byte * BUF;
     int max_val;
-    bool DEBUG;
     ArduinoQueue<Message*> * q_fresh; //Queue to store unused messages.
     ArduinoQueue<Message*> * q_run; // Queue to store messages that need to be executed.
     unsigned long avg_loop_time =0; //Rolling average.
@@ -114,12 +113,12 @@ class ComsManager{
    */
   void getMessage(byte * buf,Message *m);
 
-  /**
-     * @brief Determines if the ComsManager can receive new messages.
-     * 
-     * @return true if new messages can be received.
-     * @return false if no new messages can be received.
-     */
+    /**
+       * @brief Determines if the ComsManager can receive new messages.
+       * 
+       * @return true if new messages can be received.
+       * @return false if no new messages can be received.
+       */
     bool can_receive();
 
 
@@ -131,6 +130,24 @@ class ComsManager{
      * @param newData Used to indicate if there is new data incoming.
      */
     void my_read(byte * buf,int max_size,bool* newData);
+
+      /**
+     * @brief Prints a certain amount of bytes (as chars) from the buffer
+     * 
+     * @param buf byte array,
+     * @param num number of bytes to print.
+     */
+    void printBuf(byte * buf,int num);
+
+
+      /**
+     * @brief Converts the first 4 bytes in buf from offset into an arduino long.  
+     * 
+     * @param buf byte array 
+     * @param offset number from where to start reading
+     * @return long stored in the buf array starting from offset
+     */
+    long get_long(byte * buf,int offset);
   public:
   /**
    * @brief Initializes all the variables used during comunication.
@@ -189,29 +206,6 @@ class ComsManager{
      * @return Message* peeks the first message form the run queue (does not remove it) 
      */
     Message * peekRunQueue();
-
-
-  
-
-  /**
-   * @brief Converts the first 4 bytes in buf from offset into an arduino long.  
-   * 
-   * @param buf byte array 
-   * @param offset number from where to start reading
-   * @return long stored in the buf array starting from offset
-   */
-  long get_long(byte * buf,int offset);
-
-
-  /**
-   * @brief Prints a certain amount of bytes (as chars) from the buffer
-   * 
-   * @param buf byte array,
-   * @param num number of bytes to print.
-   */
-  void printBuf(byte * buf,int num);
-
-
   
 
   /**
