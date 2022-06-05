@@ -16,7 +16,7 @@
  */
 
 
-ComsManager::init_coms(){
+void ComsManager::init_coms(){
    BUF =(byte *) malloc(sizeof(byte)*READING_BUFFER_SIZE);
    q_fresh = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
    q_run = new  ArduinoQueue<Message*>(MESSAGE_BUFFER_SIZE);
@@ -58,11 +58,9 @@ void ComsManager::getMessage(Message *m){
       offset+=4;
    }
    m->rebuild(op,code,args,num_args);
-   return m;
 }
 
 void ComsManager::read(){
-  bool reading = true;
   int static idx = 0;
   byte read_byte;
   while(Serial.available()> 0){
@@ -107,7 +105,7 @@ Message * ComsManager::getCurrentMessage(){
 
 
 bool ComsManager::can_receive(){
-   int tolerance = 10;
+   uint32_t tolerance = 10;
    return (q_run->itemCount() <= MESSAGE_BUFFER_SIZE-tolerance);
 }
 
@@ -148,7 +146,7 @@ bool ComsManager::isEmptyRunQueue(){
 }
 
 bool ComsManager::almostEmpty(){
-   int tolerance = 5;
+   uint32_t tolerance = 5;
    return (q_run->itemCount() <=tolerance);
 }
 

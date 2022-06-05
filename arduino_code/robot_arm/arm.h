@@ -52,59 +52,59 @@ class Joint{
     long motor_speed;
     Stepper ** motors;
     double speed_multiplier =1.0;
-    Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers);
-    Joint::Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
+    Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers);
+    Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
     /**
      * @brief Creates a new accelstepper motor for the joint.
      * 
      * @param step_pin step pin of the new motor
      * @param dir_pin direction pin of the new motor
      */
-    void Joint::create_motor(int step_pin,int dir_pin);
+    void create_motor(int step_pin,int dir_pin);
     /**
      * @brief Creates a new sensor for the joint
      * 
      * @param pin 
      */
-    void Joint::create_sensor(int pin);
+    void create_sensor(int pin);
     /**
      * @brief Prints to serial a string representation of the joint
      * 
      */
-    void Joint::show();
+    void show();
     /**
      * @brief Runs the comands to setup the motors of the joint.
      * 
      */
-    void Joint::motor_setup();
+    void motor_setup();
     /**
      * @brief Adds an angle to the angle variable, and updates it's position in steps.
      * 
      * @param val 
      */
-    void Joint::add_angle(long val);
+    void add_angle(long val);
     /**
      * @brief Statrs the homing proces for the joint.
      * 
      */
-    void Joint::launch_home();
+    void launch_home();
     /**
      * @brief Runs the homing procedure of the joint.
      * 
      * @param m Multistepper used to run the other steppers.
      */
-    void Joint::home();
+    void home();
     /**
      * @brief Sets a new offset for the joint
      * 
      * @param new_offset new value for offset
      */
-    void Joint::set_offset(long new_offset);
+    void set_offset(long new_offset);
     /**
      * @brief prints the offset of the joint.
      * 
      */
-    void Joint::show_offset();
+    void show_offset();
 
 };
 
@@ -128,53 +128,53 @@ class Arm{
     int num_motors;
     Servo * gripper;
 
-    Arm::Arm(int n_joints);
+    Arm(int n_joints);
 
     /**
      * @brief Registers a joint to the arm
      * 
      * @param joint joint to be added
      */
-    void Arm::register_joint(Joint* joint);
+    void register_joint(Joint* joint);
     /**
      * @brief Gets the motors of each joint and stores them in the motors variable, it 
      * runs motor_setup for all the joints and creates register the motor to Multistepper steppers.
      * 
      */
-    void Arm::build_joints();
+    void build_joints();
 
     /**
      * @brief Prints to serial a string representation of the arm.
      * 
      */
-    void Arm::show();
+    void show();
     /**
      * @brief Creates a new servo registered to the arm. 
      * 
      * @param pin 
      */
-    void Arm::create_gripper(int pin);
+    void create_gripper(int pin);
     /**
      * @brief Makes the arm and it's motors move to the desired positions.
      * 
      */
-    void Arm::run();
+    void run();
     /**
      * @brief Adds angles to each joint of the arm. (runs add_angle() for each joint with its respective value in args.)
      * 
      * @param args array with angles for each joint.
      */
-    void Arm::add(long * args);
+    void add(long * args);
     /**
      * @brief Prints to serial the current angles and positions of each joint.
      * 
      */
-    void Arm::show_pos();
+    void show_pos();
     /**
      * @brief Homes all the joints of the arm.
      * 
      */
-    void Arm::home();
+    void home();
     /**
      * @brief Prints to serial the reading of each sensor of each joint of the arm.
      * 
@@ -184,30 +184,30 @@ class Arm{
      * @brief Sets the angle of the grippers servo.
      * 
      */
-    void Arm::set_gripper_angle(int val);
+    void set_gripper_angle(int val);
     /**
      * @brief Checks if the motors have a distance to go.
      * 
      * @return true if the motors are still runing (distance to go)
      * @return false if the motors have reached their desired positions.
      */
-    bool Arm::left_to_go();
+    bool left_to_go();
     /**
      * @brief Starts and runs the homing procedure for a certain joint (determined by their index.)
      * 
      * @param join_idx joint index of the joint that will be homed.
      */
-    void Arm::home_joint(int join_idx);
+    void home_joint(int join_idx);
     /**
      * @brief Shows the offsets of each joint of the arm (prints to serial.)
      * 
      */
-    void Arm::show_offsets();
+    void show_offsets();
     /**
      * @brief Prints to serial the current angle of the gripper.
      * 
      */
-    void Arm::show_gripper();
+    void show_gripper();
     
     /**
      * @brief Adds val to the current joint angles
@@ -215,7 +215,7 @@ class Arm{
      * @param idx index of the joint that will be modified.
      * @param val new angle to add.
      */
-    void Arm::add_to_joint(int idx,long val);
+    void add_to_joint(int idx,long val);
 };
 
 

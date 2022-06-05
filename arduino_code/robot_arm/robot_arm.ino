@@ -103,7 +103,6 @@ void loop(){
     Message * M = com.getCurrentMessage();
     char op = M->op;
     int code =  M->code;
-    int numArgs =  M->num_args;
     long * args =  M->args;
     switch (op){
 

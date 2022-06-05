@@ -37,7 +37,7 @@ class Stepper {
      * @brief Makes the stepper motor take a step.
      * 
      */
-    void Stepper::step();
+    void step();
     /**
      * @brief Sets the pins (step and dir) High or Low. The pins statuses are stored in mask
      * 
@@ -46,7 +46,7 @@ class Stepper {
      * 
      * @param mask mask containing the pin info.
      */
-    void Stepper::setOutputPins(uint8_t mask);
+    void setOutputPins(uint8_t mask);
     /**
      * @brief Computes the new speed that the motors should have,
      * 
@@ -56,96 +56,96 @@ class Stepper {
      *      
      * 
      */
-    void Stepper::computeSpeed();
+    void computeSpeed();
     /**
      * @brief If a step is due, the current positino is updated and a step is taken.
      * 
      * @return true if a step was taken
      * @return false if no steps where due/taken
      */
-    bool Stepper::takeSteps();
+    bool takeSteps();
     /**
      * @brief Sets the current speed of the motor
      * 
      * @param new_speed new speed to be set.
      */
-    void Stepper::setCurSpeed(float new_speed);
+    void setCurSpeed(float new_speed);
     /**
      * @brief Updates the directcion the stepers should spin
      * 
      */
-    void Stepper::updateDir();
+    void updateDir();
   public:
   /**
-   * @brief Construct a new Stepper:: Stepper object
+   * @brief Construct a new  Stepper object
    * 
    * @param step_pin Step pin connected to stepper driver
    * @param dir_pin Dir pin connected to stepper driver
    */
-    Stepper::Stepper(int step_pin,int dir_pin);
+    Stepper(int step_pin,int dir_pin);
     /**
      * @brief Inverts the direction of the stepper motor. (Inverts dirpin outpus)
      * 
      * @param inverted true if the direction should be inverted.
      */
-    void Stepper::invertDirPin(bool inverted);
+    void invertDirPin(bool inverted);
     /**
      * @brief Sets the param set_speed to speed,
      * 
      * @param speed new value for set_speed
      */
-    void Stepper::setSpeed(float speed);
+    void setSpeed(float speed);
     /**
      * @brief Calls takeStep and computeSpeed to make the stepper run. Should be called as aften as possible
      * 
      * @return true 
      * @return false 
      */
-    bool Stepper::run();
+    bool run();
     /**
      * @brief Gets the difference between the current position and the target position.
      * 
      * @return long distance the stepper has to travel until reaching desired pos.
      */
-    long Stepper::distanceToGo();
+    long distanceToGo();
     /**
      * @brief Updates the desired_pos of the stepper, and calls computeSpeed()
      * 
      * @param new_target 
      */
-    void Stepper::moveTo(long new_target);
+    void moveTo(long new_target);
     /**
      * @brief Sets the current position and desired position.
      * 
      * @param new_pos New vale for current and desired positions.
      */
-    void Stepper::setCurrentPosition(long new_pos);
+    void setCurrentPosition(long new_pos);
     /**
      * @brief Gets the current position of the motor
      * 
      * @return long current position of the motor
      */
-    long Stepper::getCurrentPosition();
+    long getCurrentPosition();
     /**
      * @brief Gets the current speed of the motor, this is 0 or set_speed.
      * 
      * @return long current position of the motor.
      */
-    long Stepper::getCurSpeed();
+    long getCurSpeed();
 
     /**
      * @brief Gets the set_speed of this stepper
      * 
      * @return long set_speed parameter
      */
-    long Stepper::getSetSpeed();
+    long getSetSpeed();
 
     /**
      * @brief Gets the target position of the motor. (desired_pos)
      * 
      * @return long returns desired_pos
      */
-    long Stepper::getTarget();
+    long getTarget();
 
 
 
