@@ -137,7 +137,8 @@ class FileManager:
         self.files = os.listdir(self.path)
         self.cur_file = None
 
-    def from_curve_to_instruct(self, curve, sleep_idxs=[]):
+    @staticmethod
+    def from_curve_to_instruct(curve, sleep_idxs=[]):
         """Creates a list of instructions from a curve of cords and angles
 
         Args:

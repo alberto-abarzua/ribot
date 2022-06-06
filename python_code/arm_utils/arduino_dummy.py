@@ -22,7 +22,7 @@ class DummyArduino():
         self.log = None
         self.wait = False
         p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.path = Path(os.path.join(p,"tests","test_data"))
+        self.path = Path(os.path.join(p, "tests", "test_data"))
 
     def set_log_file(self, filename):
         """Sets the name for the arduinoDummy log's file name (all the lines received)
@@ -58,7 +58,7 @@ class DummyArduino():
         message = bins.decode_message(message)
         message = str(message)
         self.received_lines.append(message)
-        if (self.log != None):
+        if self.log is not None:
             self.log.write(message + "\n")
         if (len(self.received_lines) > 100):
             self.received_lines.clear()
