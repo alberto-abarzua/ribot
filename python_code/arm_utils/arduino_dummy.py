@@ -1,6 +1,9 @@
-
+import imp
 import time
+import os
+from pathlib import Path
 from arm_utils import bins
+
 __author__ = "Alberto Abarzua"
 
 
@@ -19,6 +22,8 @@ class DummyArduino():
         self.output = "1"
         self.log = None
         self.wait = False
+        p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.path = Path(os.path.join(p,"tests","test_data"))
 
     def set_log_file(self, filename):
         """Sets the name for the arduinoDummy log's file name (all the lines received)
@@ -26,8 +31,7 @@ class DummyArduino():
         Args:
             filename (str): file where to store all lines received
         """
-        path = "tests/test_data/"
-        self.log = open(path + filename, "w")
+        self.log = open(self.path.joinpath(filename), "w")
 
     def readline(self):
         """Reads a line from arduino
@@ -36,13 +40,14 @@ class DummyArduino():
             byte: enconded string.
         """
         return (str(self.output) + "\n").encode()
-    def read(self,nbytes):
+
+    def read(self, nbytes):
         """Reads nbytes from the serial buffer
 
         Args:
             nbytes (int): number of bytes
         """
-        return self.output[:min(nbytes,len(self.output))].encode()
+        return self.output[:min(nbytes, len(self.output))].encode()
 
     def write(self, message):
         """Simulates the writing from serial to an arduino.
@@ -50,16 +55,16 @@ class DummyArduino():
         Args:
             message (bytes): Encoded str that the arduino will receive.
         """
-        
+
         message = bins.decode_message(message)
         message = str(message)
         self.received_lines.append(message)
-        if(self.log != None):
-            self.log.write(message+"\n")
+        if (self.log != None):
+            self.log.write(message + "\n")
         if (len(self.received_lines) > 100):
             self.received_lines.clear()
             self.max_values.clear()
-        if(self.wait):
+        if (self.wait):
             time.sleep(5e-6)
 
     def max_value_from_command(self, command):

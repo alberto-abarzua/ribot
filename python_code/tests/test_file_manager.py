@@ -1,17 +1,16 @@
-import sys
 import os.path
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import arm_utils.filemanager as filem
-import arm_utils.commands as com
 import unittest
 import arm_control.controller as ctrl
-import arm_utils.armTransforms as util
 from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
-from arm_utils.armTransforms import gen_curve_points,generate_curve_ptp
-import arm_control.robotarm as robotarm
+from arm_utils.armTransforms import generate_curve_ptp
 import numpy as np
-
+from pathlib import Path
 __author__ = "Alberto Abarzua"
 
 
@@ -28,12 +27,12 @@ class file_manager_test(unittest.TestCase):
         """
         L1 = [angle.rad for angle in L1]
         L2 = [angle.rad for angle in L2]
-        return np.allclose(L1, L2, atol=1/1000)
+        return np.allclose(L1, L2, atol=1 / 1000)
 
     def test_instructions(self):
         p1 = Config([300, 0, 300], [Angle(0, "rad"), Angle(0, "rad"), Angle(0, "rad")])
         p2 = Config([320, 0, 320], [Angle(0, "rad"), Angle(90, "deg"), Angle(0, "rad")])
-        
+
         p1_instruction = filem.CordAngleInstruction(p1)
         p2_instruction = filem.CordAngleInstruction(p2)
 
@@ -46,28 +45,27 @@ class file_manager_test(unittest.TestCase):
         self.assertTrue(self.angleAllClose(p2.euler_angles, p2_fromstring.as_config().euler_angles))
 
         sleep_instruct = filem.SleepInstruction(0.5)
-        self.assertEqual(sleep_instruct.line ,"s 0.500\n")
+        self.assertEqual(sleep_instruct.line, "s 0.500\n")
         sleep_from_string = filem.SleepInstruction("s 0.500\n")
-        self.assertEqual(sleep_from_string.value,0.5)
+        self.assertEqual(sleep_from_string.value, 0.5)
 
     def test_run(self):
-        
         self.controller.monitor.arduino.set_log_file("test1_arduino.txt")
         p1 = Config([359, 0, 345], [Angle(0, "deg"),
-              Angle(0, "deg"), Angle(0, "deg")])
+                                    Angle(0, "deg"), Angle(0, "deg")])
         p2 = Config([357, -2.67, 300.49], [Angle(0, "deg"), Angle(-20.73, "deg"), Angle(-39.58, "deg")])
         curve = generate_curve_ptp(p1=p1, p2=p2, n=100)
 
         f = filem.FileManager()
         instructions = f.from_curve_to_instruct(curve)
         f.write_file(instructions, "test1.txt")
-
-        self.controller.run_file("arm_control/data/test1.txt")
-        while(self.controller.step()):
+        run_f= Path(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"arm_control","data","test1.txt"))
+        self.controller.run_file(run_f)
+        while (self.controller.step()):
             continue
         self.controller.monitor.arduino.log.close()
-        f1 = open("tests/test_data/expected_test1_arduino.txt", "r")
-        f2 = open("tests/test_data/test1_arduino.txt", "r")
+        f1 = open(self.path.joinpath("expected_test1_arduino.txt"), "r")
+        f2 = open(self.path.joinpath("test1_arduino.txt"), "r")
         self.assertEqual(f1.readlines(), f2.readlines())
         f1.close()
         f2.close()
@@ -82,12 +80,15 @@ class file_manager_test(unittest.TestCase):
         self.controller.robot.a4x = 126.2
         self.controller.robot.a5x = 64.1
         self.controller.robot.a6x = 169
+        self.controller.acc = 10000
+        # physical constraints
+        p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.path = Path(os.path.join(p,"tests","test_data"))
+        self.controller.robot.j1_range = lambda x: x > -np.pi / 2 and x < np.pi / 2
+        self.controller.robot.j2_range = lambda x: x > -1.39626 and x < 1.57
+        self.controller.robot.j3_range = lambda x: x > -np.pi / 2 and x < np.pi / 2
+        self.controller.robot.j5_range = lambda x: x > -np.pi / 2 and x < np.pi / 2
 
-        #physical constraints
-        
-        self.controller.robot.j1_range = lambda x: x>-np.pi/2 and x<np.pi/2
-        self.controller.robot.j2_range = lambda x: x>-1.39626 and x<1.57
-        self.controller.robot.j3_range = lambda x: x>-np.pi/2 and x<np.pi/2
-        self.controller.robot.j5_range = lambda x: x>-np.pi/2 and x<np.pi/2
+
 if __name__ == '__main__':
     unittest.main()

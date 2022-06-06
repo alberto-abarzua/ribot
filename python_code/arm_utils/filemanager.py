@@ -1,12 +1,13 @@
 import os
 import os.path
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-from arm_utils.armTransforms import Angle
 from arm_utils.armTransforms import Config
 from arm_utils.commands import *
+from pathlib import Path
+
 __author__ = "Alberto Abarzua"
 
 
@@ -60,6 +61,7 @@ class ToolAngleInstruction(Instruction):
         """
         return "t {}\n".format(int(self.value))
 
+
 class SleepInstruction(Instruction):
     def __init__(self, value) -> None:
         """Creates a new sleep instruction,
@@ -70,9 +72,11 @@ class SleepInstruction(Instruction):
         super().__init__(value)
         if (type(value) is str):
             self.value = float(value[2:].strip())
+
     @property
     def line(self):
         return "s {:.3f}\n".format(self.value)
+
 
 class CordAngleInstruction(Instruction):
     """Used to store in a file a position and angles for the tcp
@@ -101,7 +105,7 @@ class CordAngleInstruction(Instruction):
             l = [float(x) for x in self.value[2:].split(" ")]
             cords = l[:3]
             angles = [Angle(x, "rad") for x in l[3:]]
-            return Config(cords,angles,None)
+            return Config(cords, angles)
 
         return self.value
 
@@ -115,12 +119,10 @@ class CordAngleInstruction(Instruction):
         """
         if (type(self.value) is str):
             return self.value + "\n"
-        cords, angles = self.value.cords,self.value.euler_angles
+        cords, angles = self.value.cords, self.value.euler_angles
         result = [str(round(x, ndigits=5)) for x in cords] + \
-            [str(round(x.rad, ndigits=8)) for x in angles]
+                 [str(round(x.rad, ndigits=8)) for x in angles]
         return "c " + " ".join(result) + "\n"
-
-
 
 
 class FileManager:
@@ -130,25 +132,30 @@ class FileManager:
     def __init__(self) -> None:
         """FileManager constructor
         """
-        self.path = os.path.abspath("arm_control/data/")
+        p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.path = Path(os.path.join(p,"arm_control","data"))
         self.files = os.listdir(self.path)
         self.cur_file = None
 
-    def from_curve_to_instruct(self, curve,sleep_idxs =[]):
-        """Receives an array of positions and returns a list of instructions.
+    def from_curve_to_instruct(self, curve, sleep_idxs=[]):
+        """Creates a list of instructions from a curve of cords and angles
 
         Args:
-            curve (np.array): array with positions
+            curve (np.array): array with sequence of cords and euler anglels
+            sleep_idxs (list[int], optional): list of indexes where the arm should sleep (wait for a certain amount of time.). Defaults to [].
+
+        Returns:
+            list[Instruction]: list of instructions obtained from curve.
         """
 
         result = []
-        for i,elem in enumerate(curve):
+        for i, elem in enumerate(curve):
             if i in sleep_idxs:
                 result.append(SleepInstruction(1.0))
             cord = elem[:3]
             angle = [Angle(x, "rad") for x in elem[3:-1]]
             tool = elem[6]
-            result.append(CordAngleInstruction(Config(cord,angle,tool)))
+            result.append(CordAngleInstruction(Config(cord, angle, tool)))
             result.append(ToolAngleInstruction(tool))
         return result
 
@@ -173,9 +180,10 @@ class FileManager:
             instruct_sequence (list[Insctruction]): list of instructions
             filename (str): name of the file where it will write the instructions
         """
-        with open(self.path+filename, "w") as file:
+        with open(self.path.joinpath(filename), "w") as file:
             for elem in instruct_sequence:
                 file.write(elem.line)
+
     def interrupt_file(self):
         """Closes the current file.
         """
@@ -184,7 +192,7 @@ class FileManager:
             self.cur_file = None
         except:
             print("File was already closed.")
-            
+
     def run_file(self, file_name):
         """Selects a file to read instructions from, sets self.cur_file. Every instruction is run by the method step()
 
@@ -195,7 +203,7 @@ class FileManager:
             self.cur_file = open(file_name, "r")
         except Exception as e:
             print("Error opening file: " + str(e))
-    
+
     def step(self):
         """Makes the robot arm take a current step (read a new line from self.cur_file and run it.)
 
@@ -211,11 +219,10 @@ class FileManager:
             return False
 
         if (cur_line[0] == "c"):
-            return  CordAngleInstruction(cur_line)
+            return CordAngleInstruction(cur_line)
 
-        if(cur_line[0] == "t"):
-           return ToolAngleInstruction(cur_line)
-        
-        if(cur_line[0] == "s"):
+        if (cur_line[0] == "t"):
+            return ToolAngleInstruction(cur_line)
+
+        if (cur_line[0] == "s"):
             return SleepInstruction(cur_line)
-            

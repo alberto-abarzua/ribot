@@ -1,14 +1,13 @@
-
-from . import bins
+import os.path
+import sys
 import time
+
 import numpy as np
 
-
-import sys
-import os.path
+from . import bins
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from arm_utils.armTransforms import Angle, OutOfBoundsError
+from arm_utils.armTransforms import Angle
 
 __author__ = "Alberto Abarzua"
 
@@ -34,6 +33,7 @@ class Command:
             Message: message to the arduino to do this command
         """
         raise NotImplementedError("This method is not implemented")
+
     def update(self):
         """Used to update the status of the controller.
         """
@@ -46,6 +46,7 @@ class Command:
             bool: true if the command is correct, false otherwise.
         """
         return True
+
     def send(self):
         """Sends the message from this command to the arduino conected to controller.
         """
@@ -54,6 +55,7 @@ class Command:
 
     def __str__(self):
         return str(self.message)
+
 
 class MoveCommand(Command):
     """MoveCommand class, used to create a command from a list of angles. Subclass of Command.
@@ -70,7 +72,7 @@ class MoveCommand(Command):
         self.angles = angles
         self.angles_rad = [x.rad for x in self.angles]
         self.rad_times_acc_angles = [
-            str(round(angle.rad*self.controller.acc)) for angle in self.angles]
+            str(round(angle.rad * self.controller.acc)) for angle in self.angles]
         self.angles_for_arduino = self.rad_times_acc_angles[:]
 
     @property
@@ -80,16 +82,14 @@ class MoveCommand(Command):
         Returns:
             Message: message to the arduino to do this command
         """
-        
-        command = bins.Message("m",1,self.angles_for_arduino)
-        return command
 
+        command = bins.Message("m", 1, self.angles_for_arduino)
+        return command
 
     def send(self):
         """Sends the command to the controllers arduino.
         """
         super().send()
-
 
     def update(self):
         """Used to update the status of the controller.
@@ -103,10 +103,9 @@ class MoveCommand(Command):
             micro_stepping = self.controller.micro_stepping
             acc = self.controller.acc
             values = []
-            for ratio,angle in zip(ratios,angles):
-                values +=[int((ratio*angle*100*micro_stepping)/(np.pi*acc))]
-            self.controller.log(time.perf_counter(),values,self.angles_rad)
-    
+            for ratio, angle in zip(ratios, angles):
+                values += [int((ratio * angle * 100 * micro_stepping) / (np.pi * acc))]
+            self.controller.log(time.perf_counter(), values, self.angles_rad)
 
     def __str__(self):
         ratios = self.controller.robot.joint_ratios
@@ -114,17 +113,17 @@ class MoveCommand(Command):
         micro_stepping = self.controller.micro_stepping
         acc = self.controller.acc
         values = []
-        for ratio,angle in zip(ratios,angles):
-            values +=[(ratio*angle*100*micro_stepping)/(np.pi*acc)]
+        for ratio, angle in zip(ratios, angles):
+            values += [(ratio * angle * 100 * micro_stepping) / (np.pi * acc)]
         return "m1_positions {:2f} {:2f} {:2f} {:2f} {:2f} {:2f}".format(*values)
 
-        
-   
+
 class GripperCommand(Command):
     """Class used to send a command to the robot's tool (gripper), not yet implemented.
 
     """
-    def __init__(self, controller,angle) -> None:
+
+    def __init__(self, controller, angle) -> None:
         """GripperCommand used to move the robot't tool
 
         Args:
@@ -134,7 +133,6 @@ class GripperCommand(Command):
         super().__init__(controller)
         self.angle = angle
 
-
     @property
     def message(self):
         """Generates the message that will be sent to the arduino
@@ -142,22 +140,25 @@ class GripperCommand(Command):
         Returns:
             Message: message to the arduino to do this command
         """
-        return bins.Message("g",1,[self.angle])
+        return bins.Message("g", 1, [self.angle])
 
     def send(self):
         """Sends the command to the controllers arduino.
         """
         super().send()
+
     def update(self):
         """Used to update the status of the controller.
         """
         self.controller.tool = self.angle
 
     def is_correct(self):
-        return self.angle in range(60,150)
+        return self.angle in range(60, 150)
+
 
 class HomeComand(Command):
     """Command used to home the joints of the robot arm, gets the arm to it's home position"""
+
     def __init__(self, controller) -> None:
         super().__init__(controller)
 
@@ -168,14 +169,14 @@ class HomeComand(Command):
         Returns:
             Message: message to the arduino to do this command
         """
-        return  bins.Message('h',0)
+        return bins.Message('h', 0)
 
     def send(self):
         """Sends the command to the controllers arduino.
         """
         super().send()
+
     def update(self):
         """Used to update the status of the controller.
         """
         self.controller.is_homed = True
-        

@@ -1,7 +1,9 @@
 import struct
+
 from . import commands
 
 __author__ = "Alberto Abarzua"
+
 
 class Message():
     """This class is used to encode the messages to the arduino as a series of bytes.
@@ -20,26 +22,31 @@ class Message():
         <end> ::= <char> //This is going to be ;
     
     """
-    def __init__(self,op,code,args = []) -> None:
+
+    def __init__(self, op, code, args=[]) -> None:
         self.op = op
         self.code = int(code)
-        self.args= [int(arg) for arg in args]
+        self.args = [int(arg) for arg in args]
         self.end = ";".encode()
         self.num_args = len(args)
+
     def encode(self):
         """Returns the message in bytes.
         """
         res = b""
-        res+=self.op.encode()
-        res+=struct.pack("i",self.code)
-        res +=struct.pack("i",self.num_args)
+        res += self.op.encode()
+        res += struct.pack("i", self.code)
+        res += struct.pack("i", self.num_args)
         for arg in self.args:
-            res+= struct.pack("i",arg)
-        res+= self.end
+            res += struct.pack("i", arg)
+        res += self.end
         return res
+
     def __str__(self):
-        return "{}{} ".format(self.op,self.code) + " ".join([str(x) for x in self.args])
-        #return "OP: {}{} Aguments: {}".format(self.op,self.code,self.args)
+        return "{}{} ".format(self.op, self.code) + " ".join([str(x) for x in self.args])
+        # return "OP: {}{} Aguments: {}".format(self.op,self.code,self.args)
+
+
 def decode_message(bytes):
     """
 
@@ -49,17 +56,17 @@ def decode_message(bytes):
     Returns:
         Message: message that was stored in bytes.
     """
-    op = str(struct.unpack_from("c",bytes,offset=0)[0].decode())
-    code =int(struct.unpack_from("i",bytes,offset=1)[0])
-    num_args = struct.unpack_from("i",bytes,offset=5)[0]
-    args =[]
+    op = str(struct.unpack_from("c", bytes, offset=0)[0].decode())
+    code = int(struct.unpack_from("i", bytes, offset=1)[0])
+    num_args = struct.unpack_from("i", bytes, offset=5)[0]
+    args = []
     for i in range(num_args):
-        args.append(int(struct.unpack_from("i",bytes,i*4+9)[0]))
+        args.append(int(struct.unpack_from("i", bytes, i * 4 + 9)[0]))
 
-    return Message(op,code,args)
+    return Message(op, code, args)
 
 
-def message2command(message,controller):
+def message2command(message, controller):
     """Converts a message into it's corresponding command, if there isn't a command it returns None.
 
     Args:
@@ -71,12 +78,10 @@ def message2command(message,controller):
     """
     if controller is None:
         return None
-    op,code,args = message.op,message.code,message.args
-    if op == "m" and code ==  1:
-        angles = [commands.Angle(float(int(x)/controller.acc),"rad") for x in args]
-        return commands.MoveCommand(controller,angles)
+    op, code, args = message.op, message.code, message.args
+    if op == "m" and code == 1:
+        angles = [commands.Angle(float(int(x) / controller.acc), "rad") for x in args]
+        return commands.MoveCommand(controller, angles)
     if op == "g" and code == 1:
-        return commands.GripperCommand(controller,int(args[0]))
+        return commands.GripperCommand(controller, int(args[0]))
     return None
-
-

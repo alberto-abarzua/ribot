@@ -105,7 +105,7 @@ void setup() {
 
 //Main loop
 void loop(){
-  if(com.run_coms()){
+  if(com.run_coms()){ // This is true if a new message is complete and ready to be read.
     loop_message_handler(com.getCurrentMessage());
   }
 

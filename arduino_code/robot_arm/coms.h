@@ -149,18 +149,18 @@ class ComsManager{
      */
     long get_long(byte * buf,int offset);
   public:
-  /**
-   * @brief Initializes all the variables used during comunication.
-   * 
-   */
+    /**
+     * @brief Initializes all the variables used during comunication.
+     * 
+     */
     void init_coms();
 
-    
+  
     /**
      * @brief Runs the ComsManager. Reads from serial and interprets new messages. Must be called as often as possible (every loop)
      * 
-     * @return true If there is a new message ready to be read.
-     * @return false If there is no new message.
+     * @return true If there is a new message ready to be read. 
+     * @return false If there is no new message. 
      */
     bool run_coms();
     
