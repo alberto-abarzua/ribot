@@ -7,8 +7,7 @@ import subprocess
 import sys
 import threading
 import time
-from signal import signal
-
+from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from arm_control.serial_monitor import SerialMonitor
@@ -69,7 +68,8 @@ class Controller():
         self.proc_sim = None
         self.writer_commands = None
         self.writer_angles = None
-        self.path_unity_builds = "../unity/builds/"
+        p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.path_unity_builds = Path(os.path.join(p,"unity","builds"))
 
     def create_log(self):
         self.enable_log = True
@@ -290,7 +290,7 @@ class Controller():
         """
         gamepad = ArmGamePad(self)
 
-        game_pad_thread = threading.Thread(target=self.gamepad.run, name="Gamepad", daemon=True)
+        game_pad_thread = threading.Thread(target=gamepad.run, name="Gamepad", daemon=True)
         game_pad_thread.start()
         signal.signal(signal.SIGINT, self.signal_handler)
         sim_server = threading.Thread(target=self.unity_server, name="Robot Arm Simulation", daemon=True)
@@ -298,13 +298,11 @@ class Controller():
         if simulation:
             pre_path = self.path_unity_builds
             if (not mac_os):
-                self.proc_sim = subprocess.Popen(
-                    os.path.abspath(pre_path + "windows_app/arm_sim.exe"))  # Starts the simulation.
+                self.proc_sim = subprocess.Popen(pre_path.joinpath("windows_app","arm_sim.exe"))
             else:
-                path = os.path.abspath(pre_path + "mac_os_app.app")
-                path_m = os.path.abspath(pre_path + "mac_os_app.app/Contents/MacOS")
+                path_m = pre_path.joinpath("mac_os_app.app","Contents","MacOS")
                 subprocess.Popen(["chmod", "-R", "+x", path_m])
-                self.proc_sim = subprocess.Popen(["open", path])  # Starts the simulation.
+                self.proc_sim = subprocess.Popen(["open", pre_path.joinpath("mac_os_app.app")])  # Starts the simulation.
         self.monitor.run()
 
     def end(self):
