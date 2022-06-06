@@ -53,19 +53,20 @@ const int hall_6 = 2;
 
 const int gripper_pin = 12;
 
-const int offsets[] = {-3234*(MICRO_STEPPING/8),-1250*(MICRO_STEPPING/8),(-5186+8998)*(MICRO_STEPPING/8),-435*(MICRO_STEPPING/8),-566*(MICRO_STEPPING/8),-75*(MICRO_STEPPING/8)}; // Offsets of each joint in steps
 
 
 void setup() {
-  Serial.begin(115200);
+  //Creation of arm and joints
   arm = new Arm(6);
-  //Joint:: Joint(double a_ratio,bool a_inverted,int a_homing_dir,int a_offset,int joint_num_steppers,double a_speed_multiplier);
+  //Joint:: Joint(reduction ratio, inverted, homing_dir, offset,num_steppers, speed_multiplier);
   j1 = new Joint(11,false,1,(long)(-3501*(MICRO_STEPPING/8.0)),1,1.0);
   j2 = new Joint(5.357,false,-1,(long)(1400*(MICRO_STEPPING/8.0)),2,0.4);
   j3 = new Joint(4.5*5.0,true,-1,(long)(15183*(MICRO_STEPPING/8.0)),1,3.0);
   j4 = new Joint(1.0,true,-1,(long)(384*(MICRO_STEPPING/8.0)),1,1.0);
   j5 = new Joint(4.3,true,-1,(long)(1226*(MICRO_STEPPING/8.0)),1,0.6);
   j6 = new Joint(1.0,true,-1,(long)(763*(MICRO_STEPPING/8.0)),1,1.0);
+
+  //Creation of motors.
   j1->create_motor(stepPin1,dirPin1);
   j2->create_motor(stepPin2,dirPin2);
   j2->create_motor(stepPin3,dirPin3);
@@ -73,12 +74,14 @@ void setup() {
   j4->create_motor(stepPin5,dirPin5);
   j5->create_motor(stepPin6,dirPin6);
   j6->create_motor(stepPin7,dirPin7);
+  //Creation of sensors
   j1->create_sensor(hall_1);
   j2->create_sensor(hall_2);
   j3->create_sensor(hall_3);
   j4->create_sensor(hall_4);
   j5->create_sensor(hall_5);
   j6->create_sensor(hall_6);
+  //Register joints to the arm.
   arm->register_joint(j1);
   arm->register_joint(j2);
   arm->register_joint(j3);
@@ -86,21 +89,36 @@ void setup() {
   arm->register_joint(j5);
   arm->register_joint(j6);
   arm->create_gripper(gripper_pin);
+  //Initialize arm,serial and ComsManager.
+  Serial.begin(115200);
   arm->build_joints();
   com.init_coms(); // Initialize the variable for comManager.
+
+
+  //Let the computer know we are ready.
   com.set_status(INITIALIZED);
-  
 
 }
 
-void arm_check();
 
 
 
+//Main loop
 void loop(){
   if(com.run_coms()){
-    //Get the info from the message:
-    Message * M = com.getCurrentMessage();
+    loop_message_handler(com.getCurrentMessage());
+  }
+
+  arm_check(); //Check pendind messages on run Queue.
+
+}
+
+/**
+ * @brief Used to execute the messages received during operation. 
+ * 
+ * @param M New message to be executed.
+ */
+void loop_message_handler(Message * M){
     char op = M->op;
     int code =  M->code;
     long * args =  M->args;
@@ -108,13 +126,11 @@ void loop(){
 
       case 'm': 
         switch (code){
-          case 1:
+          case 1: // Moves adding to the run queue
             com.addRunQueue(M);
             com.set_status(READY_STATUS);
 
             break;
-     
-
           default:
             if(code>=10 && code <=15){
               arm->add_to_joint(code-10,M->args[0]);
@@ -202,15 +218,64 @@ void loop(){
             break;
         }
         break;
-        
-
       default:
         break;
     }
-  }
+}
 
-  arm_check(); // Runs the checks to run pending messages.
 
+
+
+/**
+ * @brief Handles the first message M in the run queue. 
+ * 
+ * @param M Message to be executed or waited on.
+ */
+void run_queue_handler(Message *M){
+    char op = M->op;
+    int code = M->code;
+    long * args = M->args;
+    switch (op){
+      case 'm': 
+        switch (code){
+          case 1: // Moves adding to the run queue
+            if(arm->left_to_go()){ // Motors are still moving.
+
+              bool same_dir = true;
+              for (int i =0;i<arm->num_joins;i++){ // We check if the target direction is the same as the new message's direction.
+                if (eq_sign(args[i],arm->l_positions[i])){
+                  same_dir = false;
+                }
+              }   
+              if(same_dir){ // If the direction is the same for all joints. We consume the message.
+                com.popRunQueue();
+                arm->add(args);
+              }
+            }else{ // Motors are at their target pos
+              arm->add(args);
+              com.popRunQueue();
+            }
+
+            break;
+          default:
+            break;
+        }
+        break;
+
+      case 'g': 
+        switch (code){
+          case 1: // Moves adding to the run queue
+            arm->set_gripper_angle(args[0]);
+            com.popRunQueue();
+            break;
+          default:
+            break;
+        }
+        break;
+      default:
+        com.popRunQueue();
+        break;
+    }
 }
 
 
@@ -232,31 +297,7 @@ bool eq_sign(long num1,long num2){
  */
 void arm_check(){
   if (!com.isEmptyRunQueue()){ //There are moves in the move queue
-    if(arm->left_to_go()){//Motors are still moving
-      Message * new_M = com.peekRunQueue();
-      if (new_M->op == 'm' && new_M->code == 1){
-        bool same_dir = true;
-        for (int i =0;i<arm->num_joins;i++){
-          if (eq_sign(new_M->args[i],arm->l_positions[i])){
-            same_dir = false;
-          }
-        }
-        if(same_dir){
-          com.popRunQueue();
-          arm->add(new_M->args);
-        }
-      }
-      
-    }else{//Motors have reached their positions.
-      Message * new_M = com.popRunQueue();
-      if(new_M->op == 'g' && new_M->code == 1){
-          arm->set_gripper_angle(new_M->args[0]);
-     }
-      else if(new_M->op == 'm' && new_M->code == 1){
-        arm->add(new_M->args);
-      }
-    }
-    
+    run_queue_handler(com.peekRunQueue());
   }
   arm->run();
 }
