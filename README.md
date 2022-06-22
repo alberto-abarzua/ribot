@@ -12,17 +12,9 @@ roll, pitch and yaw also known as euler angles.
 - A certain TCP state can be achieved with multiple angle configurations of each joint. (Inverse Kinematics can have multiple solutions)
 - A certain angle configurations of the joints can only achieve one TCP state.
 
-## Photos and videos of the arm and it's evolution.
+## The Robot Arm 
 
-### First robot arm (4DOF) using servo motors and Arduino Uno
-![First robot arm (4DOF) using servo motors and Arduino Uno](https://i.ibb.co/C0yTw15/servo-arm-1.jpg)
-
-
-
-### Current version of the arm using stepper motors and Arduino Mega.
-![Whole view](https://i.ibb.co/3yFSxkv/16750-C46-705-C-4-CE6-94-A2-35-F1-C98-ADB11.jpg)
-Video of the current version of the arm working:
-<https://youtu.be/Nz6M56jV3Vw>
+<img src="src/overview.jpeg" style = "width: 50rem;" alt="">
 
 ### About arduino (C\C++) and design:
 <p> The arduino code receives commands through serial comunication to control the steppers for each joint and the servo motor
