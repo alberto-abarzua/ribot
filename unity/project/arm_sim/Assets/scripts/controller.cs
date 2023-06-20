@@ -2,138 +2,158 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
-using System.Text;  
+using System.Text;
 using System;
 using UnityEngine.UI;
 using TMPro;
+using NativeWebSocket;
 
-public class controller : MonoBehaviour{
+public class controller: MonoBehaviour {
 
+    // Socket variables
+    private WebSocket websocket = null;
+    private int web_socket_port = 65433;
+    private string web_socket_ip = "localhost";
 
-    private Socket s = null;
-    private string ip;
-    private int port;
-    private int[] args;
-    private char op;
-    private int code;
-    private int num_args;
-    private float[] angles;
-    private int acc =10000;
-
-    private GameObject[] joints; //Joints
+    // Angles management
     private int[] inverted;
-    // Start is called before the first frame update
-    private GameObject tip;
-    public TMP_Text  tip_location;
-    public Text text_angles;
-    
-    /// <summary>
-    /// Sets the localEulerAngles for each GameObject joint.
-    /// </summary>
-    public void set_angles(){
-        for(int i=0;i<6;i++){
+    private float[] current_angles;
+
+    // Object variables
+    private GameObject[] joints;
+    private GameObject TCP;
+    private TMP_Text TCP_location;
+    private Text text_angles;
+
+    public void Start() {
+
+        this.joints = new GameObject[6];
+
+        for (int i = 0; i < 6; i++) {
+            this.joints[i] = GameObject.Find("J" + (i + 1));
+        }
+
+        this.TCP = GameObject.Find("TCP");
+        this.text_angles = GameObject.Find("cur_angles").GetComponent < Text > ();
+        this.TCP_location = GameObject.Find("TCP_location").GetComponent < TMP_Text > ();
+
+        this.current_angles = new float[6];
+
+        this.inverted = new int[] {
+            1,
+            -1,
+            -1,
+            1,
+            -1,
+            1
+        };
+
+        this.SetupWebSocket();
+        this.UpdateJoints();
+        InvokeRepeating(nameof(CallGetAngles), 0f, 0.4f); // CallGetAngles every 0.1 seconds
+
+    }
+
+    private void UpdateJoints() {
+        for (int i = 0; i < 6; i++) {
             GameObject joint = joints[i];
-            if (i==0|| i==3||i == 5){
-                joint.transform.localEulerAngles = new Vector3(0,inverted[i]*this.angles[i],0);
+            if (i == 0 || i == 3 || i == 5) {
+                joint.transform.localEulerAngles = new Vector3(0, inverted[i] * this.current_angles[i], 0);
 
-            }else if(i==2){
-                    joint.transform.localEulerAngles = new Vector3(inverted[i]*this.angles[i]-90,0,0);
+            } else if (i == 2) {
+                joint.transform.localEulerAngles = new Vector3(inverted[i] * this.current_angles[i] - 90, 0, 0);
+            } else {
+                joint.transform.localEulerAngles = new Vector3(inverted[i] * this.current_angles[i], 0, 0);
+
             }
-            else{
-                joint.transform.localEulerAngles  = new Vector3(inverted[i]*this.angles[i],0,0);
-
-            }
         }
-    }
-    
-
-
-    /// <summary>
-    /// Gets the message stored in buff, (op,code,args)
-    /// </summary>
-    /// <param name="buf"></param>
-    void read_message(byte[] buf){
-        
-        this.op = (char) buf[0];
-        this.code = BitConverter.ToInt32(buf,1);
-        this.num_args = BitConverter.ToInt32(buf,5); 
-        for(int i=0;i< num_args ;i++){
-            this.args[i] = BitConverter.ToInt32(buf,i*4+9);
-        }
-    }
-    /// <summary>
-    /// Transforms the values received in args and stores them in angles.
-    /// </summary>
-    public void update_angles(){
-        for (int i =0;i<6;i++){
-            this.angles[i] =(float) (((float)this.args[i]/(float)this.acc)/Math.PI)*(float)180.0;
-
-        }
-    }
-
-
-
-    /// <summary>
-    /// Called at the start of the prgram.
-    /// </summary>
-    void Start(){
-        tip = GameObject.Find("tip");
-        joints = new GameObject[6];
-        angles = new float[6];
-        inverted = new int[] {1,-1,-1,1,-1,1};
-        for (int i =0;i<6;i++){
-            joints[i] = GameObject.Find("J"+(i+1));
-            
-        }
-       
-        this.s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        this.port = 65433;
-        this.ip = "127.0.0.1";
-        this.args = new Int32[7];
-        try{
-            this.s.Connect(this.ip, this.port);
-        }catch{
-            this.s = null;
-        }
-            
+        this.UpdateText();
 
     }
 
-    /// <summary>
-    /// Called once per frame, receives data from the socket and reads the message to show the robot's angles.
-    /// </summary>
-    void Update(){
-        if (this.s != null){
-            this.s.Send(BitConverter.GetBytes(0)); 
+    private Tuple < int, int, int, float[] > ReadMessage(byte[] buf) {
+        int op = (char) buf[0];
+        // make the bitConverter little endian
 
-            byte[] bytesRec = new Byte[128];
-            int num_bytes = s.Receive(bytesRec,bytesRec.Length,0);  //Receiving response
-            if (num_bytes == 38){
-                this.read_message(bytesRec);
-                this.update_angles();
-                this.set_angles();
-                this.s.Send(BitConverter.GetBytes(0)); 
-            }
-            int[] angles_round = new int[6];
-            for(int i=0;i<6;i++){
-                angles_round[i] = (int)Math.Round(this.angles[i])*inverted[i];
-            }
-            Vector3 pos = tip.transform.position;
-            Vector3 ang = tip.transform.eulerAngles;
-            this.tip_location.text = String.Format("X: {0:0.##} Y: {1:0.##} Z: {2:0.##}  A: {3:0.##} B: {4:0.##} C: {5:0.##}",pos[0],pos[1],pos[2],ang[0],ang[1],ang[2]);
+        int code = BitConverter.ToInt32(buf, 1);
+        int num_args = BitConverter.ToInt32(buf, 5);
+        float[] args = new float[num_args];
+        Debug.Log("num_args: " + num_args);
+        Debug.Log("args: " + args);
+        Debug.Log("buf: " + buf);
+        Debug.Log("buf length: " + buf.Length);
+        Debug.Log("op: " + op);
+        Debug.Log("code: " +code);
+        for (int i = 0; i < num_args; i++) {
+            args[i] = BitConverter.ToSingle(buf, i * 4 + 9); // Use ToSingle for float values
+        }
+        return Tuple.Create(op, code, num_args, args);
+    }
 
-            this.text_angles.text = "cur_angles ["+string.Join(" ,",angles_round)+ "]"; 
-        }else{
-             int[] angles_round = new int[6];
-                for(int i=0;i<6;i++){
-                    angles_round[i] = (int)Math.Round(this.angles[i]);
-                } 
-            text_angles.text = " ["+string.Join(" ,",angles_round)+ "]"; 
-
+    private void CallGetAngles() {
+        Debug.Log("CallGetAngles");
+        // show websocket state
+        Debug.Log("State: " + websocket.State.ToString());
+        if (websocket.State == WebSocketState.Open){
+        this.websocket.SendText("get_angles");
 
         }
-       
-                
+
+    }
+
+    private float RadToDeg(float rad) {
+        return (float)(rad * (180.0 / Math.PI));
+    }
+
+    private void UpdateText() {
+        Vector3 pos = TCP.transform.position;
+        Vector3 ang = TCP.transform.eulerAngles;
+        this.TCP_location.text = String.Format("X: {0:0.##} Y: {1:0.##} Z: {2:0.##}  A: {3:0.##} B: {4:0.##} C: {5:0.##}", pos[0], pos[1], pos[2], ang[0], ang[1], ang[2]);
+        this.text_angles.text = String.Format("cur_angles [{0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##},{5:0.##}]", this.current_angles[0], this.current_angles[1], this.current_angles[2], this.current_angles[3], this.current_angles[4], this.current_angles[5]);
+    }
+
+    private void SetupWebSocket() {
+
+        this.websocket = new WebSocket(String.Format("ws://{0}:{1}", this.web_socket_ip, this.web_socket_port));
+
+        this.websocket.OnOpen += () => {
+            Debug.Log("Connection open!");
+        };
+
+        this.websocket.OnError += (e) => {
+            Debug.Log("Error! " + e);
+        };
+
+        this.websocket.OnClose += (e) => {
+            Debug.Log("Connection closed!");
+        };
+
+        this.websocket.OnMessage += (bytes) => {
+                Debug.Log("OnMessage!");
+                string packedMessageString = BitConverter.ToString(bytes);
+                Debug.Log("Packed message: " + packedMessageString);
+                //print length of bytes
+                Debug.Log(bytes.Length);
+                (int op, int code, int numArgs, float[] args) = this.ReadMessage(bytes);
+                for (int i = 0; i < 6; i++) {
+                    this.current_angles[i] = this.RadToDeg(args[i]);
+                }
+                this.UpdateJoints();
+            };
+
+        this.websocket.Connect();
+
+    }
+
+    private void Update() {
+
+        if (this.websocket != null) {
+            #if!UNITY_WEBGL || UNITY_EDITOR
+            this.websocket.DispatchMessageQueue();
+            #endif
+            this.UpdateJoints();
+
+        }
 
     }
 }

@@ -1,0 +1,14 @@
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "alberto-abarzua", email = "uintuser@pm.me"},
+]
+dependencies = [
+    "asyncio>=3.4.3",
+    "websockets>=11.0.3",
+]
+requires-python = ">=3.11"
+license = {text = "MIT"}
