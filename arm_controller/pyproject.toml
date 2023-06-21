@@ -1,0 +1,30 @@
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "alberto-abarzua", email = "aabarzua@palvi.cl"},
+]
+dependencies = [
+    "websockets>=11.0.3",
+    "asyncio>=3.4.3",
+    "rich>=13.4.2",
+    "black>=23.3.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 95
+
+[tool.pdm.scripts]
+isort = "isort src"
+black = "black src"
+lint = "flake8 src"
+format = {composite = ["isort", "black"]}
