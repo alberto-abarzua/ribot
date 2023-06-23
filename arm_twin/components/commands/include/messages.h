@@ -11,8 +11,9 @@ class Message {
     int32_t code;
     int32_t num_args;
     int32_t size;
-
     float* args;
+    bool complete = false;
+    bool called = false;
 
    public:
     Message(char op, int32_t code, int32_t num_args, float* args);
@@ -29,6 +30,11 @@ class Message {
 
 
     void get_bytes(char* message_bytes);
+
+    bool is_complete();
+    bool was_called();
+    bool set_called(bool called);
+    void set_complete(bool complete);
 
     void print();
 

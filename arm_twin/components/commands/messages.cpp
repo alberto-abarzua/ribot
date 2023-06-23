@@ -18,6 +18,9 @@ Message::Message(char *message_bytes) {
     this->args = (float *)malloc(sizeof(float) * this->num_args);
     memcpy(this->args, message_bytes + sizeof(char) + sizeof(int32_t) * 2,
            sizeof(float) * this->num_args);
+    int16_t size_headers = sizeof(char) + sizeof(int32_t) * 2;
+    int16_t size_args = sizeof(float) * this->num_args;
+    this->size = size_headers + size_args;
 }
 
 Message::~Message() {
@@ -44,14 +47,31 @@ void Message::get_bytes(char *message_bytes) {
 int32_t Message::get_size() { return this->size; }
 
 void Message::print() {
-    std::cout << "Message: ------ " << std::endl;
-    std::cout << "op: " << this->op << std::endl;
-    std::cout << "code: " << this->code << std::endl;
-    std::cout << "num_args: " << this->num_args << std::endl;
-    std::cout << "args: ";
+    //std::cout << "Message: ------ " << std::endl;
+    //std::cout << "op: " << this->op << std::endl;
+    //std::cout << "code: " << this->code << std::endl;
+    //std::cout << "num_args: " << this->num_args << std::endl;
+    //std::cout << "args: ";
     for (int i = 0; i < this->num_args; i++) {
-        std::cout << this->args[i] << " ";
+        //std::cout << this->args[i] << " ";
     }
-    std::cout << "\n------------";
-    std::cout << std::endl;
+    //std::cout << "\n------------";
+    //std::cout << std::endl;
+}
+
+bool Message::was_called(){
+    return this->called;
+}
+
+bool Message::is_complete(){
+    return this->complete;
+}
+
+bool Message::set_called(bool called){
+    this->called = called;
+    return this->called;
+}
+
+void Message::set_complete(bool complete){
+    this->complete = complete;
 }

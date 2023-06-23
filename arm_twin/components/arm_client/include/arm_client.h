@@ -3,15 +3,14 @@
 #define ARM_CLIENT_H
 
 
-#include <arpa/inet.h>   
-#include <sys/socket.h>  
+
+
 #include <unistd.h>     
 #include <cstring>  
-#include <netdb.h>
 #include <sys/types.h>
 #include <iostream>
 #include "messages.h"
-
+#include <fcntl.h>
 
 
 /**

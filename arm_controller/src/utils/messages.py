@@ -12,7 +12,7 @@ class Message:
     args: list[float]
 
 
-    def __init__(self,op: str, code: int, args: list[float]) -> None:
+    def __init__(self,op: str, code: int, args: list[float] = []) -> None:
         self.op = op
         self.code = code
         self.num_args = len(args)
@@ -39,9 +39,9 @@ class Message:
 
     @staticmethod
     def decode(bytes):
-        op, code, num_args = struct.unpack_from("<bii", bytes, offset=0)
+        op, code, num_args = struct.unpack_from("<cii", bytes, offset=0)
         args = struct.unpack_from("<" + "f" * num_args, bytes, offset=9)
-        return Message(op, code, num_args, args)
+        return Message(op, code, args)
 
     def __str__(self):
         return (
