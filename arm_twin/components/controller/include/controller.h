@@ -75,7 +75,7 @@ class Controller {
     void stop();
     void send_status_message();
     void step();
-    void recieve_message();
+    bool recieve_message();
     void handle_messages();
     void message_handler_move(Message *message);
     void message_handler_status(Message *message);
@@ -87,5 +87,4 @@ class Controller {
 
 void run_delay(uint32_t delay_ms);
 uint64_t get_current_time_microseconds();
-
 #endif

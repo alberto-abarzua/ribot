@@ -17,6 +17,8 @@ services:
       - ./arm_controller/src:/app/src
       - ./arm_controller/pyproject.toml:/app/pyproject.toml
       - ./arm_controller/pdm.lock:/app/pdm.lock
+    depends_on:
+      - arm_twin
 
   arm_twin:
     build:
@@ -25,5 +27,3 @@ services:
       - ./arm_twin/main.cpp:/app/main.cpp
       - ./arm_twin/CMakeLists.txt:/app/CMakeLists.txt
       - ./arm_twin/components:/app/components
-    depends_on:
-      - arm_controller

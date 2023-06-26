@@ -1,11 +1,11 @@
 import threading
 
-from utils.websocket import WebsocketServer
-from utils.prints import console
-import socket
+import numpy as np
+
+from control.arm_kinematics import ArmKinematics, ArmParameters
+from control.controller_servers import ControllerServer, WebsocketServer
 from utils.messages import Message
-import random
-import time
+from utils.prints import console
 
 
 class ArmController:
@@ -13,92 +13,107 @@ class ArmController:
         self.current_angles = [0, 0, 0.5, 0, 0, 0]
         self.current_angles_lock = threading.Lock()
 
+        self.controller_server = ControllerServer(self, 8500)
         self.websocket_server = WebsocketServer(65433, self)
-        self.controller_socket = None
-        self.robot_conection_socket = None
-        self.connection_mutex = threading.Lock()
-        self.status_rate = 0.1  # seconds
 
-    def get_angles(self):
-        with self.current_angles_lock:
-            return self.current_angles
+        # register new handlers here
+        self.message_op_handlers = {
+            "M": self.handle_move_message,
+            "S": self.handle_status_message,
+        }
 
-    def set_angles(self, angles):
-        with self.current_angles_lock:
-            self.current_angles = angles
-        console.print(f"New angles: {self.current_angles}", style="info")
+        # Arm parameters
+        self.arm_params = ArmParameters()
+        self.arm_params.a2x = 0
+        self.arm_params.a2z = 172.48
 
-    def run(self):
+        self.arm_params.a3z = 173.5
+
+        self.arm_params.a4z = 0
+        self.arm_params.a4x = 126.2
+
+        self.arm_params.a5x = 64.1
+        self.arm_params.a6x = 169
+
+        self.arm_params.j1.set_bounds(-np.pi / 2, np.pi / 2)
+        self.arm_params.j2.set_bounds(-1.39626, 1.57)
+        self.arm_params.j3.set_bounds(-np.pi / 2, np.pi / 2)
+        self.arm_params.j5.set_bounds(-np.pi / 2, np.pi / 2)
+
+        self.kinematics = ArmKinematics(self)
+
+    """
+    ----------------------------------------
+                    General Methods
+    ----------------------------------------
+    """
+
+    def start(self):
+        console.print("Starting controller", style="setup")
         self.websocket_server.start()
-        self.setup_controller_server_socket()
-        self.setup_status_server()
+        self.controller_server.start()
 
-    def _send_message(self, message):
-        if self.robot_conection_socket is not None:
-                    self.robot_conection_socket.send(message.encode())
+    def stop(self):
+        console.print("Stopping controller", style="setup")
+        self.websocket_server.stop()
+        self.controller_server.stop()
 
-    def send_message(self, message, mutex=True):
-        if mutex:
-            with self.connection_mutex:
-                self._send_message(message)
-        else:
-            self._send_message(message)
+    @property
+    def is_ready(self):
+        websocket_server_up = self.websocket_server.is_ready
+        controller_server_up = self.controller_server.is_ready
+        return websocket_server_up and controller_server_up
 
-    def _recieve_message(self):
-        if self.robot_conection_socket is not None:
-            data = self.robot_conection_socket.recv(1024)
-            message = Message.decode(data)
-            console.print(f"Received message: {message}", style="info")
-            return message
+    """
+    ----------------------------------------
+                    Handlers
+    ----------------------------------------
+    """
 
-    def receive_message(self, mutex=True):
-        if mutex:
-            with self.connection_mutex:
-                return self._recieve_message()
-        else:
-            return self._recieve_message()
+    def handle_move_message(self, message):
+        console.print(f"Received move message: {message}", style="info")
 
-    def handle_controller_connection(self, conn):
-        self.robot_conection_socket = conn
-        # send test messge
+    def handle_status_message(self, message):
+        console.print(f"Received status message: {message}", style="info")
 
-        self.set_angles([0.5 for _ in range(6)])
-        message = Message("M", 1, self.get_angles())
-        console.print(f"Sending message: {message}", style="info")
-        conn.send(message.encode())
-        while True:
-            message = Message("S", 0)
-            self.send_message(message)
-            resonse_message = self.receive_message()
+    """
+    ----------------------------------------
+                    API Methods
+    ----------------------------------------
+    """
 
-    def _setup_controller_server_socket(self):
-        addr = ("0.0.0.0", 8500)
-        self.controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.controller_socket.bind(addr)
-        self.controller_socket.listen(1)
-        console.print(f"Listening on {addr}", style="setup")
-        while True:
-            conn, addr = self.controller_socket.accept()
-            console.print(f"Connected to {addr}", style="setup")
-            self.handle_controller_connection(conn)
+    def move_to_angles(self, angles):
+        message = Message("M", 0, angles)
+        self.controller_server.send_message(message, mutex=True)
+        message = self.controller_server.receive_message(mutex=True)
+        if message is None:
+            console.print("No response", style="error")
+            return False
+        if message.op == b"M" and message.code == 1:
+            console.print("Move to command received", style="success")
+            return True
+        return False
 
-    def _setup_status_server(self):
-        while True:
-            time.sleep(self.status_rate)
-            with self.connection_mutex:
-                message = Message("S", 0)
-                self.send_message(message,mutex=False)
-                resonse_message = self.receive_message(mutex=False)
-                self.set_angles(resonse_message.args)
+    def move_to_pose(self, pose):
+        # TODO: Transform pose to angles and send move_to_angles
+        pass
 
-    def setup_status_server(self):
-        thread = threading.Thread(target=self._setup_status_server)
-        console.print("Starting status server", style="setup")
-        thread.start()
+    def home(self):
+        # TODO: Send home command
+        pass
 
+    def health_check(self):
+        if not self.is_ready:
+            console.print("Not connected", style="error")
+            return False
+        message = Message("S", 3)
+        self.controller_server.send_message(message, mutex=True)
+        message = self.controller_server.receive_message(mutex=True)
+        if message is None:
+            console.print("No response", style="error")
+            return False
+        if message.op == b"S" and message.code == 4:
+            console.print("Health check passed", style="success")
+            return True
 
-    def setup_controller_server_socket(self):
-
-        thread = threading.Thread(target=self._setup_controller_server_socket)
-        console.print("Starting controller server socket", style="setup")
-        thread.start()
+        return False

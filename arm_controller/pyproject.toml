@@ -13,9 +13,12 @@ dependencies = [
     "black>=23.3.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
+    "numpy>=1.25.0",
 ]
 requires-python = ">=3.11"
 license = {text = "MIT"}
+
+
 
 [tool.isort]
 profile = "black"
@@ -27,4 +30,5 @@ line-length = 95
 isort = "isort src"
 black = "black src"
 lint = "flake8 src"
+test = "python -m unittest discover -s src/tests -p 'test_*.py'"
 format = {composite = ["isort", "black"]}

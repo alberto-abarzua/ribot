@@ -12,4 +12,6 @@ COPY . .
 RUN cmake .
 RUN make
 
+# set python path
+
 CMD ["./app"]

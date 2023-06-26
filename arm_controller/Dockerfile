@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN pip install pdm==2.7.4
 
+ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 
 COPY pyproject.toml .
 COPY pdm.lock .

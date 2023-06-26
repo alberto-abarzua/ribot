@@ -6,11 +6,11 @@
 #define SERVER_PORT 8500            // replace with your server's port
 
 ArmClient::ArmClient() {
-    //std::cout << "ArmClient constructor called" << std::endl;
+    // std::cout << "ArmClient constructor called" << std::endl;
 }
 
 ArmClient::~ArmClient() {
-    //std::cout << "ArmClient destructor called" << std::endl;
+    // std::cout << "ArmClient destructor called" << std::endl;
 }
 
 #include <netdb.h>
@@ -59,15 +59,19 @@ int ArmClient::send_message(Message *msg) {
     return send(this->clientSocket, message_bytes, msg->get_size(), 0);
 }
 
-Message *ArmClient::receive_message() {
+int ArmClient::receive_message(Message **msg_loc) {
     char buffer[1024] = {0};
-    int valread = read(this->clientSocket, buffer, 1024);
-    if (valread <= 0) {
-        //std::cout << "Error reading message" << std::endl;
-        return nullptr;
+    int result = read(this->clientSocket, buffer, 1024);
+    if (result < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        } else {
+            return -1;
+        }
     }
     Message *msg = new Message(buffer);
-    return msg;
+    *msg_loc = msg;
+    return 1;
 }
 
 int ArmClient::setup() {
@@ -92,6 +96,6 @@ int ArmClient::setup() {
 }
 
 void ArmClient::stop() {
-    //std::cout << "ArmClient stop called" << std::endl;
+    // std::cout << "ArmClient stop called" << std::endl;
     close(this->clientSocket);
 }

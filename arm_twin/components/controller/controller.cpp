@@ -178,15 +178,16 @@ void Controller::send_status_message() {
     delete status_message;
 }
 
-void Controller::recieve_message() {
-    Message *msg = this->arm_client.receive_message();
-    if (msg == nullptr) {
-        // std::cout << "Error reading message" << std::endl;
-        return;
+bool Controller::recieve_message() {
+    Message *msg;
+    int ret = this->arm_client.receive_message(&msg);
+    if (ret == -1) {
+        std::cout << "Error receiving message,con lsot" << std::endl;
+        return false;
+    }else if(ret == 0){
+        return true;
     }
-    // std::cout << "Message received!" << std::endl;
 
-    msg->print();
     char op = msg->get_op();
     Controller::message_op_handler_t handler = this->message_op_handler_map[op];
     (this->*handler)(msg);
@@ -194,6 +195,7 @@ void Controller::recieve_message() {
     if (!skip) {
         this->message_queue.push_back(msg);
     }
+    return true;
 }
 
 bool Controller::skip_message(Message *msg) {
@@ -260,6 +262,12 @@ void Controller::message_handler_status(Message *message) {
     if (code == 0) {
         message->set_complete(true);
         message->set_called(true);
+    } else if (code == 3) {
+        Message *status_message = new Message('S', 4, 0, nullptr);
+        this->arm_client.send_message(status_message);
+        delete status_message;
+        message->set_complete(true);
+        message->set_called(true);
     }
 }
 
@@ -286,16 +294,20 @@ void Controller::step() {
 
 // Main loop
 void Controller::start() {
+    run_delay(1000);
     int succesful_setup = this->arm_client.setup();
     while (succesful_setup != 0) {
-        // std::cout << "Trying to connect to the server" << std::endl;
+        std::cout << "Trying to connect to the server" << std::endl;
+        run_delay(50);
         succesful_setup = this->arm_client.setup();
     }
     //
     this->run_step_task();
-    // std::cout << "Connected to the server" << std::endl;
+    std::cout << "Connected to the server" << std::endl;
     while (true) {
-        this->recieve_message();      // receives and adds to queue
+        if (!this->recieve_message()){
+            break;
+        }
         this->handle_messages();      // handles messages on queue
         this->print_status();         // prints status
         this->send_status_message();  // sends status message

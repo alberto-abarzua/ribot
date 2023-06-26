@@ -11,6 +11,7 @@
 #include <iostream>
 #include "messages.h"
 #include <fcntl.h>
+#include <errno.h>
 
 
 /**
@@ -32,7 +33,7 @@ class ArmClient {
 
     int send_message(Message *msg);
 
-    Message * receive_message();
+    int receive_message(Message **msg);
 
     int setup();
 

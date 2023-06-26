@@ -1,6 +1,6 @@
 import dataclasses
 import struct
-from utils.prints import console
+
 __author__ = "Alberto Abarzua"
 
 
@@ -11,8 +11,7 @@ class Message:
     num_args: int
     args: list[float]
 
-
-    def __init__(self,op: str, code: int, args: list[float] = []) -> None:
+    def __init__(self, op: str, code: int, args: list[float] = []) -> None:
         self.op = op
         self.code = code
         self.num_args = len(args)
@@ -34,7 +33,11 @@ class Message:
 
     def encode(self):
         return struct.pack(
-            "<cii" + "f" * len(self.args), self.op.encode(), self.code, self.num_args, *self.args
+            "<cii" + "f" * len(self.args),
+            self.op.encode(),
+            self.code,
+            self.num_args,
+            *self.args,
         )
 
     @staticmethod
