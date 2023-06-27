@@ -6,12 +6,8 @@ RUN apt-get update && apt-get install -y \
     make
 
 WORKDIR /app
-
 COPY . .
 
-RUN cmake .
-RUN make
+RUN chmod +x /app/entrypoint.sh
 
-# set python path
-
-CMD ["./app"]
+CMD ["/app/entrypoint.sh"]

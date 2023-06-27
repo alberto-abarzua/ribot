@@ -2,8 +2,6 @@
 
 #include "arm_client.h"
 
-#define SERVER_IP "arm_controller"  // replace with your server's IP
-#define SERVER_PORT 8500            // replace with your server's port
 
 ArmClient::ArmClient() {
     // std::cout << "ArmClient constructor called" << std::endl;
@@ -27,10 +25,9 @@ int ArmClient::start_socket() {
     hints.ai_family = AF_UNSPEC;      // Allow IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP socket
 
-    s = getaddrinfo(SERVER_IP, std::to_string(SERVER_PORT).c_str(), &hints,
+    s = getaddrinfo(CONTROLLER_SERVER_HOST, std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
-        std::cerr << "getaddrinfo: " << gai_strerror(s) << std::endl;
         return -1;
     }
 

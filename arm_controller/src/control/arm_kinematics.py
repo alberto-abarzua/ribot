@@ -117,8 +117,6 @@ class ArmKinematics:
     def __init__(self, controller):
         self.controller = controller
         self.arm_params = controller.arm_params
-        self._test_pose = self.current_pose
-        self.test_angles = self.pose_to_angles(self._test_pose)
 
     @property
     def current_pose(self):

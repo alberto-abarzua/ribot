@@ -1,0 +1,4 @@
+idf_component_register(SRCS "controller.cpp" "hardware_controller.cpp"
+                       INCLUDE_DIRS "include"
+                       REQUIRES arm_client esp_event esp_wifi nvs_flash driver esp_timer
+                       )

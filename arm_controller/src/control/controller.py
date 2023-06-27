@@ -6,13 +6,17 @@ from control.arm_kinematics import ArmKinematics, ArmParameters
 from control.controller_servers import ControllerServer, WebsocketServer
 from utils.messages import Message
 from utils.prints import console
+import time
 
 
 class ArmController:
     def __init__(self):
-        self.current_angles = [0, 0, 0.5, 0, 0, 0]
-        self.current_angles_lock = threading.Lock()
+        self._current_angles = [0, 0, 0, 0, 0, 0]
+        self.num_joints = len(self._current_angles)
+        self.move_queue_size = 0
+        self.is_homed = False
 
+        self.current_angles_lock = threading.Lock()
         self.controller_server = ControllerServer(self, 8500)
         self.websocket_server = WebsocketServer(65433, self)
 
@@ -20,6 +24,7 @@ class ArmController:
         self.message_op_handlers = {
             "M": self.handle_move_message,
             "S": self.handle_status_message,
+            "C": self.handle_config_message,
         }
 
         # Arm parameters
@@ -42,6 +47,8 @@ class ArmController:
 
         self.kinematics = ArmKinematics(self)
 
+        self.command_cooldown = 0.01
+
     """
     ----------------------------------------
                     General Methods
@@ -59,6 +66,18 @@ class ArmController:
         self.controller_server.stop()
 
     @property
+    def current_angles(self):
+        with self.current_angles_lock:
+            return self._current_angles
+
+    @current_angles.setter
+    def current_angles(self, angles):
+        if len(angles) != self.num_joints:
+            raise ValueError(f"Angles must be a list of length {self.num_joints}")
+        with self.current_angles_lock:
+            self._current_angles = angles
+
+    @property
     def is_ready(self):
         websocket_server_up = self.websocket_server.is_ready
         controller_server_up = self.controller_server.is_ready
@@ -74,33 +93,58 @@ class ArmController:
         console.print(f"Received move message: {message}", style="info")
 
     def handle_status_message(self, message):
+        code = message.code
+        if code == 1:
+            angles = message.args[:self.num_joints]
+            self.current_angles = angles
+            self.move_queue_size = message.args[self.num_joints]
+            self.is_homed = message.args[self.num_joints + 1]
+
         console.print(f"Received status message: {message}", style="info")
+
+    def handle_config_message(self, message):
+        console.print(f"Received config message: {message}", style="info")
 
     """
     ----------------------------------------
-                    API Methods
+                    API Methods -- MOVE
     ----------------------------------------
     """
 
     def move_to_angles(self, angles):
-        message = Message("M", 0, angles)
+        if not self.is_homed:
+            console.print("Arm is not homed", style="error")
+            return
+        message = Message("M", 1, angles)
         self.controller_server.send_message(message, mutex=True)
-        message = self.controller_server.receive_message(mutex=True)
-        if message is None:
-            console.print("No response", style="error")
-            return False
-        if message.op == b"M" and message.code == 1:
-            console.print("Move to command received", style="success")
-            return True
-        return False
+        time.sleep(self.command_cooldown)
 
     def move_to_pose(self, pose):
-        # TODO: Transform pose to angles and send move_to_angles
-        pass
+        target_angles = self.kinematics.pose_to_angles(pose)
+        self.move_to_angles(target_angles)
+        time.sleep(self.command_cooldown)
+ 
+    def home(self,wait = False):
+        message = Message("M", 3)
+        self.controller_server.send_message(message, mutex=True)
+        time.sleep(self.command_cooldown)
+        if wait:
+            while not self.is_homed:
+                time.sleep(0.1)
 
-    def home(self):
-        # TODO: Send home command
-        pass
+        
+
+
+    def home_joint(self,joint_idx):
+        message = Message("M", 5, [joint_idx])
+        self.controller_server.send_message(message, mutex=True)
+        time.sleep(self.command_cooldown)
+
+    """
+    ----------------------------------------
+                    API Methods -- STATUS
+    ----------------------------------------
+    """
 
     def health_check(self):
         if not self.is_ready:
@@ -117,3 +161,8 @@ class ArmController:
             return True
 
         return False
+    """
+    ----------------------------------------
+                    API Methods -- CONFIG
+    ----------------------------------------
+    """

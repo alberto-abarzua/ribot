@@ -1,10 +1,3 @@
-#ifndef ARM_CLIENT_H  
-                
-#define ARM_CLIENT_H
-
-
-
-
 #include <unistd.h>     
 #include <cstring>  
 #include <sys/types.h>
@@ -12,6 +5,12 @@
 #include "messages.h"
 #include <fcntl.h>
 #include <errno.h>
+#include "config.h"
+
+
+
+
+
 
 
 /**
@@ -41,4 +40,3 @@ class ArmClient {
 
 };
 
-#endif

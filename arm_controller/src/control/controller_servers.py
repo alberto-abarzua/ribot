@@ -7,7 +7,6 @@ import websockets
 from utils.messages import Message
 from utils.prints import console
 
-
 class ControllerDependencies:
     def __init__(self, controller):
         self.controller = controller
@@ -71,8 +70,22 @@ class ControllerServer(ControllerDependencies):
         self.server_socket = None
         self.connection_socket = None
 
-        self.connection_mutex = threading.Lock()
+        self._connection_mutex = threading.Lock()
         self.stop_event = threading.Event()
+
+        self.status_thread = None
+        self.stop_event_status = threading.Event()
+
+    @property
+    def connection_mutex(self):
+        return self._connection_mutex
+
+
+    def _start_status(self):
+        while not self.stop_event_status.is_set():
+            message = Message("S", 0)
+            self.send_message(message, mutex=True)
+            self.stop_event_status.wait(0.1)
 
     def _start(self):
         addr = ("0.0.0.0", 8500)
@@ -86,8 +99,9 @@ class ControllerServer(ControllerDependencies):
 
             console.print(f"Connected to {addr}", style="setup")
             self.connection_socket = conn
-            # set timeout to None
-            self.connection_socket.settimeout(None)
+            # Make the socket non-blocking
+            self.connection_socket.setblocking(0)
+            self.connection_socket.settimeout(0)
 
             self.handle_controller_connection()
 
@@ -96,10 +110,17 @@ class ControllerServer(ControllerDependencies):
         self.thread.daemon = True
         self.thread.start()
 
+        self.status_thread = threading.Thread(target=self._start_status)
+        self.status_thread.daemon = True
+        self.status_thread.start()
+
     def stop(self):
         self.stop_event.set()
         if self.thread:
             self.thread.join()
+        self.stop_event_status.set()
+        if self.status_thread:
+            self.status_thread.join()
 
     def _send_message(self, message):
         if not self.is_ready:
@@ -122,8 +143,12 @@ class ControllerServer(ControllerDependencies):
             return None
         try:
             data = self.connection_socket.recv(1024)
+            if not data:
+                return False
             message = Message.decode(data)
             return message
+        except BlockingIOError:
+            return False
         except OSError as e:
             console.print(f"Connection failed with error: {str(e)}", style="error")
             return None
@@ -139,12 +164,16 @@ class ControllerServer(ControllerDependencies):
         while not self.stop_event.is_set():
             with self.connection_mutex:
                 msg = self.receive_message()
-                if msg is None:
-                    break
 
+            if msg is None:
+                break
+            if msg is False:
+                continue
+            
             op = msg.op.decode()
             handler = self.controller.message_op_handlers[op]
             handler(msg)
+            self.stop_event.wait(0.1)
 
     @property
     def is_ready(self):

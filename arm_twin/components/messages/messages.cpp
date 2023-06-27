@@ -47,16 +47,16 @@ void Message::get_bytes(char *message_bytes) {
 int32_t Message::get_size() { return this->size; }
 
 void Message::print() {
-    //std::cout << "Message: ------ " << std::endl;
-    //std::cout << "op: " << this->op << std::endl;
-    //std::cout << "code: " << this->code << std::endl;
-    //std::cout << "num_args: " << this->num_args << std::endl;
-    //std::cout << "args: ";
+    std::cout << "Message: ------ " << std::endl;
+    std::cout << "op: " << this->op << std::endl;
+    std::cout << "code: " << this->code << std::endl;
+    std::cout << "num_args: " << this->num_args << std::endl;
+    std::cout << "args: ";
     for (int i = 0; i < this->num_args; i++) {
-        //std::cout << this->args[i] << " ";
+        std::cout << this->args[i] << " ";
     }
-    //std::cout << "\n------------";
-    //std::cout << std::endl;
+    std::cout << "\n------------";
+    std::cout << std::endl;
 }
 
 bool Message::was_called(){
