@@ -1,11 +1,13 @@
+import os
+import socket
 import time
 import unittest
 
 import numpy as np
-import os
+
 from control.controller import ArmController
 from utils.prints import disable_console
-import socket 
+
 
 class TestController(unittest.TestCase):
     @classmethod
@@ -17,8 +19,6 @@ class TestController(unittest.TestCase):
             # resolve firmware hostname
             ip_addres = socket.gethostbyname("firmware")
             print(f"Resolved firmware hostname to {ip_addres}")
-
-
 
         cls.controller = ArmController()
         cls.controller.start(websocket_server=False)
