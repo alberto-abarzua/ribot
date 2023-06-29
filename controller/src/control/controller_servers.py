@@ -7,6 +7,7 @@ import websockets
 from utils.messages import Message
 from utils.prints import console
 
+
 class ControllerDependencies:
     def __init__(self, controller):
         self.controller = controller
@@ -79,7 +80,6 @@ class ControllerServer(ControllerDependencies):
     @property
     def connection_mutex(self):
         return self._connection_mutex
-
 
     def _start_status(self):
         while not self.stop_event_status.is_set():
@@ -169,7 +169,7 @@ class ControllerServer(ControllerDependencies):
                 break
             if msg is False:
                 continue
-            
+
             op = msg.op.decode()
             handler = self.controller.message_op_handlers[op]
             handler(msg)

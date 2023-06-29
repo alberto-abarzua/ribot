@@ -47,12 +47,9 @@ class Message:
         return Message(op, code, args)
 
     def __str__(self):
-        first_args = self.args[:self.num_args//2]
-        second_args = self.args[self.num_args//2:]
+        first_args = self.args[: self.num_args // 2]
+        second_args = self.args[self.num_args // 2 :]
         first_args = ", ".join([f"{arg:.3f}" for arg in first_args])
         second_args = ", ".join([f"{arg:.3f}" for arg in second_args])
         args_str = f"\n{first_args}\n{second_args}"
-        return (
-            f"op: {self.op}, code: {self.code}, num_args: {self.num_args}, args: {args_str}"
-        )
-
+        return f"op: {self.op}, code: {self.code}, num_args: {self.num_args}, args: {args_str}"

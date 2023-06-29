@@ -36,13 +36,11 @@ def _enable_console():
     console.file = console_original_file
 
 
-
-
-def disable_console(func):  
+def disable_console(func):
     def inner(*args, **kwargs):
-        _disable_console()  
+        _disable_console()
         res = func(*args, **kwargs)
-        _enable_console()  
+        _enable_console()
         return res
 
     return inner

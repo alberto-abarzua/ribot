@@ -1,4 +1,5 @@
 import threading
+import time
 
 import numpy as np
 
@@ -6,7 +7,6 @@ from control.arm_kinematics import ArmKinematics, ArmParameters
 from control.controller_servers import ControllerServer, WebsocketServer
 from utils.messages import Message
 from utils.prints import console
-import time
 
 
 class ArmController:
@@ -95,7 +95,7 @@ class ArmController:
     def handle_status_message(self, message):
         code = message.code
         if code == 1:
-            angles = message.args[:self.num_joints]
+            angles = message.args[: self.num_joints]
             self.current_angles = angles
             self.move_queue_size = message.args[self.num_joints]
             self.is_homed = message.args[self.num_joints + 1]
@@ -123,8 +123,8 @@ class ArmController:
         target_angles = self.kinematics.pose_to_angles(pose)
         self.move_to_angles(target_angles)
         time.sleep(self.command_cooldown)
- 
-    def home(self,wait = False):
+
+    def home(self, wait=False):
         message = Message("M", 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
@@ -132,10 +132,7 @@ class ArmController:
             while not self.is_homed:
                 time.sleep(0.1)
 
-        
-
-
-    def home_joint(self,joint_idx):
+    def home_joint(self, joint_idx):
         message = Message("M", 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
@@ -161,6 +158,7 @@ class ArmController:
             return True
 
         return False
+
     """
     ----------------------------------------
                     API Methods -- CONFIG
