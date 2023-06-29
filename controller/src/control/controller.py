@@ -50,6 +50,8 @@ class ArmController:
 
         self.command_cooldown = 0.01
 
+        self.connection_controller_timeout = 20
+
     """
     ----------------------------------------
                     General Methods
@@ -67,7 +69,7 @@ class ArmController:
         if wait:
             while not self.is_ready:
                 time.sleep(0.1)
-                if time.time() - start_time > 10:
+                if time.time() - start_time > self.connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
         console.print("\nController Started!", style="setup")
 
