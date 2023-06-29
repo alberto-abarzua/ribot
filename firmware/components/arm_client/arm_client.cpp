@@ -3,11 +3,9 @@
 #include "arm_client.h"
 
 ArmClient::ArmClient() {
-    // std::cout << "ArmClient constructor called" << std::endl;
 }
 
 ArmClient::~ArmClient() {
-    // std::cout << "ArmClient destructor called" << std::endl;
 }
 
 #include <netdb.h>
@@ -57,13 +55,17 @@ int ArmClient::send_message(Message *msg) {
     char *message_bytes = new char[msg->get_size()];
     msg->get_bytes(message_bytes);
     int ret = send(this->clientSocket, message_bytes, msg->get_size(), 0);
+    if (ret == -1) {
+        std::cout << "Error sending message\n";
+    }
     delete[] message_bytes;
     return ret;
 }
 
 int ArmClient::receive_message(Message **msg_loc) {
     char buffer[1024] = {0};
-    int result = read(this->clientSocket, buffer, 1024);
+
+    int result = read(this->clientSocket, buffer, Message::HEADER_SIZE);
     if (result < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return 0;
@@ -71,8 +73,25 @@ int ArmClient::receive_message(Message **msg_loc) {
             return -1;
         }
     }
-    Message *msg = new Message(buffer);
-    *msg_loc = msg;
+    char op;
+    int32_t code, num_args;
+    int ret = Message::parse_headers(buffer, &op, &code, &num_args);
+    if (ret == -1) {
+        return -1;
+    }
+    int32_t size_args = sizeof(float) * num_args;
+    if (size_args > 0) {
+        result =
+            read(this->clientSocket, buffer + Message::HEADER_SIZE, size_args);
+        if (result < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    }
+    *msg_loc = new Message(buffer);
     return 1;
 }
 
@@ -98,6 +117,5 @@ int ArmClient::setup() {
 }
 
 void ArmClient::stop() {
-    // std::cout << "ArmClient stop called" << std::endl;
     close(this->clientSocket);
 }

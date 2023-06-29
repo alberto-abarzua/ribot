@@ -11,6 +11,9 @@ class Message:
     num_args: int
     args: list[float]
 
+
+    LENGTH_HEADERS = 1 + 4*2 # op + code + num_args
+
     def __init__(self, op: str, code: int, args: list[float] = []) -> None:
         self.op = op
         self.code = code
@@ -40,6 +43,10 @@ class Message:
             *self.args,
         )
 
+    @staticmethod
+    def decode_headers(bytes):
+        op, code, num_args = struct.unpack_from("<cii", bytes, offset=0)
+        return op, code, num_args
     @staticmethod
     def decode(bytes):
         op, code, num_args = struct.unpack_from("<cii", bytes, offset=0)

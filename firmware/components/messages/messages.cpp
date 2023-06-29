@@ -5,9 +5,8 @@ Message::Message(char op, int32_t code, int32_t num_args, float *args) {
     this->code = code;
     this->num_args = num_args;
     this->args = args;
-    int16_t size_headers = sizeof(char) + sizeof(int32_t) * 2;
     int16_t size_args = sizeof(float) * this->num_args;
-    this->size = size_headers + size_args;
+    this->size = Message::HEADER_SIZE + size_args;
 }
 
 Message::Message(char *message_bytes) {
@@ -69,3 +68,12 @@ bool Message::set_called(bool called) {
 }
 
 void Message::set_complete(bool complete) { this->complete = complete; }
+
+int Message::parse_headers(char *message_bytes, char *op, int32_t *code,
+                                  int32_t *num_args) {
+    *op = message_bytes[0];
+    *code = *(reinterpret_cast<int32_t *>(message_bytes + sizeof(char)));
+    *num_args = *(reinterpret_cast<int32_t *>(
+        message_bytes + sizeof(char) + sizeof(int32_t)));
+    return 0;
+}

@@ -17,7 +17,7 @@ Joint::Joint(int8_t step_pin, int8_t dir_pin, int8_t homing_direction,
     this->convertion_rate_axis_joint = 1.0;
     this->steps_per_revolution = this->steps_per_revolution_motor_axis *
                                  this->convertion_rate_axis_joint;
-    this->epsilon = this->steps_to_angle(1) / 2;
+    this->epsilon = this->steps_to_angle(1);
     this->last_step_time = get_current_time_microseconds();
     this->homing_offset = (PI * this->homing_direction) / 4;  // 45 degrees
     this->homed = false;
@@ -33,8 +33,10 @@ void Joint::set_target_angle(float angle) {
 uint32_t Joint::steps_to_take(uint64_t current_time) {
     // gets the number of steps that should be taken
     uint64_t dif = current_time - this->last_step_time;
-    uint32_t steps = dif / this->step_interval;
-    return steps;
+    uint64_t steps = std::floor(dif / this->step_interval);
+    uint64_t steps_to_target = std::abs(this->angle_to_steps(this->target_angle) -
+                               this->angle_to_steps(this->current_angle));
+    return std::min(steps, steps_to_target);
 }
 
 float Joint::get_current_angle() { return this->current_angle; }
@@ -42,10 +44,9 @@ float Joint::get_current_angle() { return this->current_angle; }
 float Joint::get_target_angle() { return this->target_angle; }
 
 bool Joint::home_joint() {
-    std::cout << "setting target angle to: " << this->homing_direction * 2 * PI
-              << std::endl;
     this->set_target_angle(this->homing_direction * 2 * PI);
     this->homing = true;
+    this->homed = false;
     return true;
 }
 
@@ -65,35 +66,20 @@ bool Joint::step() {
             return false;
         }
     }
-    if (this->at_target()) {
-        return false;
-    }
     uint64_t current_time = get_current_time_microseconds();
     uint32_t steps_to_take = this->steps_to_take(current_time);
-
-    if (steps_to_take == 0) {
-        return false;
+    int8_t step_dir;
+    if (steps_to_take > 0) {
+        step_dir = this->target_angle > this->current_angle ? 1 : -1;
+        for (uint16_t i = 0; i < steps_to_take; i++) {
+            this->hardware_step(step_dir > 0 ? 1 : 0);
+            this->current_steps += step_dir;
+            this->current_angle = this->steps_to_angle(this->current_steps);
+            this->last_step_time = get_current_time_microseconds();
+        }
+        return true;
     }
-    uint8_t step_direction;
-    if (this->target_angle >= this->current_angle) {
-        step_direction = 1;
-    } else {
-        step_direction = 0;
-    }
-
-    for (uint16_t i = 0; i < steps_to_take; i++) {
-        this->hardware_step(step_direction);
-    }
-    this->last_step_time = get_current_time_microseconds();
-
-    if (step_direction == 1) {
-        this->current_steps += steps_to_take;
-    } else {
-        this->current_steps -= steps_to_take;
-    }
-    this->update_current_angle();
-
-    return true;
+    return false;
 }
 
 bool Joint::at_target() {
@@ -105,6 +91,7 @@ void Joint::set_speed_steps_per_second(uint32_t speed_steps_per_second) {
     this->speed_steps_per_second = speed_steps_per_second;
     // convert to microseconds
     this->step_interval = std::abs(1000000.0 / this->speed_steps_per_second);
+    std::cout<< "step_interval: " << this->step_interval << std::endl;
 }
 
 void Joint::set_speed_rad_per_second(float speed_rad_per_second) {
@@ -261,7 +248,7 @@ void Controller::message_handler_move(Message *message) {
             }
         } break;
         case 3: {  // home all joints
-            std::cout << "homing all joints" << std::endl;
+            std::cout << "Homing all joints" << std::endl;
             if (!called) {
                 for (uint8_t i = 0; i < this->joints.size(); i++) {
                     this->joints[i]->home_joint();
@@ -278,6 +265,18 @@ void Controller::message_handler_move(Message *message) {
             }
 
         } break;
+        case 5:{ // home joint
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            if (!called) {
+                this->joints[joint_idx]->home_joint();
+                message->set_called(true);
+            } else {
+                if (this->joints[joint_idx]->homed) {
+                    message->set_complete(true);
+                }
+            }
+            
+        }break;
         default:
             break;
     }
@@ -285,7 +284,6 @@ void Controller::message_handler_move(Message *message) {
 
 void Controller::message_handler_status(Message *message) {
     int32_t code = message->get_code();
-
     switch (code) {
         case 0: {
             // angles + move_queue_size + homed
@@ -296,7 +294,6 @@ void Controller::message_handler_status(Message *message) {
                 args[i] = this->joints[i]->get_current_angle();
             }
             int move_message_queue_size = this->message_queues['M']->size();
-
             // queue size
             args[message_size - 2] = move_message_queue_size;
             // homed

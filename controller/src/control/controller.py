@@ -15,6 +15,7 @@ class ArmController:
         self.num_joints = len(self._current_angles)
         self.move_queue_size = 0
         self.is_homed = False
+        self.last_health_check = 0
 
         self.current_angles_lock = threading.Lock()
         self.controller_server = ControllerServer(self, 8500)
@@ -55,15 +56,25 @@ class ArmController:
     ----------------------------------------
     """
 
-    def start(self):
+    def start(self,wait = True):
         console.print("Starting controller", style="setup")
         self.websocket_server.start()
         self.controller_server.start()
+        start_time = time.time()
+        if wait:
+            while not self.is_ready:
+                time.sleep(0.1)
+                if time.time() - start_time > 3:
+                    raise TimeoutError("Controller took too long to start, check arm client")
+        console.print("\nController Started!", style="setup")
+
 
     def stop(self):
-        console.print("Stopping controller", style="setup")
+        console.print("Stopping controller...", style="setup",end = "\n")
         self.websocket_server.stop()
         self.controller_server.stop()
+        console.print("Controller Stopped", style="setup")
+
 
     @property
     def current_angles(self):
@@ -99,7 +110,8 @@ class ArmController:
             self.current_angles = angles
             self.move_queue_size = message.args[self.num_joints]
             self.is_homed = message.args[self.num_joints + 1]
-
+        if code == 4:
+            self.last_health_check = time.time()
         console.print(f"Received status message: {message}", style="info")
 
     def handle_config_message(self, message):
@@ -124,13 +136,16 @@ class ArmController:
         self.move_to_angles(target_angles)
         time.sleep(self.command_cooldown)
 
-    def home(self, wait=False):
+    def home(self, wait=True):
         message = Message("M", 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
+        start_time = time.time()
         if wait:
             while not self.is_homed:
                 time.sleep(0.1)
+                if time.time() - start_time > 60:
+                    raise TimeoutError("Arm took too long to home")
 
     def home_joint(self, joint_idx):
         message = Message("M", 5, [joint_idx])
@@ -148,19 +163,20 @@ class ArmController:
             console.print("Not connected", style="error")
             return False
         message = Message("S", 3)
-        self.controller_server.send_message(message, mutex=True)
-        message = self.controller_server.receive_message(mutex=True, timeout=3)
-        if message is None:
-            console.print("No response", style="error")
-            return False
-        if message.op == b"S" and message.code == 4:
-            console.print("Health check passed", style="success")
-            return True
+        current_time = time.time()
+        with self.controller_server.connection_mutex:
+            self.controller_server.send_message(message)
+        while self.last_health_check < current_time and time.time() - current_time < 5:
+            time.sleep(0.01)
 
-        return False
+        return self.last_health_check > current_time
 
     """
     ----------------------------------------
                     API Methods -- CONFIG
     ----------------------------------------
     """
+    def set_homing_direction(self, direction):
+        message = Message("C", 1, [direction])
+        self.controller_server.send_message(message, mutex=True)
+        time.sleep(self.command_cooldown)

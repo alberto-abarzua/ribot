@@ -7,13 +7,16 @@ from utils.prints import disable_console
 
 class TestController(unittest.TestCase):
     @classmethod
-    # @disable_console
+    @disable_console
     def setUpClass(cls):
-        print("hello?")
         cls.controller = ArmController()
         cls.controller.start()
+        start_time = time.time()
         while not cls.controller.is_ready:
             time.sleep(0.1)
+            if time.time() - start_time > 3:
+                raise TimeoutError("Controller took too long to start")
+
 
     @classmethod
     @disable_console

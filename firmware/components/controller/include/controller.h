@@ -5,9 +5,10 @@
 #include <queue>
 #include <thread>
 #include <vector>
-
+#include <cmath> 
 #include "arm_client.h"
 #include "config.h"
+#include <algorithm>
 #include "messages.h"
 #define PI 3.14159265358979323846
 
