@@ -7,8 +7,9 @@ from utils.prints import disable_console
 
 class TestController(unittest.TestCase):
     @classmethod
-    @disable_console
+    # @disable_console
     def setUpClass(cls):
+        print("hello?")
         cls.controller = ArmController()
         cls.controller.start()
         while not cls.controller.is_ready:

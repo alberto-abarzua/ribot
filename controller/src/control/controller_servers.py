@@ -138,11 +138,17 @@ class ControllerServer(ControllerDependencies):
         else:
             self._send_message(message)
 
-    def _receive_message(self):
+    def _receive_message(self, timeout=None):
         if not self.is_ready:
             return None
         try:
+            if timeout is not None:
+                self.connection_socket.settimeout(timeout)
+                self.connection_socket.setblocking(1)
             data = self.connection_socket.recv(1024)
+            if timeout is not None:
+                self.connection_socket.setblocking(0)
+                self.connection_socket.settimeout(0)
             if not data:
                 return False
             message = Message.decode(data)
@@ -153,12 +159,12 @@ class ControllerServer(ControllerDependencies):
             console.print(f"Connection failed with error: {str(e)}", style="error")
             return None
 
-    def receive_message(self, mutex=False):
+    def receive_message(self, mutex=False, timeout=None):
         if mutex:
             with self.connection_mutex:
-                return self._receive_message()
+                return self._receive_message(timeout=timeout)
         else:
-            return self._receive_message()
+            return self._receive_message(timeout=timeout)
 
     def handle_controller_connection(self):
         while not self.stop_event.is_set():

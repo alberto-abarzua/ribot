@@ -29,7 +29,7 @@ jobs:
         run: docker compose run controller pdm lint
 
       - name: Run Controller Tests
-        run: docker compose run controller pdm test
+        run: docker compose run --service-ports --use-aliases controller pdm test
     
       - name: Stop and remove containers
         if: always()

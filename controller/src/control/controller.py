@@ -149,7 +149,7 @@ class ArmController:
             return False
         message = Message("S", 3)
         self.controller_server.send_message(message, mutex=True)
-        message = self.controller_server.receive_message(mutex=True)
+        message = self.controller_server.receive_message(mutex=True, timeout=3)
         if message is None:
             console.print("No response", style="error")
             return False
