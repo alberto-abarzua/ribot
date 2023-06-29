@@ -1,0 +1,35 @@
+name: General Arm Ci
+
+on:
+  push:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    environment: general
+    env:
+      CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
+      CONTROLLER_SERVER_HOST: ${{ vars.CONTROLLER_SERVER_HOST }}
+      WIFI_SSID: ${{ vars.WIFI_SSID }}
+      WIFI_PASSWORD: ${{ vars.WIFI_PASSWORD }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker Compose
+        run: docker compose build
+
+      - name: Run Docker Compose Up 
+        run: |
+          docker-compose up -d
+          sleep 5
+          docker-compose down
+      - name: Lint Controller with Flake8
+        run: docker compose run backend pdm lint
+
+      - name: Run Controller Tests
+        run: docker compose run backend pdm test
+
+      - name: Stop and remove containers
+        if: always()
+        run: docker compose down

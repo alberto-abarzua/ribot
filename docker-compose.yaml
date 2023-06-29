@@ -7,29 +7,29 @@ services:
       - ./unity_webgl_server/default.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 8080:80
-  arm_controller:
+  controller:
     build:
-      context: ./arm_controller
+      context: ./controller
     ports:
       - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
       - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller 
     volumes:
-      - ./arm_controller/src:/app/src
-      - ./arm_controller/pyproject.toml:/app/pyproject.toml
-      - ./arm_controller/pdm.lock:/app/pdm.lock
+      - ./controller/src:/app/src
+      - ./controller/pyproject.toml:/app/pyproject.toml
+      - ./controller/pdm.lock:/app/pdm.lock
     depends_on:
       - arm_twin
     environment:
       - CONTROLLER_SERVER_HOST
       - CONTROLLER_SERVER_PORT
 
-  arm_twin:
+  firmware:
     build:
-      context: ./arm_twin
+      context: ./firmware
     volumes:
-      - ./arm_twin/main.cpp:/app/main.cpp
-      - ./arm_twin/CMakeLists.txt:/app/CMakeLists.txt
-      - ./arm_twin/components:/app/components
+      - ./firmware/main.cpp:/app/main.cpp
+      - ./firmware/CMakeLists.txt:/app/CMakeLists.txt
+      - ./firmware/components:/app/components
     environment:
       - WIFI_SSID
       - WIFI_PASSWORD
