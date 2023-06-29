@@ -91,7 +91,6 @@ void Joint::set_speed_steps_per_second(uint32_t speed_steps_per_second) {
     this->speed_steps_per_second = speed_steps_per_second;
     // convert to microseconds
     this->step_interval = std::abs(1000000.0 / this->speed_steps_per_second);
-    std::cout<< "step_interval: " << this->step_interval << std::endl;
 }
 
 void Joint::set_speed_rad_per_second(float speed_rad_per_second) {
@@ -248,12 +247,13 @@ void Controller::message_handler_move(Message *message) {
             }
         } break;
         case 3: {  // home all joints
-            std::cout << "Homing all joints" << std::endl;
             if (!called) {
+                std::cout<<"Homing all joints\n";
                 for (uint8_t i = 0; i < this->joints.size(); i++) {
                     this->joints[i]->home_joint();
                 }
                 message->set_called(true);
+                this->homed = false;
             } else {
                 bool all_homed = true;
                 for (int i = 0; i < num_args; i++) {
@@ -261,6 +261,7 @@ void Controller::message_handler_move(Message *message) {
                 }
                 if (all_homed) {
                     message->set_complete(true);
+                    std::cout<<"All joints homed\n";
                 }
             }
 
@@ -270,6 +271,8 @@ void Controller::message_handler_move(Message *message) {
             if (!called) {
                 this->joints[joint_idx]->home_joint();
                 message->set_called(true);
+                this->homed = false;
+
             } else {
                 if (this->joints[joint_idx]->homed) {
                     message->set_complete(true);

@@ -125,7 +125,6 @@ bool Joint::hardware_end_stop_read() {
     // In a real implementation this would be a digital read
 
     if (std::abs(this->current_angle - this->homing_offset) < 0.1) {
-        std::cout << "Homing complete" << std::endl;
         return true;
     }
     return false;
@@ -179,7 +178,6 @@ bool Joint::hardware_end_stop_read() {
     // In a real implementation this would be a digital read
 
     if (std::abs(this->current_angle - this->homing_offset) < 0.1) {
-        std::cout << "Homing complete" << std::endl;
         return true;
     }
     return false;

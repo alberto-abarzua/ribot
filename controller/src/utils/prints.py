@@ -4,6 +4,7 @@ from rich.theme import Theme
 custom_theme = Theme(
     {
         "info": "dim green_yellow",
+        "big_info": "bold green_yellow",
         "important": "bold green",
         "warning": "magenta",
         "error": "bold red",
@@ -19,6 +20,7 @@ custom_theme = Theme(
 console_original = Console(theme=custom_theme, force_terminal=True)
 console = console_original
 console_original_file = console.file
+
 
 class NullDevice:
     def write(self, s):
@@ -36,9 +38,6 @@ def _enable_console():
     console.file = console_original_file
 
 
-
-
-
 def disable_console(func):
     def inner(*args, **kwargs):
         _disable_console()
@@ -47,5 +46,3 @@ def disable_console(func):
         return res
 
     return inner
-
-

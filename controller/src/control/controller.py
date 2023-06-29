@@ -56,25 +56,27 @@ class ArmController:
     ----------------------------------------
     """
 
-    def start(self,wait = True):
+    def start(self, wait=True, websocket_server=True):
         console.print("Starting controller", style="setup")
-        self.websocket_server.start()
+        if websocket_server:
+            self.websocket_server.start()
+        else:
+            self.websocket_server = None
         self.controller_server.start()
         start_time = time.time()
         if wait:
             while not self.is_ready:
                 time.sleep(0.1)
-                if time.time() - start_time > 3:
+                if time.time() - start_time > 10:
                     raise TimeoutError("Controller took too long to start, check arm client")
         console.print("\nController Started!", style="setup")
 
-
     def stop(self):
-        console.print("Stopping controller...", style="setup",end = "\n")
-        self.websocket_server.stop()
+        console.print("Stopping controller...", style="setup", end="\n")
+        if self.websocket_server is not None:
+            self.websocket_server.stop()
         self.controller_server.stop()
         console.print("Controller Stopped", style="setup")
-
 
     @property
     def current_angles(self):
@@ -90,7 +92,10 @@ class ArmController:
 
     @property
     def is_ready(self):
-        websocket_server_up = self.websocket_server.is_ready
+        if self.websocket_server is None:
+            websocket_server_up = True
+        else:
+            websocket_server_up = self.websocket_server.is_ready
         controller_server_up = self.controller_server.is_ready
         return websocket_server_up and controller_server_up
 
@@ -129,20 +134,27 @@ class ArmController:
             return
         message = Message("M", 1, angles)
         self.controller_server.send_message(message, mutex=True)
-        time.sleep(self.command_cooldown)
+        self.move_queue_size += 1
 
-    def move_to_pose(self, pose):
+    def move_to(self, pose):
         target_angles = self.kinematics.pose_to_angles(pose)
         self.move_to_angles(target_angles)
-        time.sleep(self.command_cooldown)
 
     def home(self, wait=True):
         message = Message("M", 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
         start_time = time.time()
+        self.is_homed = False
         if wait:
             while not self.is_homed:
+                time.sleep(0.1)
+                if time.time() - start_time > 60:
+                    raise TimeoutError("Arm took too long to home")
+            # wait for angles to get to 0
+            start_time = time.time()
+
+            while not all([abs(angle) < 0.1 for angle in self.current_angles]):
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
@@ -151,6 +163,10 @@ class ArmController:
         message = Message("M", 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
+
+    def wait_queue_empty(self):
+        while self.move_queue_size > 0:
+            time.sleep(0.1)
 
     """
     ----------------------------------------
@@ -176,6 +192,7 @@ class ArmController:
                     API Methods -- CONFIG
     ----------------------------------------
     """
+
     def set_homing_direction(self, direction):
         message = Message("C", 1, [direction])
         self.controller_server.send_message(message, mutex=True)
