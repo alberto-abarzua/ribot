@@ -1,26 +1,7 @@
-#include <thread>
 
-#include "config.h"
 #include "controller.h"
 
 #ifdef ESP_PLATFORM
-
-#include <rom/ets_sys.h>
-#include <string.h>
-
-#include "driver/gpio.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_system.h"
-#include "esp_task_wdt.h"
-#include "esp_timer.h"
-#include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-#include "freertos/task.h"
-#include "lwip/err.h"
-#include "lwip/sys.h"
-#include "nvs_flash.h"
 
 static EventGroupHandle_t s_wifi_event_group;
 
@@ -193,11 +174,7 @@ bool Controller::hardware_setup() {
     return true;
 }
 
-bool Joint::hardware_step(uint8_t step_dir) {
-    // In a real implementation this would be a digital write
-    // Execution time should not affect the step interval
-    return true;
-}
+bool Joint::hardware_step(uint8_t step_dir) { return step_dir < 100; }
 bool Joint::hardware_end_stop_read() {
     // In a real implementation this would be a digital read
 

@@ -2,7 +2,6 @@
 
 #include "arm_client.h"
 
-
 ArmClient::ArmClient() {
     // std::cout << "ArmClient constructor called" << std::endl;
 }
@@ -25,7 +24,8 @@ int ArmClient::start_socket() {
     hints.ai_family = AF_UNSPEC;      // Allow IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP socket
 
-    s = getaddrinfo(CONTROLLER_SERVER_HOST, std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
+    s = getaddrinfo(CONTROLLER_SERVER_HOST,
+                    std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
         return -1;
@@ -34,9 +34,12 @@ int ArmClient::start_socket() {
     for (rp = res; rp != NULL; rp = rp->ai_next) {
         this->clientSocket =
             socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (this->clientSocket == -1) continue;
-        if (connect(this->clientSocket, rp->ai_addr, rp->ai_addrlen) != -1)
+        if (this->clientSocket == -1) {
+            continue;
+        }
+        if (connect(this->clientSocket, rp->ai_addr, rp->ai_addrlen) != -1) {
             break;  // success
+        }
         close(this->clientSocket);
     }
 
@@ -51,9 +54,11 @@ int ArmClient::start_socket() {
 }
 
 int ArmClient::send_message(Message *msg) {
-    char message_bytes[msg->get_size()];
+    char *message_bytes = new char[msg->get_size()];
     msg->get_bytes(message_bytes);
-    return send(this->clientSocket, message_bytes, msg->get_size(), 0);
+    int ret = send(this->clientSocket, message_bytes, msg->get_size(), 0);
+    delete[] message_bytes;
+    return ret;
 }
 
 int ArmClient::receive_message(Message **msg_loc) {

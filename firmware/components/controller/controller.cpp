@@ -81,7 +81,7 @@ bool Joint::step() {
         step_direction = 0;
     }
 
-    for (int i = 0; i < steps_to_take; i++) {
+    for (uint16_t i = 0; i < steps_to_take; i++) {
         this->hardware_step(step_direction);
     }
     this->last_step_time = get_current_time_microseconds();
@@ -121,11 +121,12 @@ void Joint::update_current_angle() {
 }
 
 float Joint::steps_to_angle(int64_t steps) {
-    return (float)steps / (float)this->steps_per_revolution * 2.0 * PI;
+    return static_cast<float>(steps) /
+           static_cast<float>(this->steps_per_revolution) * 2.0 * PI;
 }
 
 int64_t Joint::angle_to_steps(float angle) {
-    return (int64_t)(angle / (2 * PI) * this->steps_per_revolution);
+    return static_cast<int64_t>(angle / (2 * PI) * this->steps_per_revolution);
 }
 
 /**
@@ -145,7 +146,7 @@ Controller::Controller() {
     this->joints.push_back(new Joint(0, 0, 1, 5000));
 
     // set speeds
-    for (int i = 0; i < this->joints.size(); i++) {
+    for (uint16_t i = 0; i < this->joints.size(); i++) {
         this->joints[i]->set_speed_rad_per_second(1.0);
     }
     // Message handlers
@@ -171,7 +172,6 @@ bool Controller::recieve_message() {
     }
 
     char op = msg->get_op();
-    Controller::message_op_handler_t handler = this->message_op_handler_map[op];
     std::queue<Message *> *message_queue = this->message_queues[op];
     message_queue->push(msg);
     return true;
@@ -182,7 +182,7 @@ bool Controller::is_homed() {
         return true;
     }
     bool all_homed = true;
-    for (int i = 0; i < this->joints.size(); i++) {
+    for (uint8_t i = 0; i < this->joints.size(); i++) {
         all_homed &= this->joints[i]->homed;
     }
     this->homed = all_homed;
@@ -192,7 +192,7 @@ bool Controller::is_homed() {
 void Controller::stop() { this->arm_client.stop(); }
 
 void Controller::step() {
-    for (int i = 0; i < this->joints.size(); i++) {
+    for (uint8_t i = 0; i < this->joints.size(); i++) {
         this->joints[i]->step();
     }
 }
@@ -263,7 +263,7 @@ void Controller::message_handler_move(Message *message) {
         case 3: {  // home all joints
             std::cout << "homing all joints" << std::endl;
             if (!called) {
-                for (int i = 0; i < this->joints.size(); i++) {
+                for (uint8_t i = 0; i < this->joints.size(); i++) {
                     this->joints[i]->home_joint();
                 }
                 message->set_called(true);
@@ -290,8 +290,9 @@ void Controller::message_handler_status(Message *message) {
         case 0: {
             // angles + move_queue_size + homed
             int message_size = this->joints.size() + 2;
-            float *args = (float *)malloc(sizeof(float) * message_size);
-            for (int i = 0; i < this->joints.size(); i++) {
+            float *args =
+                static_cast<float *>(malloc(sizeof(float) * message_size));
+            for (uint8_t i = 0; i < this->joints.size(); i++) {
                 args[i] = this->joints[i]->get_current_angle();
             }
             int move_message_queue_size = this->message_queues['M']->size();
@@ -323,85 +324,87 @@ void Controller::message_handler_status(Message *message) {
 
 void Controller::message_handler_config(Message *message) {
     int32_t code = message->get_code();
-    int32_t num_args = message->get_num_args();
     float *args = message->get_args();
-    bool called = message->was_called();
     switch (code) {
         case 1: {  // set homing_direction
-            uint8_t joint_idx = (uint8_t)args[0];
-            int8_t homing_direction = (int8_t)args[1];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            int8_t homing_direction = static_cast<int8_t>(args[1]);
             this->joints[joint_idx]->homing_direction = homing_direction;
         } break;
         case 3: {  // get homing_direction
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             int8_t homing_direction = this->joints[joint_idx]->homing_direction;
+            float homing_direction_float = static_cast<float>(homing_direction);
             Message *config_message =
-                new Message('C', 4, 1, (float *)&homing_direction);
+                new Message('C', 4, 1, &homing_direction_float);
             this->arm_client.send_message(config_message);
             delete config_message;
 
         } break;
         case 5: {  // set seeed rad/s
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float speed_rad_per_second = args[1];
             this->joints[joint_idx]->set_speed_rad_per_second(
                 speed_rad_per_second);
         } break;
         case 7: {  // get speed rad/s
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float speed_rad_per_second =
                 this->joints[joint_idx]->get_speed_steps_per_second();
             Message *config_message =
-                new Message('C', 8, 1, (float *)&speed_rad_per_second);
+                new Message('C', 8, 1, &speed_rad_per_second);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
 
         case 9: {  // set steps_per_revolution_axis
-            uint8_t joint_idx = (uint8_t)args[0];
-            uint32_t steps_per_revolution_motor_axis = (uint32_t)args[1];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint32_t steps_per_revolution_motor_axis =
+                static_cast<uint32_t>(args[1]);
             this->joints[joint_idx]->steps_per_revolution_motor_axis =
                 steps_per_revolution_motor_axis;
         } break;
         case 11: {  // get steps_per_revolution_axis
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint32_t steps_per_revolution_motor_axis =
                 this->joints[joint_idx]->steps_per_revolution_motor_axis;
-            Message *config_message = new Message(
-                'C', 12, 1, (float *)&steps_per_revolution_motor_axis);
+            float steps_per_revolution_motor_axis_float =
+                static_cast<float>(steps_per_revolution_motor_axis);
+
+            Message *config_message =
+                new Message('C', 12, 1, &steps_per_revolution_motor_axis_float);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
 
         case 13: {  // set convertion_rate_axis_joint
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float convertion_rate_axis_joint = args[1];
             this->joints[joint_idx]->convertion_rate_axis_joint =
                 convertion_rate_axis_joint;
         } break;
 
         case 15: {  // get convertion_rate_axis_joint
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float convertion_rate_axis_joint =
                 this->joints[joint_idx]->convertion_rate_axis_joint;
             Message *config_message =
-                new Message('C', 16, 1, (float *)&convertion_rate_axis_joint);
+                new Message('C', 16, 1, &convertion_rate_axis_joint);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
 
         case 17: {  // set homing offset rads
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float homing_offset = args[1];
             this->joints[joint_idx]->homing_offset = homing_offset;
 
         } break;
 
         case 19: {
-            uint8_t joint_idx = (uint8_t)args[0];
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float homing_offset = this->joints[joint_idx]->homing_offset;
-            Message *config_message =
-                new Message('C', 20, 1, (float *)&homing_offset);
+            Message *config_message = new Message('C', 20, 1, &homing_offset);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;

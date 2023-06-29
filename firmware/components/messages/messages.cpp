@@ -12,10 +12,10 @@ Message::Message(char op, int32_t code, int32_t num_args, float *args) {
 
 Message::Message(char *message_bytes) {
     this->op = message_bytes[0];
-    this->code = *((int32_t *)(message_bytes + sizeof(char)));
-    this->num_args =
-        *((int32_t *)(message_bytes + sizeof(char) + sizeof(int32_t)));
-    this->args = (float *)malloc(sizeof(float) * this->num_args);
+    this->code = *(reinterpret_cast<int32_t *>(message_bytes + sizeof(char)));
+    this->num_args = *(reinterpret_cast<int32_t *>(
+        message_bytes + sizeof(char) + sizeof(int32_t)));
+    this->args = static_cast<float *>(malloc(sizeof(float) * this->num_args));
     memcpy(this->args, message_bytes + sizeof(char) + sizeof(int32_t) * 2,
            sizeof(float) * this->num_args);
     int16_t size_headers = sizeof(char) + sizeof(int32_t) * 2;
@@ -59,19 +59,13 @@ void Message::print() {
     std::cout << std::endl;
 }
 
-bool Message::was_called(){
-    return this->called;
-}
+bool Message::was_called() { return this->called; }
 
-bool Message::is_complete(){
-    return this->complete;
-}
+bool Message::is_complete() { return this->complete; }
 
-bool Message::set_called(bool called){
+bool Message::set_called(bool called) {
     this->called = called;
     return this->called;
 }
 
-void Message::set_complete(bool complete){
-    this->complete = complete;
-}
+void Message::set_complete(bool complete) { this->complete = complete; }

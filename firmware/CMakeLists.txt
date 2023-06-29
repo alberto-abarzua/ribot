@@ -8,10 +8,7 @@ set(WIFI_PASSWORD $ENV{WIFI_PASSWORD})
 set(CONTROLLER_SERVER_HOST $ENV{CONTROLLER_SERVER_HOST})
 set(CONTROLLER_SERVER_PORT $ENV{CONTROLLER_SERVER_PORT})
 
-# Set compiler warnings
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
-endif()
+
 
 
 # Use the CMake variable in your code
@@ -21,6 +18,7 @@ include_directories(${CMAKE_BINARY_DIR})
 
 if(DEFINED ENV{IDF_PATH})
     include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    add_compile_definitions(ESP_PLATFORM)
     project(ArmTwin)
     list(APPEND EXTRA_COMPONENT_DIRS "$ENV{IDF_PATH}/tools/mocks/freertos/")
     list(APPEND EXTRA_COMPONENT_DIRS "./components")
@@ -29,7 +27,12 @@ if(DEFINED ENV{IDF_PATH})
 else()
     project(ArmTwin)
     set(CMAKE_CXX_STANDARD 20)
-    
+    # Set compiler warnings
+    set(CMAKE_C_COMPILER "/usr/bin/clang")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror")
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=google-runtime-int")
     # Add your source files here
     file(GLOB_RECURSE SOURCES "main/main.cpp" "components/*.cpp")
 

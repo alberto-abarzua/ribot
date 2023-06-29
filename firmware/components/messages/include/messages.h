@@ -1,9 +1,9 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#include <stdint.h>
 #include <cstring>
 #include <iostream>
-#include <stdint.h>
 
 class Message {
    private:
@@ -18,7 +18,7 @@ class Message {
    public:
     Message(char op, int32_t code, int32_t num_args, float* args);
 
-    Message(char * message_bytes);
+    explicit Message(char* message_bytes);
 
     ~Message();
 
@@ -28,7 +28,6 @@ class Message {
     float* get_args();
     int32_t get_size();
 
-
     void get_bytes(char* message_bytes);
 
     bool is_complete();
@@ -37,10 +36,6 @@ class Message {
     void set_complete(bool complete);
 
     void print();
-
-
-    
 };
-
 
 #endif
