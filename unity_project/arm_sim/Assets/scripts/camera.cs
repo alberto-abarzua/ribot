@@ -17,7 +17,7 @@ public class camera : MonoBehaviour
         Screen.SetResolution(1280,780,false);
         Cursor.lockState = CursorLockMode.Locked;
         transform.position = new Vector3(309,627,346);
-
+        Camera.main.aspect = 1f;
         
     }
     

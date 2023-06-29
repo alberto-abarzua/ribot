@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from control.controller import ArmController
-from utils.prints import console, disable_console
+from utils.prints import disable_console
 
 
 class TestController(unittest.TestCase):
