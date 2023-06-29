@@ -6,6 +6,36 @@
     <title>Unity WebGL Player | arm_sim</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <script>
+        function resizeGame() {
+            var gameCanvas = document.getElementById('gameContainer');
+            var widthToHeight = 4 / 3; // replace here with your aspect ratio
+            var newWidth = window.innerWidth;
+            var newHeight = window.innerHeight;
+            var newWidthToHeight = newWidth / newHeight;
+            
+            if (newWidthToHeight > widthToHeight) {
+                newWidth = newHeight * widthToHeight;
+                gameCanvas.style.height = newHeight + 'px';
+                gameCanvas.style.width = newWidth + 'px';
+            } else {
+                newHeight = newWidth / widthToHeight;
+                gameCanvas.style.width = newWidth + 'px';
+                gameCanvas.style.height = newHeight + 'px';
+            }
+            
+            gameCanvas.style.marginTop = (-newHeight / 2) + 'px';
+            gameCanvas.style.marginLeft = (-newWidth / 2) + 'px';
+            
+            gameCanvas.style.paddingTop = '0px';
+            gameCanvas.style.paddingLeft = '0px';
+            
+            gameCanvas.style.fontSize = (newHeight / 30) + 'px';
+        }
+    
+        window.addEventListener('resize', resizeGame, false);
+        window.addEventListener('orientationchange', resizeGame, false);
+    </script>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -94,8 +124,8 @@
       } else {
         // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
 
-        canvas.style.width = "1000px";
-        canvas.style.height = "1000px";
+        canvas.style.width = "700px";
+        canvas.style.height = "700px";
       }
 
       loadingBar.style.display = "block";

@@ -58,11 +58,11 @@ class WebsocketServer(ControllerDependencies):
         self.stop_event = threading.Event()
         self.loop = None
 
-    async def handler(self, websocket, path):
+    async def handler(self, websocket, _):
         async for message in websocket:
             console.print(f"Received message: {message}", style="info")
             if message.strip() == "get_angles":
-                angles = self.controller.get_angles()
+                angles = self.controller.current_angles
                 response = Message("0", 0, angles)
                 response = response.encode()
                 await websocket.send(response)
