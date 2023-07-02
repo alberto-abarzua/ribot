@@ -20,7 +20,7 @@ format)
     ;;
 test)
     docker compose up firmware -d
-    TEST=true docker compose run controller
+    TEST=true docker compose up controller
     docker compose down --remove-orphans
     ;;
 test-esp)
