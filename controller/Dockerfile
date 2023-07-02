@@ -13,5 +13,11 @@ RUN pdm install
 
 COPY . .
 
-CMD ["pdm", "run", "python", "./src/main.py"]
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT [ "/app/entrypoint.sh" ]
+
+CMD ["pdm", "run", "start"]
+
+
 

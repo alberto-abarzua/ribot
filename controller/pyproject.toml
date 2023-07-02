@@ -31,4 +31,5 @@ isort = "isort src"
 black = "black src"
 lint = "flake8 src"
 test = "python -m unittest discover -s src/tests -p 'test_*.py'"
+start = "python src/main.py"
 format = {composite = ["isort", "black"]}

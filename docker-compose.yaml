@@ -10,6 +10,7 @@ services:
 
 
   controller:
+    pid: "host"
     build:
       context: ./controller
     ports:
@@ -19,18 +20,21 @@ services:
       - ./controller/src:/app/src
       - ./controller/pyproject.toml:/app/pyproject.toml
       - ./controller/pdm.lock:/app/pdm.lock
-    depends_on:
-      - firmware
+    # depends_on:
+      # - firmware
     environment:
       - CONTROLLER_SERVER_HOST
       - CONTROLLER_SERVER_PORT  
+      - TEST
 
   firmware:
+    pid: "host"
+
     build:
       context: ./firmware
       dockerfile: Dockerfile
     volumes:
-      - ./firmware/main.cpp:/app/main.cpp
+      - ./firmware/main:/app/main
       - ./firmware/CMakeLists.txt:/app/CMakeLists.txt
       - ./firmware/components:/app/components
     environment:

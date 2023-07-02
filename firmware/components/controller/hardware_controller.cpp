@@ -134,7 +134,7 @@ void Controller::step_target_fun() {
     // Add this task to the task watchdog
     esp_task_wdt_add(NULL);
 
-    while (1) {
+    while (this->stop_flag == false) {
         esp_task_wdt_reset();
         this->step();
         // Feed the task watchdog
@@ -160,6 +160,7 @@ void task_feed() { esp_task_wdt_reset(); }
 
 void task_end() { esp_task_wdt_delete(NULL); }
 
+void Controller::stop_step_task() {}
 #else
 
 void task_add() {}
@@ -192,14 +193,15 @@ uint64_t get_current_time_microseconds() {
 }
 
 void Controller::step_target_fun() {
-    while (1) {
+    while (this->stop_flag == false) {
         this->step();
     }
 }
 
 void Controller::run_step_task() {
-    std::thread step_thread(&Controller::step_target_fun, this);
-    step_thread.detach();
+    this->step_thread =new  std::thread(&Controller::step_target_fun, this);
+    this->step_thread->detach();
 }
 
+void Controller::stop_step_task() { this->step_thread->join(); }
 #endif

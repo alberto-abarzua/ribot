@@ -31,7 +31,7 @@ else()
     set(CMAKE_C_COMPILER "/usr/bin/clang")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -Werror")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror -fsanitize=address -fno-omit-frame-pointer -g")
     set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=google-runtime-int")
     # Add your source files here
     file(GLOB_RECURSE SOURCES "main/main.cpp" "components/*.cpp")

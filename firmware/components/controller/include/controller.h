@@ -99,16 +99,24 @@ class Controller {
     std::map<char, std::queue<Message *> *> message_queues;
     std::map<char, message_op_handler_t> message_op_handler_map;
     bool homed = false;
+    bool stop_flag = false;
+
+    #ifdef ESP_PLATFORM
+    #else
+    std::thread *step_thread;
+    #endif
 
    public:
     Controller();
     ~Controller();
     void start();
     void stop();
+    void stop(int signum);
     void step();
     bool recieve_message();
     void handle_messages();
     void run_step_task();
+    void stop_step_task();
     void step_target_fun();
     bool hardware_setup();
     bool is_homed();

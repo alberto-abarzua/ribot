@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     clang-format \
     clang-tools \
+    valgrind \
     clang-tidy \
     && rm -rf /var/lib/apt/lists/*
 
@@ -17,3 +18,5 @@ COPY . .
 RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+
+CMD ["run"]

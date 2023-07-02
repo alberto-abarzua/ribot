@@ -2,11 +2,9 @@
 
 #include "arm_client.h"
 
-ArmClient::ArmClient() {
-}
+ArmClient::ArmClient() {}
 
-ArmClient::~ArmClient() {
-}
+ArmClient::~ArmClient() {}
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -38,11 +36,15 @@ int ArmClient::start_socket() {
         if (connect(this->clientSocket, rp->ai_addr, rp->ai_addrlen) != -1) {
             break;  // success
         }
+
         close(this->clientSocket);
+        this->clientSocket =
+            -1;  // invalidate the socket descriptor after closing it
     }
 
-    if (rp == NULL) {  // No address succeeded
-        std::cerr << "Could not connect\n";
+    if (this->clientSocket == -1) {  // No address succeeded
+        std::cerr << "Could not connect to host -> " << CONTROLLER_SERVER_HOST
+                  << "\n";
         return -1;
     }
 
@@ -51,6 +53,26 @@ int ArmClient::start_socket() {
     return 0;
 }
 
+int ArmClient::setup() {
+    int ret = this->start_socket();
+    if (ret == -1) {
+        return -1;
+    }
+
+    // Set the socket to be non-blocking
+    int flags = fcntl(this->clientSocket, F_GETFL, 0);
+    if (flags == -1) {
+        perror("Unable to get socket flags");
+        exit(EXIT_FAILURE);
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(this->clientSocket, F_SETFL, flags) == -1) {
+        perror("Unable to set socket flags");
+        exit(EXIT_FAILURE);
+    }
+    return ret;
+}
 int ArmClient::send_message(Message *msg) {
     char *message_bytes = new char[msg->get_size()];
     msg->get_bytes(message_bytes);
@@ -72,6 +94,9 @@ int ArmClient::receive_message(Message **msg_loc) {
         } else {
             return -1;
         }
+    }
+    if (result!= Message::HEADER_SIZE) {
+        return -1;
     }
     char op;
     int32_t code, num_args;
@@ -95,27 +120,4 @@ int ArmClient::receive_message(Message **msg_loc) {
     return 1;
 }
 
-int ArmClient::setup() {
-    int ret = this->start_socket();
-    if (ret == -1) {
-        return -1;
-    }
-
-    // Set the socket to be non-blocking
-    int flags = fcntl(this->clientSocket, F_GETFL, 0);
-    if (flags == -1) {
-        perror("Unable to get socket flags");
-        exit(EXIT_FAILURE);
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(this->clientSocket, F_SETFL, flags) == -1) {
-        perror("Unable to set socket flags");
-        exit(EXIT_FAILURE);
-    }
-    return ret;
-}
-
-void ArmClient::stop() {
-    close(this->clientSocket);
-}
+void ArmClient::stop() { close(this->clientSocket); }

@@ -11,15 +11,8 @@ from utils.prints import disable_console
 
 class TestController(unittest.TestCase):
     @classmethod
-    # @disable_console
+    @disable_console
     def setUpClass(cls):
-        controller_hostname = os.environ.get("CONTROLLER_SERVER_HOST", "localhost")
-        print(f"Controller hostname is {controller_hostname}")
-        if controller_hostname == "controller":
-            # resolve firmware hostname
-            ip_addres = socket.gethostbyname("firmware")
-            print(f"Resolved firmware hostname to {ip_addres}")
-
         cls.controller = ArmController()
         cls.controller.start(websocket_server=False)
         start_time = time.time()
