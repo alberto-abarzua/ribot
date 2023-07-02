@@ -9,7 +9,7 @@ from utils.prints import disable_console
 
 class TestController(unittest.TestCase):
     @classmethod
-    @disable_console
+    # @disable_console
     def setUpClass(cls):
         cls.controller = ArmController()
         cls.controller.start(websocket_server=False)

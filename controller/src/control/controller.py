@@ -50,7 +50,7 @@ class ArmController:
 
         self.command_cooldown = 0.01
 
-        self.connection_controller_timeout = 60
+        self.connection_controller_timeout = 15
 
     """
     ----------------------------------------

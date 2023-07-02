@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -rf $PWD/firmware/build 
+
 docker run --rm \
     -v $PWD/firmware:/project \
     -w /project \

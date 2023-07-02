@@ -20,22 +20,22 @@ format)
     ;;
 test)
     docker compose up firmware -d
+    # sleep 5
+    sleep 10
+
     TEST=true docker compose up controller
     docker compose down --remove-orphans
     ;;
 test-esp)
     source .env
     CONTROLLER_SERVER_HOST=$(get_ip)
-    # export CONTROLLER_SERVER_HOST
     export CONTROLLER_SERVER_PORT
     echo "Requires idf.py to be installed and environment variables to be set"
-    # check if IDF_PATH IS SET
     if [ -z "$IDF_PATH" ]; then
         echo "IDF_PATH is not set"
         exit 1
     fi
     cd firmware
-    # remove build directory
     rm -rf build
     idf.py build flash || exit 1
     TEST=true docker compose up controller

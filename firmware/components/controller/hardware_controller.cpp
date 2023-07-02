@@ -199,9 +199,11 @@ void Controller::step_target_fun() {
 }
 
 void Controller::run_step_task() {
-    this->step_thread =new  std::thread(&Controller::step_target_fun, this);
-    this->step_thread->detach();
+    this->step_thread = new std::thread(&Controller::step_target_fun, this);
 }
 
-void Controller::stop_step_task() { this->step_thread->join(); }
+void Controller::stop_step_task() {
+    this->step_thread->join();
+    delete this->step_thread;
+}
 #endif

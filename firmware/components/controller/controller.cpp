@@ -147,7 +147,25 @@ Controller::Controller() {
     }
 }
 
-Controller::~Controller() { this->arm_client.stop(); }
+Controller::~Controller() { 
+    
+    
+    this->arm_client.stop(); 
+    // delete queues
+    for (auto const &[key, val] : this->message_queues) {
+        std::queue<Message *> *message_queue = val;
+        while (message_queue->size() > 0) {
+            Message *msg = message_queue->front();
+            message_queue->pop();
+            delete msg;
+        }
+        delete message_queue;
+    }
+    // delete joints
+    for (uint8_t i = 0; i < this->joints.size(); i++) {
+        delete this->joints[i];
+    }
+}
 
 bool Controller::recieve_message() {
     Message *msg;
@@ -185,24 +203,11 @@ void Controller::stop() {
     this->stop_flag = true;
     this->arm_client.stop();
     this->stop_step_task();
-    // delete queues
-    for (auto const &[key, val] : this->message_queues) {
-        std::queue<Message *> *message_queue = val;
-        while (message_queue->size() > 0) {
-            Message *msg = message_queue->front();
-            message_queue->pop();
-            delete msg;
-        }
-        delete message_queue;
-    }
-    // delete joints
-    for (uint8_t i = 0; i < this->joints.size(); i++) {
-        delete this->joints[i];
-    }
+    
 }
 
 void Controller::stop(int signum) {
-    std::cout << "Stopping controller "<<signum << std::endl;
+    std::cout << "Stopping controller " << signum << std::endl;
     this->stop();
 }
 
@@ -213,32 +218,37 @@ void Controller::step() {
 }
 
 void Controller::start() {
-    run_delay(1000);
-    std::cout << "Starting controller" << std::endl;
-    this->hardware_setup();
-    int succesful_setup = this->arm_client.setup();
-    uint64_t timeout = 1;
-    while (succesful_setup != 0) {
-        run_delay(timeout);
-        timeout *= 2;
-        succesful_setup = this->arm_client.setup();
-    }
-    this->run_step_task();
-    std::cout << "Connected to the server" << std::endl;
-    uint64_t last_message_time = get_current_time_microseconds();
-    while (true) {
-        if (this->recieve_message()) {
-            this->handle_messages();  // handles messages on queue
-            last_message_time = get_current_time_microseconds();
-        }else{
-            // if more than 5 seconds since last message
-            if (get_current_time_microseconds() - last_message_time > 5*1000000) {
-                std::cout << "No message in 5 seconds, stopping controller" << std::endl;
-                this->stop();
-                break;
-            }
+    while (this->stop_flag == false) {
+        run_delay(1000);
+        std::cout << "Starting controller" << std::endl;
+        this->hardware_setup();
+        int succesful_setup = this->arm_client.setup();
+        uint64_t timeout = 500;
+
+        while (succesful_setup != 0) {
+            run_delay(timeout);
+            timeout += 500;
+            succesful_setup = this->arm_client.setup();
         }
-        run_delay(10);
+        this->run_step_task();
+        std::cout << "Connected to the server" << std::endl;
+        uint64_t last_message_time = get_current_time_microseconds();
+        while (true) {
+            if (this->recieve_message()) {
+                this->handle_messages();  // handles messages on queue
+                last_message_time = get_current_time_microseconds();
+            } else {
+                // if more than 5 seconds since last message
+                if (get_current_time_microseconds() - last_message_time >
+                    2 * 1000000) {
+                    std::cout << "No message in 5 seconds, stopping controller"
+                              << std::endl;
+                    this->stop();
+                    break;
+                }
+            }
+            run_delay(10);
+        }
     }
 }
 

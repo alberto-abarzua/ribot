@@ -24,6 +24,7 @@ int ArmClient::start_socket() {
                     std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
+        freeaddrinfo(res);
         return -1;
     }
 
@@ -41,21 +42,26 @@ int ArmClient::start_socket() {
         this->clientSocket =
             -1;  // invalidate the socket descriptor after closing it
     }
+    freeaddrinfo(res);  // No longer needed
 
     if (this->clientSocket == -1) {  // No address succeeded
         std::cerr << "Could not connect to host -> " << CONTROLLER_SERVER_HOST
                   << "\n";
         return -1;
+    } else {
+        return 0;
     }
-
-    freeaddrinfo(res);  // No longer needed
-
-    return 0;
 }
 
 int ArmClient::setup() {
     int ret = this->start_socket();
     if (ret == -1) {
+        return -1;
+    }
+
+    // check socket is valid
+    if (this->clientSocket == -1) {
+        std::cerr << "Invalid socket\n";
         return -1;
     }
 
@@ -95,7 +101,7 @@ int ArmClient::receive_message(Message **msg_loc) {
             return -1;
         }
     }
-    if (result!= Message::HEADER_SIZE) {
+    if (result != Message::HEADER_SIZE) {
         return -1;
     }
     char op;
