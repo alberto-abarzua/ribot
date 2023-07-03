@@ -170,7 +170,6 @@ void task_feed() {}
 void task_end() {}
 
 bool Controller::hardware_setup() {
-    std::cout << "Setting up hardware" << std::endl;
     return true;
 }
 

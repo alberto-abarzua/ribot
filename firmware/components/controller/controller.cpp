@@ -219,15 +219,19 @@ void Controller::start() {
         run_delay(1000);
         std::cout << "Starting controller" << std::endl;
         this->hardware_setup();
+        std::cout<<"Hardware setup complete\n";
         int succesful_setup = this->arm_client.setup();
+        std::cout<<"Starting Arm Client setup\n";
         uint64_t timeout = 500;
 
         while (succesful_setup != 0) {
             run_delay(timeout);
+            std::cout << "Retrying Arm Client setup\n";
             timeout += 500;
             succesful_setup = this->arm_client.setup();
         }
         this->run_step_task();
+
         std::cout << "Connected to the server" << std::endl;
         uint64_t last_message_time = get_current_time_microseconds();
         while (true) {

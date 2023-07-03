@@ -24,15 +24,28 @@ lint)
 test)
     docker compose up firmware -d
     # FOLLOW LOGS TO SEE WHEN FIRMWARE IS READY
-    while ! docker compose logs firmware | grep "Starting controller"; do
+    # start timestamp
+    START_TIMESTAMP=$(date +%s)
+    while ! docker compose logs firmware | grep "Hardware setup complete"; do
         sleep 1
+        # timeout after 1 minute
+        if [ $(($(date +%s) - $START_TIMESTAMP)) -gt 60 ]; then
+            echo "Firmware failed to start"
+            docker compose logs firmware
+            docker compose down --remove-orphans
+            exit 1
+        fi
     done
     docker compose logs firmware
     echo "Firmware is ready"
     docker compose run --service-ports --use-aliases controller pdm run test
     EXIT_CODE=$?
-
-    docker compose logs firmware
+    if [ $EXIT_CODE -eq 0 ]; then
+        echo "Tests passed"
+    else
+        echo "Tests failed"
+        docker compose logs firmware
+    fi
     docker compose down --remove-orphans
     exit $EXIT_CODE
     ;;
