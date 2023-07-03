@@ -19,14 +19,14 @@ class TestController(unittest.TestCase):
             if time.time() - start_time > 3:
                 # fail all tests if controller takes too long to start
                 raise TimeoutError("Controller took too long to start")
-            
+
         cls.controller.home()
 
     @classmethod
     @disable_console
     def tearDownClass(cls):
         cls.controller.stop()
-    
+
     @disable_console
     def tearDown(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
