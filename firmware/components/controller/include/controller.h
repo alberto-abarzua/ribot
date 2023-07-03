@@ -103,7 +103,7 @@ class Controller {
 
 #ifdef ESP_PLATFORM
 #else
-    std::thread *step_thread;
+    std::thread *step_thread =nullptr;
 #endif
 
    public:

@@ -60,13 +60,6 @@ bool Joint::set_home() {
 }
 
 bool Joint::step() {
-    if (this->homing) {
-        if (this->hardware_end_stop_read()) {
-            this->set_home();
-            this->homing = false;
-            return false;
-        }
-    }
     uint64_t current_time = get_current_time_microseconds();
     uint32_t steps_to_take = this->steps_to_take(current_time);
     int8_t step_dir;
@@ -77,6 +70,13 @@ bool Joint::step() {
             this->current_steps += step_dir;
             this->current_angle = this->steps_to_angle(this->current_steps);
             this->last_step_time = get_current_time_microseconds();
+            if (this->homing) {
+                if (this->hardware_end_stop_read()) {
+                    this->set_home();
+                    this->homing = false;
+                    return false;
+                }
+            }
         }
         return true;
     }
