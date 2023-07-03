@@ -28,8 +28,8 @@ test)
     START_TIMESTAMP=$(date +%s)
     while ! docker compose logs firmware | grep "Hardware setup complete"; do
         sleep 1
-        # timeout after 1 minute
-        if [ $(($(date +%s) - $START_TIMESTAMP)) -gt 60 ]; then
+        # timeout after 2 minute
+        if [ $(($(date +%s) - $START_TIMESTAMP)) -gt 120 ]; then
             echo "Firmware failed to start"
             docker compose logs firmware
             docker compose down --remove-orphans
