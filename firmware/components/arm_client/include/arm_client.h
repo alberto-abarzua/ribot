@@ -16,8 +16,12 @@
  */
 class ArmClient {
    private:
+
+    bool socket_created = false;
+
     int clientSocket;
-    int start_socket();
+    int create_socket();
+    int attempt_connection();
 
    public:
     ArmClient();

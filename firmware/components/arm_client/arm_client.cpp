@@ -11,8 +11,7 @@ ArmClient::~ArmClient() {}
 #include <sys/types.h>
 
 #include "messages.h"
-
-int ArmClient::start_socket() {
+int ArmClient::create_socket() {
     struct addrinfo hints, *res, *rp;
     int s;
 
@@ -24,6 +23,7 @@ int ArmClient::start_socket() {
                     std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
+        std::cerr << "getaddrinfo error: " << gai_strerror(s) << "\n";
         return -1;
     }
 
@@ -31,18 +31,48 @@ int ArmClient::start_socket() {
         this->clientSocket =
             socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (this->clientSocket == -1) {
+            perror("socket creation failed");
             continue;
         }
+        break;
+    }
+
+    freeaddrinfo(res);
+
+    if (this->clientSocket == -1) {  // No address succeeded
+        std::cerr << "Could not create a socket\n";
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+int ArmClient::attempt_connection() {
+    struct addrinfo hints, *res, *rp;
+    int s;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;      // Allow IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM;  // TCP socket
+
+    s = getaddrinfo(CONTROLLER_SERVER_HOST,
+                    std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
+                    &res);
+    if (s != 0) {
+        std::cerr << "getaddrinfo error: " << gai_strerror(s) << "\n";
+        return -1;
+    }
+
+    for (rp = res; rp != NULL; rp = rp->ai_next) {
         if (connect(this->clientSocket, rp->ai_addr, rp->ai_addrlen) != -1) {
             break;  // success
         }
 
-        close(this->clientSocket);
-        this->clientSocket = -1;
+        perror("connection attempt failed");
     }
     freeaddrinfo(res);
 
-    if (this->clientSocket == -1) {  // No address succeeded
+    if (rp == NULL) {  // No address succeeded
         std::cerr << "Could not connect to host -> " << CONTROLLER_SERVER_HOST
                   << "\n";
         return -1;
@@ -52,9 +82,12 @@ int ArmClient::start_socket() {
 }
 
 int ArmClient::setup() {
-    int ret = this->start_socket();
-    if (ret == -1) {
-        return -1;
+    if (!this->socket_created) {
+        if (this->create_socket() == -1) {
+            return -1;
+        } else {
+            this->socket_created = true;
+        }
     }
 
     // check socket is valid
@@ -63,19 +96,23 @@ int ArmClient::setup() {
         return -1;
     }
 
+    if (this->attempt_connection() == -1) {
+        return -1;
+    }
+
     // Set the socket to be non-blocking
     int flags = fcntl(this->clientSocket, F_GETFL, 0);
     if (flags == -1) {
         perror("Unable to get socket flags");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     flags |= O_NONBLOCK;
     if (fcntl(this->clientSocket, F_SETFL, flags) == -1) {
         perror("Unable to set socket flags");
-        exit(EXIT_FAILURE);
+        return -1;
     }
-    return ret;
+    return 0;
 }
 int ArmClient::send_message(Message *msg) {
     char *message_bytes = new char[msg->get_size()];
