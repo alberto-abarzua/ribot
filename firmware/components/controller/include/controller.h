@@ -1,14 +1,14 @@
 #ifndef CONTROLLER_H
 
 #define CONTROLLER_H
+#include <algorithm>
+#include <cmath>
 #include <map>
 #include <queue>
 #include <thread>
 #include <vector>
-#include <cmath> 
 #include "arm_client.h"
 #include "config.h"
-#include <algorithm>
 #include "messages.h"
 #define PI 3.14159265358979323846
 
@@ -101,10 +101,10 @@ class Controller {
     bool homed = false;
     bool stop_flag = false;
 
-    #ifdef ESP_PLATFORM
-    #else
+#ifdef ESP_PLATFORM
+#else
     std::thread *step_thread;
-    #endif
+#endif
 
    public:
     Controller();

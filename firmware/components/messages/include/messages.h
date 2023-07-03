@@ -14,6 +14,7 @@ class Message {
     float* args;
     bool complete = false;
     bool called = false;
+
    public:
     static const uint8_t HEADER_SIZE = sizeof(char) + sizeof(int32_t) * 2;
     Message(char op, int32_t code, int32_t num_args, float* args);
@@ -34,7 +35,8 @@ class Message {
     bool was_called();
     bool set_called(bool called);
     void set_complete(bool complete);
-    static int parse_headers(char* message_bytes, char* op, int32_t* code, int32_t* num_args);
+    static int parse_headers(char* message_bytes, char* op, int32_t* code,
+                             int32_t* num_args);
 
     void print();
 };

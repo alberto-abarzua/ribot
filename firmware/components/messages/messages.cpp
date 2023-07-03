@@ -70,10 +70,10 @@ bool Message::set_called(bool called) {
 void Message::set_complete(bool complete) { this->complete = complete; }
 
 int Message::parse_headers(char *message_bytes, char *op, int32_t *code,
-                                  int32_t *num_args) {
+                           int32_t *num_args) {
     *op = message_bytes[0];
     *code = *(reinterpret_cast<int32_t *>(message_bytes + sizeof(char)));
-    *num_args = *(reinterpret_cast<int32_t *>(
-        message_bytes + sizeof(char) + sizeof(int32_t)));
+    *num_args = *(reinterpret_cast<int32_t *>(message_bytes + sizeof(char) +
+                                              sizeof(int32_t)));
     return 0;
 }

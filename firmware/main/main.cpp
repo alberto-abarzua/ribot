@@ -31,8 +31,9 @@ int run_controller() {
 extern "C" void app_main() { run_controller(); }
 #else
 
-int main() { 
+int main() {
     signal(SIGINT, handleSIGINT);
 
-    run_controller(); }
+    run_controller();
+}
 #endif

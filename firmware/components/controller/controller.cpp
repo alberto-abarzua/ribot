@@ -147,10 +147,8 @@ Controller::Controller() {
     }
 }
 
-Controller::~Controller() { 
-    
-    
-    this->arm_client.stop(); 
+Controller::~Controller() {
+    this->arm_client.stop();
     // delete queues
     for (auto const &[key, val] : this->message_queues) {
         std::queue<Message *> *message_queue = val;
@@ -203,7 +201,6 @@ void Controller::stop() {
     this->stop_flag = true;
     this->arm_client.stop();
     this->stop_step_task();
-    
 }
 
 void Controller::stop(int signum) {
