@@ -4,6 +4,12 @@
 
 Controller* global_controller = nullptr;
 
+#if defined(ESP_PLATFORM)
+    #pragma message("Current platform: ESP32")
+#else
+    #pragma message("Current platform: Linux")
+#endif
+
 #ifndef ESP_PLATFORM
 #include <signal.h>
 
