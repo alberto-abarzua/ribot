@@ -32,6 +32,7 @@ test)
     docker compose run --service-ports --use-aliases controller pdm run test
     EXIT_CODE=$?
 
+    docker compose logs firmware
     docker compose down --remove-orphans
     exit $EXIT_CODE
     ;;
