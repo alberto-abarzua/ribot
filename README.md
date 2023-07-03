@@ -1,65 +1,88 @@
-# 6DOF 3D printeable Robot Arm
+# 6DOF Robotic Arm Control System
 
-# Brief summary 
-<p> This project consists of a 3D printable (designed in Fusion 360) Robot Arm with six degrees of freedom. This arm is controlled using an Arduino Mega which controlls all the stepper motors that move the arm's joints. The arduino is controlled with a python script that runs it through serial comunication. All the kinematics and movements of the robot are coded in Python.
-</p>
+## Description
 
-<p>Usefull things to know:</p>
+The project comprises a control system for a 6DOF robotic arm.
+ The system is split into two key parts: a controller and a firmware.
 
-- TCP: Tool at the end of the robot arm also known as end effector
-- The state of the TCP can be described by a position with 3 coordinates (x,y,z) and 3 angles
-roll, pitch and yaw also known as euler angles.
-- A certain TCP state can be achieved with multiple angle configurations of each joint. (Inverse Kinematics can have multiple solutions)
-- A certain angle configurations of the joints can only achieve one TCP state.
+## Controller
 
-## The Robot Arm 
+The controller forms the core of our system, housed within a Python 
+script that is executed on a computer. The role of the controller is two-fold. 
+It sends commands to the firmware, while simultaneously receiving data from it. 
+As the primary interface for the user, it provides a programmable interface for the 
+manipulation and operation of the robotic arm.
 
-<img src="src/overview.jpeg" style = "width: 50rem;" alt="">
+## Firmware
 
-### About arduino (C\C++) and design:
-<p> The arduino code receives commands through serial comunication to control the steppers for each joint and the servo motor
-    of the robot's gripper. There are multiple commands to move the robot these are defined and explained in the arduino code.</p>
-    
-<p>The arm displayed in the last photo was built using the following main components:</p>
+In contrast to the controller, the firmware is designed to run on an 
+ESP32 microcontroller or on a computer for testing purposes. It is coded in C++ and 
+designed to be as platform-independent as possible, making future porting to other 
+microcontrollers feasible. The firmware takes commands from the controller, 
+executing them accordingly. Additionally, it undertakes the responsibility of forwarding data 
+to the controller.
 
-- 2 x Nema 23 Stepper motors
-- 5 x Various sizes of Nema 17 Stepper motors
-- Arduino Mega 2560
-- 24V power supply
-- 7 x TB6600 stepper motor driver.
-- 6 x hall effect sensors (Used to home each Joint)
-- MG995 servo motor (Part of the robot's tool)
+## Features
 
-## About the Python Code.
+-   [x] Basic control of the robotic arm using a Python script
+-   [x] CI/CD pipeline for the controller and the firmware (lint, format, test, build)
+-   [x] Firmware compatibility with an ESP32 microcontroller
+-   [x] Firmware compatibility with a computer
+-   [x] Firmware can be tested on a computer
+-   [x] Firmware can be tested on an ESP32 microcontroller
+-   [x] Communication between controller and firmware via WiFi TCP socket
+-   [x] Implementing Inverse Kinematics for the robotic arm
+-   [x] Implementing Forward Kinematics for the robotic arm
+-   [x] Implementing a basic controller for the robotic arm
+-   [x] Implementing a basic firmware for the robotic arm
+-   [x] Support for 6DOF robotic arm
 
-<p> In terms of programing and maths the most complex parts of the project are solved here. Some of these are:</p>
+### Planned features
 
-- Direct Kinematics: This is the mathematical process of calculating the robot's TCP position (x,y,z,roll,pitch,yaw) based on the angles of each joint. (Code in armUtils/robotarm.py)
+-   [ ] Making controller platform-independent (can run on any computer or OS)
+-   [ ] Additional commands for the firmware
+-   [ ] Additional commands for the controller
+-   [ ] Robotic arm controllable via a joystick
+-   [ ] Robotic arm controllable via a web interface
+-   [ ] Make the controller a python package
+-   [ ] Build HTTP API for the controller
+-   [ ] Advanced control of the robotic arm using a Python script
+-   [ ] Advanced control of the robotic arm using a web interface
+-   [ ] Advanced control of the robotic arm using a joystick
+-   [ ] Movement planning for the robotic arm (e.g. move from A to B in 5 seconds)
+-   [ ] Firmware compatibility with other microcontrollers
 
-- Inverse Kinematics: This is the mathematical process of calculating the angles that every joint should have so that the TCP reaches a certain position (x,y,z) with certain angles (roll,pitch,yaw). (Code in armUtils/robotarm.py)
+## How to run
 
-- Arm simulation: Created using unity, receives the angles from python code using a socket displaying the current configuration of the robot arm.
-![Simulation](https://i.ibb.co/7bJFz8Q/img.png)
+### Requirements
 
-- Arm Controller: The arm controller takes charge of all the controlls and comunication to the arduino. The controller runs the controll logic with an xbox controller,
-gives the inputs to the serial monitor, and runs the simulation with the current angles of the robot 
+-   Docker and Docker compose
+    -   [Get Docker](https://docs.docker.com/get-docker/)
 
+### Run
 
-The controller can be started in a few different ways, these include:
+Firstly, clone this repository. After that, execute the command `./run.sh` in the root
+ directory of the project. This will execute the `controller/src/main.py` script along with the 
+ `firmware` service.
 
- * Support for macOS
- * Run the program with or without the unity simulation displaying the current configuration of the arm.
- * Run the controller conected to a real arduino or without one (if no port is specified)
+#### Useful commands
 
-```
-    To view information on how to run the controller, run
+```bash
+# Run the controller main.py and the firmware (default)
+./run.sh 
 
-    'python arm.py --help'
+# Lint the controller code
+./run.sh lint
 
-    Requirements:
+# Format firmware and controller code
+./run.sh format
 
-    Python 3.10
+# Run the tests
+./run.sh test
 
-    Libraries installation are in 
-    requirements.txt
+# Check build for esp-idf (no dependencies needed)
+./run.sh build-esp
+
+# Run tests for the esp (esp-idf needed)
+./run.sh test-esp
 ```
