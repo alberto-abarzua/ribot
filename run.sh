@@ -23,7 +23,12 @@ lint)
     ;;
 test)
     docker compose up firmware -d
-
+    # FOLLOW LOGS TO SEE WHEN FIRMWARE IS READY
+    while ! docker compose logs firmware | grep "Starting controller"; do
+        sleep 1
+    done
+    docker compose logs firmware
+    echo "Firmware is ready"
     docker compose run --service-ports --use-aliases controller pdm run test
     EXIT_CODE=$?
 
