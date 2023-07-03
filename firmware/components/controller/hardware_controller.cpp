@@ -202,6 +202,9 @@ void Controller::run_step_task() {
 }
 
 void Controller::stop_step_task() {
+    if (this->step_thread == nullptr) {
+        return;
+    }
     this->step_thread->join();
     delete this->step_thread;
 }

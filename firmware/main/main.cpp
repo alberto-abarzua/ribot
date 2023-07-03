@@ -22,13 +22,15 @@ void handleSIGINT(int) {
 #endif
 
 int run_controller() {
-    Controller controller = Controller();
-    global_controller = &controller;
+    
 
     // Register the signal handler
     while (true) {
+        Controller controller = Controller();
+        global_controller = &controller;
         controller.start();  // if controller is stopped, start it
-        run_delay(500);
+        controller.stop();   // if controller is running, stop it
+        global_controller = nullptr;
     }
     return 0;
 }

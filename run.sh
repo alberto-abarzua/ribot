@@ -36,6 +36,7 @@ test)
             exit 1
         fi
     done
+    sleep 5
     docker compose logs firmware
     echo "Firmware is ready"
     docker compose run --service-ports --use-aliases controller pdm run test
