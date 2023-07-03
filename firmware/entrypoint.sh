@@ -17,48 +17,43 @@ build() {
     fi
 }
 
-if [ "$RUN_TWIN_ON_HOST" = "true" ]; then
-    echo "Running twin on host"
+case "$1" in
+build)
+    build
+    ;;
+format)
+    echo "Formatting code"
+    cd /app || exit 1
+    find . \( -iname '*.cpp' -o -iname '*.h' \) -exec clang-format -i {} \;
+    ;;
+valgrind)
+    build
+    echo "Running twin with valgrind"
+    cd /app || exit 1
+    valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./app
+    ;;
+gdb)
+    build
+    echo "Running twin with gdb"
+    cd /app || exit 1
+    gdb ./app
+    ;;
 
-    case "$1" in
-    build)
-        build
-        ;;
-    format)
-        echo "Formatting code"
-        cd /app || exit 1
-        find . \( -iname '*.cpp' -o -iname '*.h' \) -exec clang-format -i {} \;
-        ;;
-    valgrind)
-        build
-        echo "Running twin with valgrind"
-        cd /app || exit 1
-        valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./app
-        ;;
-    gdb)
-        build
-        echo "Running twin with gdb"
-        cd /app || exit 1
-        gdb ./app
-        ;;
+run)
+    build
+    ./app
+    ;;
+help)
+    echo "Available commands:"
+    echo "build - build twin"
+    echo "format - format code"
+    echo "valgrind - run twin with valgrind"
+    echo "gdb - run twin with gdb"
+    echo "run - run twin"
+    echo "help - print this help message"
+    ;;
+*)
+    exec "$@"
+    ;;
+esac
 
-    run)
-        build
-        ./app
-        ;;
-    help)
-        echo "Available commands:"
-        echo "build - build twin"
-        echo "format - format code"
-        echo "valgrind - run twin with valgrind"
-        echo "gdb - run twin with gdb"
-        echo "run - run twin"
-        echo "help - print this help message"
-        ;;
-    *)
-        exec "$@"
-        ;;
-    esac
-else
-    echo "Not running twin on host"
-fi
