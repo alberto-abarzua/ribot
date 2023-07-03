@@ -21,14 +21,10 @@ class ArmClient {
 
    public:
     ArmClient();
-
     ~ArmClient();
 
-    int send_message(Message *msg);
-
-    int receive_message(Message **msg);
-
     int setup();
-
+    int send_message(Message *msg);
+    int receive_message(Message **msg);
     void stop();
 };
