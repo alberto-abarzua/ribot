@@ -169,15 +169,13 @@ void task_feed() {}
 
 void task_end() {}
 
-bool Controller::hardware_setup() {
-    return true;
-}
+bool Controller::hardware_setup() { return true; }
 
 bool Joint::hardware_step(uint8_t step_dir) { return step_dir < 100; }
 bool Joint::hardware_end_stop_read() {
     // In a real implementation this would be a digital read
 
-    if (std::abs(this->current_angle - this->homing_offset) < 0.1) {
+    if (std::abs(this->current_angle - this->homing_offset) < 0.2) {
         return true;
     }
     return false;

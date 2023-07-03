@@ -5,9 +5,9 @@
 Controller* global_controller = nullptr;
 
 #if defined(ESP_PLATFORM)
-    #pragma message("Current platform: ESP32")
+#pragma message("Current platform: ESP32")
 #else
-    #pragma message("Current platform: Linux")
+#pragma message("Current platform: Linux")
 #endif
 
 #ifndef ESP_PLATFORM
@@ -22,8 +22,6 @@ void handleSIGINT(int) {
 #endif
 
 int run_controller() {
-    
-
     // Register the signal handler
     while (true) {
         Controller controller = Controller();

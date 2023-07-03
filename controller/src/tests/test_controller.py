@@ -9,7 +9,7 @@ from utils.prints import disable_console
 
 class TestController(unittest.TestCase):
     @classmethod
-    # @disable_console
+    @disable_console
     def setUpClass(cls):
         cls.controller = ArmController()
         cls.controller.start(websocket_server=False)
@@ -17,14 +17,16 @@ class TestController(unittest.TestCase):
         while not cls.controller.is_ready:
             time.sleep(0.1)
             if time.time() - start_time > 3:
+                # fail all tests if controller takes too long to start
                 raise TimeoutError("Controller took too long to start")
+            
         cls.controller.home()
 
     @classmethod
     @disable_console
     def tearDownClass(cls):
         cls.controller.stop()
-
+    
     @disable_console
     def tearDown(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])

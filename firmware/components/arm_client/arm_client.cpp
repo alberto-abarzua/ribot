@@ -6,10 +6,6 @@ ArmClient::ArmClient() {}
 
 ArmClient::~ArmClient() {}
 
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-
 #include "messages.h"
 int ArmClient::create_socket() {
     struct addrinfo hints, *res, *rp;
@@ -23,7 +19,7 @@ int ArmClient::create_socket() {
                     std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
-        std::cerr << "getaddrinfo error: " << gai_strerror(s) << "\n";
+        std::cerr << "getaddrinfo error: " << s << "\n";
         return -1;
     }
 
@@ -59,7 +55,7 @@ int ArmClient::attempt_connection() {
                     std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
-        std::cerr << "getaddrinfo error: " << gai_strerror(s) << "\n";
+        std::cerr << "getaddrinfo error: " << s << "\n";
         return -1;
     }
 
