@@ -387,8 +387,10 @@ void Controller::message_handler_config(Message *message) {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             int8_t homing_direction = this->joints[joint_idx]->homing_direction;
             float homing_direction_float = static_cast<float>(homing_direction);
-            Message *config_message =
-                new Message('C', 4, 1, &homing_direction_float);
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+            args_buff[1] = homing_direction_float;
+            Message *config_message = new Message('C', 4, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
 
@@ -403,14 +405,10 @@ void Controller::message_handler_config(Message *message) {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float speed_rad_per_second =
                 this->joints[joint_idx]->get_speed_rad_per_second();
-            std::cout << "current speed steps "
-                      << this->joints[joint_idx]->get_speed_steps_per_second()
-                      << std::endl;
-            std::cout << "current speed rad/s " << speed_rad_per_second
-                      << std::endl;
-
-            Message *config_message =
-                new Message('C', 8, 1, &speed_rad_per_second);
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+            args_buff[1] = speed_rad_per_second;
+            Message *config_message = new Message('C', 8, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -429,8 +427,10 @@ void Controller::message_handler_config(Message *message) {
             float steps_per_revolution_motor_axis_float =
                 static_cast<float>(steps_per_revolution_motor_axis);
 
-            Message *config_message =
-                new Message('C', 12, 1, &steps_per_revolution_motor_axis_float);
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+            args_buff[1] = steps_per_revolution_motor_axis_float;
+            Message *config_message = new Message('C', 12, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -446,8 +446,10 @@ void Controller::message_handler_config(Message *message) {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float convertion_rate_axis_joint =
                 this->joints[joint_idx]->convertion_rate_axis_joint;
-            Message *config_message =
-                new Message('C', 16, 1, &convertion_rate_axis_joint);
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+            args_buff[1] = convertion_rate_axis_joint;
+            Message *config_message = new Message('C', 16, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -462,7 +464,10 @@ void Controller::message_handler_config(Message *message) {
         case 19: {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float homing_offset = this->joints[joint_idx]->homing_offset;
-            Message *config_message = new Message('C', 20, 1, &homing_offset);
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+            args_buff[1] = homing_offset;
+            Message *config_message = new Message('C', 20, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
