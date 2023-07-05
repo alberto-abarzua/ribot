@@ -67,10 +67,16 @@ class TestController(unittest.TestCase):
         self.assertTrue(self.controller.is_homed)
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
 
-    def get_and_set_joint_settings(self, setting_key: str, value: float) -> Tuple[bool, str]:
+    def get_and_set_joint_settings(
+        self, setting_key: str, init_value: float, change_per_iter: bool = True
+    ) -> Tuple[bool, str]:
         # homing_direction
         correct = True
         for i in range(self.controller.num_joints):
+            if change_per_iter:
+                value = init_value + i
+            else:
+                value = init_value
             self.controller.set_setting_joint(setting_key, i, value)
             setting = self.controller.get_setting_joint(setting_key, i)
             correct = correct and (abs(setting - value) < self.EPSILON)
@@ -79,17 +85,26 @@ class TestController(unittest.TestCase):
     @disable_console
     def test_joint_settings(self) -> None:
         # homing_direction
-        correct, msg = self.get_and_set_joint_settings("homing_direction", -1)
+        correct, msg = self.get_and_set_joint_settings("homing_direction", -1, False)
+        correct, msg = self.get_and_set_joint_settings("homing_direction", 1, False)
+
         self.assertTrue(correct, msg)
         # speed_rad/s
         correct, msg = self.get_and_set_joint_settings("speed_rad/s", 1.2)
+
         self.assertTrue(correct, msg)
         # steps_per_rev_motor_axis
         correct, msg = self.get_and_set_joint_settings("steps_per_rev_motor_axis", 220)
+        correct, msg = self.get_and_set_joint_settings("steps_per_rev_motor_axis", 5000, False)
+
         self.assertTrue(correct, msg)
         # conversion_rate_axis_joints
         correct, msg = self.get_and_set_joint_settings("conversion_rate_axis_joints", 1.128)
+        correct, msg = self.get_and_set_joint_settings("conversion_rate_axis_joints", 1, False)
+
         self.assertTrue(correct, msg)
         # homing_offset_rads
         correct, msg = self.get_and_set_joint_settings("homing_offset_rads", np.pi / 7)
+        correct, msg = self.get_and_set_joint_settings("homing_offset_rads", np.pi / 4, False)
+
         self.assertTrue(correct, msg)
