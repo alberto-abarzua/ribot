@@ -1,4 +1,5 @@
 import unittest
+from typing import List
 
 import numpy as np
 
@@ -13,33 +14,29 @@ from utils.prints import disable_console
 
 
 class TestArmKinematics(unittest.TestCase):
-    EPSILON = 0.01
+    EPSILON: float = 0.01
+    controller: ArmController
 
-    def helper_angle_to_pose(self, angles, expected_pose):
+    def helper_angle_to_pose(self, angles: List[float], expected_pose: ArmPose) -> None:
         angles = [degree2rad(angle) for angle in angles]
         current_pose = self.controller.kinematics.angles_to_pose(angles)
-        current_pose = current_pose.as_list
-        expected_pose = expected_pose.as_list
-        all_close = np.allclose(current_pose, expected_pose, rtol=self.EPSILON)
-        self.assertTrue(all_close, f"expected: {expected_pose} actual: {current_pose}")
+        curren_pose_list = current_pose.as_list
+        expected_pose_list = expected_pose.as_list
+        all_close = np.allclose(curren_pose_list, expected_pose_list, rtol=self.EPSILON)
+        self.assertTrue(all_close, f"expected: {expected_pose_list} actual: {curren_pose_list}")
 
-    def helper_pose_to_angles(self, expected_angles, pose):
-        """Helper method used to test inverse_kinematics (IK) from a configuration of
-          positions and euler angles.
-
-        Args:
-            joints (list[Angle]): Expected angles for the robot (what IK should return)
-            pos (list[float]): x,y,z positions of config
-            euler (list[Angle]): A,B,C euler angles of config
-        """
-        angles = self.controller.kinematics.pose_to_angles(pose)
+    def helper_pose_to_angles(self, expected_angles: List[float], pose: ArmPose) -> None:
+        angles = self.controller.kinematics.pose_to_angles(pose, self.controller.current_angles)
         expected_angles = [degree2rad(angle) for angle in expected_angles]
-        all_close = np.allclose(angles, expected_angles, rtol=self.EPSILON)
+        # convert to np.array of float
+        all_close = np.allclose(
+            np.array(angles, dtype=np.float64), np.array(expected_angles, dtype=np.float64), rtol=self.EPSILON
+        )
         self.assertTrue(all_close, f"expected: {expected_angles} actual: {angles}")
 
     @classmethod
     @disable_console
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.controller = ArmController()
         cls.controller.arm_params.a1z = 650
         cls.controller.arm_params.a2x = 400
@@ -51,7 +48,7 @@ class TestArmKinematics(unittest.TestCase):
         cls.controller.arm_params.a6x = 244
 
     @disable_console
-    def test_pose_to_angles(self):
+    def test_pose_to_angles(self) -> None:
         pose = ArmPose(1755, 0, 2660, 0, 0, 0, degree=True)
         self.helper_pose_to_angles([0, 0, 0, 0, 0, 0], pose)
 
@@ -68,14 +65,10 @@ class TestArmKinematics(unittest.TestCase):
         self.helper_pose_to_angles([-51.6, -7.9, -31.3, -51.5, 52.6, -72.7], pose)
 
     @disable_console
-    def test_angles_to_pose(self):
-        self.helper_angle_to_pose(
-            [0, 0, 0, 0, 0, 0], ArmPose(1755, 0, 2660, 0, 0, 0, degree=True)
-        )
+    def test_angles_to_pose(self) -> None:
+        self.helper_angle_to_pose([0, 0, 0, 0, 0, 0], ArmPose(1755, 0, 2660, 0, 0, 0, degree=True))
 
-        self.helper_angle_to_pose(
-            [90, 0, 0, 0, 0, 0], ArmPose(0, 1755, 2660, 0, 0, 90, degree=True)
-        )
+        self.helper_angle_to_pose([90, 0, 0, 0, 0, 0], ArmPose(0, 1755, 2660, 0, 0, 90, degree=True))
 
         self.helper_angle_to_pose(
             [130, -60, 30, 60, -90, 60],
@@ -88,15 +81,15 @@ class TestArmKinematics(unittest.TestCase):
         )
 
     @disable_console
-    def test_angle_to_pose_to_angle(self):
+    def test_angle_to_pose_to_angle(self) -> None:
         angles = [np.pi / 2 for _ in range(6)]
         pose = self.controller.kinematics.angles_to_pose(angles)
-        angles2 = self.controller.kinematics.pose_to_angles(pose)
-        all_close = np.allclose(angles, angles2, rtol=self.EPSILON)
+        angles2 = self.controller.kinematics.pose_to_angles(pose, self.controller.current_angles)
+        all_close = np.allclose(angles, np.array(angles2, dtype=np.float64), rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {angles} actual: {angles2}")
 
     @disable_console
-    def test_rotation_matrixs(self):
+    def test_rotation_matrixs(self) -> None:
         R1 = create_rotation_matrix_from_euler_angles(90, 100, 20)
 
         roll, pitch, yaw = extract_euler_angles(R1)

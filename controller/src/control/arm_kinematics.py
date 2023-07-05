@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import dataclasses
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -22,55 +25,55 @@ from utils.prints import console
 
 
 class Joint:
-    def __init__(self, min_val=-2 * np.pi, max_val=2 * np.pi):
+    def __init__(self, min_val: float = -2 * np.pi, max_val: float = 2 * np.pi) -> None:
         self.min_val = min_val
         self.max_val = max_val
 
-    def in_bounds(self, angle):
+    def in_bounds(self, angle: float) -> bool:
         return angle >= self.min_val and angle <= self.max_val
 
-    def set_bounds(self, min_val, max_val):
+    def set_bounds(self, min_val: float, max_val: float) -> None:
         self.min_val = min_val
         self.max_val = max_val
 
 
 class ArmParameters:
-    def __init__(self):
+    def __init__(self) -> None:
         # J1
-        self.a1x = 0
-        self.a1y = 0
-        self.a1z = 0
+        self.a1x: float = 0
+        self.a1y: float = 0
+        self.a1z: float = 0
         # J2
-        self.a2x = 0
-        self.a2y = 0
-        self.a2z = 0
+        self.a2x: float = 0
+        self.a2y: float = 0
+        self.a2z: float = 0
         # J3
-        self.a3x = 0
-        self.a3y = 0
-        self.a3z = 0
+        self.a3x: float = 0
+        self.a3y: float = 0
+        self.a3z: float = 0
         # J4
-        self.a4x = 0
-        self.a4y = 0
-        self.a4z = 0
+        self.a4x: float = 0
+        self.a4y: float = 0
+        self.a4z: float = 0
         # J5
-        self.a5x = 0
-        self.a5y = 0
-        self.a5z = 0
+        self.a5x: float = 0
+        self.a5y: float = 0
+        self.a5z: float = 0
         # J6
-        self.a6x = 0
-        self.a6z = 0
-        self.a6y = 0
+        self.a6x: float = 0
+        self.a6z: float = 0
+        self.a6y: float = 0
 
-        self.joint_ratios = []
+        self.joint_ratios: List[float] = []
 
-        self.j1 = Joint()
-        self.j2 = Joint()
-        self.j3 = Joint()
-        self.j4 = Joint()
-        self.j5 = Joint()
-        self.j6 = Joint()
+        self.j1: Joint = Joint()
+        self.j2: Joint = Joint()
+        self.j3: Joint = Joint()
+        self.j4: Joint = Joint()
+        self.j5: Joint = Joint()
+        self.j6: Joint = Joint()
 
-        self.joints = [self.j1, self.j2, self.j3, self.j4, self.j5, self.j6]
+        self.joints: List[Joint] = [self.j1, self.j2, self.j3, self.j4, self.j5, self.j6]
 
 
 @dataclasses.dataclass
@@ -84,7 +87,16 @@ class ArmPose:
 
     tool_pos: float = 90
 
-    def __init__(self, x, y, z, roll, pitch, yaw, degree=False):
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        z: float,
+        roll: float,
+        pitch: float,
+        yaw: float,
+        degree: bool = False,
+    ) -> None:
         self.x = x
         self.y = y
         self.z = z
@@ -98,11 +110,11 @@ class ArmPose:
             self.yaw = yaw
 
     @property
-    def as_tuple(self):
+    def as_tuple(self) -> Tuple[float, float, float, float, float, float]:
         return (self.x, self.y, self.z, self.roll, self.pitch, self.yaw)
 
     @property
-    def as_list(self):
+    def as_list(self) -> List[float]:
         return list(self.as_tuple)
 
 
@@ -114,17 +126,16 @@ class ArmPose:
 
 
 class ArmKinematics:
-    def __init__(self, controller):
-        self.controller = controller
-        self.arm_params = controller.arm_params
+    def __init__(self, arm_parameters: ArmParameters) -> None:
+        self.arm_params: ArmParameters = arm_parameters
 
-    @property
-    def current_pose(self):
-        current_angles = self.controller.current_angles[:]
-        return self.angles_to_pose(current_angles)
+    class NotReachableError(Exception):
+        def __init__(self, message: str, angles: List[float]) -> None:
+            super().__init__(message)
+            self.angles: List[float] = angles
+            self.message: str = message
 
-    def angles_to_pose(self, angles):
-        # len of angles must be length of joints
+    def angles_to_pose(self, angles: List[float]) -> ArmPose:
         if len(angles) != len(self.arm_params.joints):
             raise ValueError("angles must be the same length as joints")
 
@@ -168,16 +179,17 @@ class ArmKinematics:
 
         return ArmPose(*pos, *euler_angles)
 
-    def pose_to_angles(self, target_pose):
+    def pose_to_angles(self, target_pose: ArmPose, current_angles: List[float]) -> Optional[List[float]]:
         try:
-            current_angles = self.controller.current_angles
             found_angles = self._pose_to_angles(target_pose, current_angles)
             return found_angles
-        except Exception as e:
-            console.print(f"Error in pose_to_angles: {e}", style="error")
+        except self.NotReachableError as exception:
+            console.print(f"NotReachableError in pose_to_angles: {exception}", style="error")
             return None
 
-    def _pose_to_angles(self, target_pose, current_angles=None):
+    def _pose_to_angles(
+        self, target_pose: ArmPose, current_angles: Optional[List[float]] = None
+    ) -> List[float]:
         if current_angles is None:
             current_angles = [0 for _ in range(len(self.arm_params.joints))]
 
@@ -188,9 +200,7 @@ class ArmKinematics:
         x, y, z, roll, pitch, yaw = target_pose.as_tuple
 
         TCP = np.array([[x], [y], [z]])
-        xdirection = create_rotation_matrix_from_euler_angles(roll, pitch, yaw) @ np.array(
-            [[1], [0], [0]]
-        )
+        xdirection = create_rotation_matrix_from_euler_angles(roll, pitch, yaw) @ np.array([[1], [0], [0]])
 
         WP = TCP - self.arm_params.a6x * xdirection
         # Finding J1,J2,J3
@@ -203,18 +213,12 @@ class ArmKinematics:
         L = WPxy - self.arm_params.a2x
         H = WP[2, 0] - self.arm_params.a1z - self.arm_params.a2z
         P = np.sqrt(H**2 + L**2)
-        b4x = np.sqrt(
-            self.arm_params.a4z**2 + (self.arm_params.a4x + self.arm_params.a5x) ** 2
-        )
+        b4x = np.sqrt(self.arm_params.a4z**2 + (self.arm_params.a4x + self.arm_params.a5x) ** 2)
         if (P <= self.arm_params.a3z + b4x) and abs(self.arm_params.a3z - b4x) < P:
             alfa = np.arctan2(H, L)
-            cosbeta = (P**2 + self.arm_params.a3z**2 - b4x**2) / (
-                2 * P * self.arm_params.a3z
-            )
+            cosbeta = (P**2 + self.arm_params.a3z**2 - b4x**2) / (2 * P * self.arm_params.a3z)
             beta = np.arctan2(np.sqrt(1 - cosbeta**2), cosbeta)
-            cosgamma = (self.arm_params.a3z**2 + b4x**2 - P**2) / (
-                2 * self.arm_params.a3z * b4x
-            )
+            cosgamma = (self.arm_params.a3z**2 + b4x**2 - P**2) / (2 * self.arm_params.a3z * b4x)
             gamma = np.arctan2(np.sqrt(1 - cosgamma**2), cosgamma)
             delta = np.arctan2(self.arm_params.a4x + self.arm_params.a5x, self.arm_params.a4z)
             J2 = np.pi / 2.0 - alfa - beta
@@ -246,6 +250,5 @@ class ArmKinematics:
                     J4 = J4_1
                     J6 = J6_1
             found_angles = [J1, J2, J3, J4, J5, J6]
-            return [
-                nearest_by_2pi_ref(angle, ref) for angle, ref in zip(found_angles, prev_angles)
-            ]
+            return [nearest_by_2pi_ref(angle, ref) for angle, ref in zip(found_angles, prev_angles)]
+        raise self.NotReachableError("Target pose is not reachable", found_angles)

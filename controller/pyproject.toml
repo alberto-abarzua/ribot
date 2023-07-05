@@ -14,6 +14,8 @@ dependencies = [
     "isort>=5.12.0",
     "flake8>=6.0.0",
     "numpy>=1.25.0",
+    "flake8-annotations>=3.0.1",
+    "mypy>=1.4.1",
 ]
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -24,12 +26,20 @@ license = {text = "MIT"}
 profile = "black"
 
 [tool.black]
-line-length = 95
+line-length = 110
+
+
+[mypy]
+ignore_missing_imports = "True"
+disallow_untyped_defs = "True"
+mypy_path = "src"
 
 [tool.pdm.scripts]
 isort = "isort src"
 black = "black src"
-lint = "flake8 src"
+pure_lint = "flake8 src"
+type_check = "mypy src"
 test = "python -m unittest discover -s src/tests -p 'test_*.py'"
 start = "python src/main.py"
 format = {composite = ["isort", "black"]}
+lint = {composite = ["pure_lint", "type_check"]}
