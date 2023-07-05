@@ -72,9 +72,6 @@ test-esp)
     exit $EXIT_CODE
 
     ;;
-valgrind)
-    docker compose run --rm firmware valgrind
-    ;;
 gdb)
     docker compose run --rm firmware gdb
     ;;
