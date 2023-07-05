@@ -64,7 +64,7 @@ class TestController(unittest.TestCase):
         self.controller.wait_done_moving()
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
-        
+
     @disable_console
     def test_double_home(self) -> None:
         self.controller.home()
