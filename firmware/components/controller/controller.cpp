@@ -103,6 +103,10 @@ int32_t Joint::get_speed_steps_per_second() {
     return this->speed_steps_per_second;
 }
 
+float Joint::get_speed_rad_per_second() {
+    return this->steps_to_angle(this->speed_steps_per_second);
+}
+
 void Joint::update_current_angle() {
     this->current_angle = this->steps_to_angle(this->current_steps);
 }
@@ -398,7 +402,13 @@ void Controller::message_handler_config(Message *message) {
         case 7: {  // get speed rad/s
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float speed_rad_per_second =
-                this->joints[joint_idx]->get_speed_steps_per_second();
+                this->joints[joint_idx]->get_speed_rad_per_second();
+            std::cout << "current speed steps "
+                      << this->joints[joint_idx]->get_speed_steps_per_second()
+                      << std::endl;
+            std::cout << "current speed rad/s " << speed_rad_per_second
+                      << std::endl;
+
             Message *config_message =
                 new Message('C', 8, 1, &speed_rad_per_second);
             this->arm_client.send_message(config_message);

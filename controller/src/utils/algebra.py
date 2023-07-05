@@ -3,15 +3,15 @@ import numpy as np
 __author__ = "Alberto Abarzua"
 
 
-def rad2degree(angle):
+def rad2degree(angle: float) -> float:
     return (180 / np.pi) * angle
 
 
-def degree2rad(angle):
+def degree2rad(angle: float) -> float:
     return (np.pi / 180) * angle
 
 
-def x_rotation_matrix(angle):
+def x_rotation_matrix(angle: float) -> np.ndarray:
     """Creates a rotation matrix using angle about the X axis.
 
     Args:
@@ -20,13 +20,11 @@ def x_rotation_matrix(angle):
     Returns:
         np.array: 3x3 transformation matrix using angle
     """
-    r = np.array(
-        [[1, 0, 0], [0, np.cos(angle), -np.sin(angle)], [0, np.sin(angle), np.cos(angle)]]
-    )
+    r = np.array([[1, 0, 0], [0, np.cos(angle), -np.sin(angle)], [0, np.sin(angle), np.cos(angle)]])
     return r
 
 
-def y_rotation_matrix(angle):
+def y_rotation_matrix(angle: float) -> np.ndarray:
     """Creates a rotation matrix using angle about the Y axis.
 
     Args:
@@ -35,13 +33,11 @@ def y_rotation_matrix(angle):
      Returns:
          np.array: 3x3 transformation matrix using angle
     """
-    r = np.array(
-        [[np.cos(angle), 0, np.sin(angle)], [0, 1, 0], [-np.sin(angle), 0, np.cos(angle)]]
-    )
+    r = np.array([[np.cos(angle), 0, np.sin(angle)], [0, 1, 0], [-np.sin(angle), 0, np.cos(angle)]])
     return r
 
 
-def z_rotation_matrix(angle):
+def z_rotation_matrix(angle: float) -> np.ndarray:
     """Creates a rotation matrix using angle about the Z axis.
 
     Args:
@@ -50,13 +46,11 @@ def z_rotation_matrix(angle):
     Returns:
        np.array: 3x3 transformation matrix using angle
     """
-    r = np.array(
-        [[np.cos(angle), -np.sin(angle), 0], [np.sin(angle), np.cos(angle), 0], [0, 0, 1]]
-    )
+    r = np.array([[np.cos(angle), -np.sin(angle), 0], [np.sin(angle), np.cos(angle), 0], [0, 0, 1]])
     return r
 
 
-def transformation_matrix(R, D):
+def transformation_matrix(R: np.ndarray, D: np.ndarray) -> np.ndarray:
     """Create a 4x4 homogeneous transformation matrix from a 3x3 rotation matrix and a 3D
     translation vector.
 
@@ -74,12 +68,10 @@ def transformation_matrix(R, D):
     if R.shape != (3, 3) or D.shape != (3,):
         raise ValueError("R must be a 3x3 matrix and D must be a 1D array of size 3.")
 
-    return np.block(
-        [[R, D.reshape(-1, 1)], [0, 0, 0, 1]]  # reshape the D vector to column vector
-    )
+    return np.block([[R, D.reshape(-1, 1)], [0, 0, 0, 1]])  # reshape the D vector to column vector
 
 
-def extract_euler_angles(R):
+def extract_euler_angles(R: np.ndarray) -> list[float]:
     """Extract Euler angles (roll, pitch, yaw) from a given rotation matrix.
 
     Args:
@@ -115,7 +107,7 @@ def extract_euler_angles(R):
         return [float(roll), float(pitch), float(yaw)]
 
 
-def create_rotation_matrix_from_euler_angles(roll, pitch, yaw):
+def create_rotation_matrix_from_euler_angles(roll: float, pitch: float, yaw: float) -> np.ndarray:
     """Create a 3x3 rotation matrix from three Euler angles (roll, pitch, yaw).
 
     Args:
@@ -129,7 +121,7 @@ def create_rotation_matrix_from_euler_angles(roll, pitch, yaw):
     return z_rotation_matrix(yaw) @ y_rotation_matrix(pitch) @ x_rotation_matrix(roll)
 
 
-def nearest_by_2pi_ref(angle, ref):
+def nearest_by_2pi_ref(angle: float, ref: float) -> float:
     """Find the nearest angle to 'ref' that is a 2π away from 'angle' in any direction.
 
     Args:

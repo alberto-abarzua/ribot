@@ -80,6 +80,7 @@ class Joint {
     void set_speed_rad_per_second(float speed_rad_per_second);
 
     int32_t get_speed_steps_per_second();
+    float get_speed_rad_per_second();
 
     // Hardware dependant functions
     bool hardware_step(uint8_t step_dir);
@@ -103,7 +104,7 @@ class Controller {
 
 #ifdef ESP_PLATFORM
 #else
-    std::thread *step_thread =nullptr;
+    std::thread *step_thread = nullptr;
 #endif
 
    public:

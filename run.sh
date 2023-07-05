@@ -6,7 +6,7 @@ function get_ip() {
 
 case "$1" in
 build)
-    docker compose run firmware build || exit 1
+    docker compose run --rm firmware build || exit 1
     ;;
 build-esp)
     source .env
@@ -15,13 +15,16 @@ build-esp)
     ./firmware/entrypoint_esp.sh || exit 1
     ;;
 format)
-    docker compose run firmware format || exit 1
-    docker compose run controller pdm run format || exit 1
+    docker compose run --rm firmware format || exit 1
+    docker compose run --rm controller pdm run format || exit 1
     ;;
 lint)
-    docker compose run controller pdm run lint || exit 1
+    docker compose run --rm controller pdm run lint || exit 1
     ;;
 test)
+    # build firmware
+    docker compose run --rm firmware build || exit 1
+
     docker compose up firmware -d
     # FOLLOW LOGS TO SEE WHEN FIRMWARE IS READY
     # start timestamp
@@ -39,7 +42,7 @@ test)
     sleep 5
     docker compose logs firmware
     echo "Firmware is ready"
-    docker compose run --service-ports --use-aliases controller pdm run test
+    docker compose run --rm --service-ports --use-aliases controller pdm run test
     EXIT_CODE=$?
     if [ $EXIT_CODE -eq 0 ]; then
         echo "Tests passed"
@@ -62,18 +65,15 @@ test-esp)
     cd firmware
     rm -rf build
     idf.py build flash || exit 1
-    docker compose run --service-ports --use-aliases controller pdm run test
+    docker compose run --rm --service-ports --use-aliases controller pdm run test
     EXIT_CODE=$?
     docker compose down --remove-orphans
     cd ..
     exit $EXIT_CODE
 
     ;;
-valgrind)
-    docker compose run firmware valgrind
-    ;;
 gdb)
-    docker compose run firmware gdb
+    docker compose run --rm firmware gdb
     ;;
 *)
     docker compose up
