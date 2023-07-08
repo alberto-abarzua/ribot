@@ -6,7 +6,7 @@
 #include <cstring>
 #include <iostream>
 
-enum class MessageOp { MOVE = 'M', STATUS = 'S', CONFIG = 'C' };
+enum class MessageOp { MOVE = 'M', STATUS = 'S', CONFIG = 'C', UNKNOWN = 'U' };
 
 class Message {
    private:

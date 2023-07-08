@@ -9,7 +9,7 @@ MessageOp Message::get_op_from_char(char op) {
         case 'C':
             return MessageOp::CONFIG;
         default:
-            throw std::invalid_argument("Invalid character");
+            return MessageOp::UNKNOWN;
     };
 };
 
