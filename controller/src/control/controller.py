@@ -247,6 +247,8 @@ class ArmController:
     """
 
     def set_setting_joint(self, setting_key: Settings, value: float, joint_idx: int) -> None:
+        if setting_key not in self.joint_settings[joint_idx].keys():
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_set
         message = Message(MessageOp.CONFIG, code, [float(joint_idx), value])
@@ -258,6 +260,9 @@ class ArmController:
             self.set_setting_joint(setting_key, value, joint_idx)
 
     def get_setting_joint(self, setting_key: Settings, joint_idx: int) -> float:
+        if setting_key not in self.joint_settings[joint_idx].keys():
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
+
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_get
 

@@ -15,20 +15,36 @@
  * version of the arm
  *
  */
+
+enum class ArmClientCode {
+    SUCCESS = 0,
+    SOCKET_CREATION_ERROR = -1,
+    CONNECTION_ERROR = -2,
+    SEND_ERROR = -3,
+    RECEIVE_ERROR = -4,
+    UNKNOWN_ERROR = -5,
+    NO_NEW_DATA = -6,
+    ADDR_INFO_ERROR = -7,
+    FAILED_TO_SEND = -8,
+    FAILED_TO_RECEIVE = -9,
+    FAILED_TO_RECEIVE_HEADER = -10,
+    FAILED_TO_RECEIVE_ARGS = -11
+};
+
 class ArmClient {
    private:
     bool socket_created = false;
 
     int clientSocket;
-    int create_socket();
-    int attempt_connection();
+    ArmClientCode create_socket();
+    ArmClientCode attempt_connection();
 
    public:
     ArmClient();
     ~ArmClient();
 
-    int setup();
-    int send_message(Message *msg);
-    int receive_message(Message **msg);
+    ArmClientCode setup();
+    ArmClientCode send_message(Message *msg);
+    ArmClientCode receive_message(Message **msg);
     void stop();
 };

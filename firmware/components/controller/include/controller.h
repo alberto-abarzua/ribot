@@ -98,8 +98,8 @@ class Controller {
     std::queue<Message *> message_queue;
     typedef void (Controller::*message_op_handler_t)(Message *);
     uint64_t last_status_time;
-    std::map<char, std::queue<Message *> *> message_queues;
-    std::map<char, message_op_handler_t> message_op_handler_map;
+    std::map<MessageOp, std::queue<Message *> *> message_queues;
+    std::map<MessageOp, message_op_handler_t> message_op_handler_map;
     bool homed = false;
     bool stop_flag = false;
 

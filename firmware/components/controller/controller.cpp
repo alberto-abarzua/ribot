@@ -141,9 +141,12 @@ Controller::Controller() {
         this->joints[i]->set_speed_rad_per_second(1.0);
     }
     // Message handlers
-    this->message_op_handler_map['M'] = &Controller::message_handler_move;
-    this->message_op_handler_map['S'] = &Controller::message_handler_status;
-    this->message_op_handler_map['C'] = &Controller::message_handler_config;
+    this->message_op_handler_map[MessageOp::MOVE] =
+        &Controller::message_handler_move;
+    this->message_op_handler_map[MessageOp::STATUS] =
+        &Controller::message_handler_status;
+    this->message_op_handler_map[MessageOp::CONFIG] =
+        &Controller::message_handler_config;
 
     // Message qs
     for (auto const &[key, val] : this->message_op_handler_map) {
@@ -171,17 +174,12 @@ Controller::~Controller() {
 
 bool Controller::recieve_message() {
     Message *msg;
-    int ret = this->arm_client.receive_message(&msg);
-    if (ret == -1) {
+    ArmClientCode ret = this->arm_client.receive_message(&msg);
+    if (ret != ArmClientCode::SUCCESS) {
         return false;
-    } else if (ret == 0) {
-        return true;
     }
-
-    char op = msg->get_op();
-    // check if op key exists
+    MessageOp op = msg->get_op();
     if (this->message_queues.find(op) == this->message_queues.end()) {
-        std::cout << "Ret " << ret << " Invalid op code: " << op << std::endl;
         return false;
     }
     std::queue<Message *> *message_queue = this->message_queues[op];
@@ -223,13 +221,13 @@ void Controller::start() {
     std::cout << "Starting controller" << std::endl;
     this->hardware_setup();
     std::cout << "Hardware setup complete\n";
-    int succesful_setup = this->arm_client.setup();
+    ArmClientCode succesful_setup = this->arm_client.setup();
     std::cout << "Starting Arm Client setup\n";
 
-    if (succesful_setup == -1) {
+    if (succesful_setup != ArmClientCode::SUCCESS) {
         std::cout << "Failed to setup arm client, retrying in 3 seconds"
                   << std::endl;
-        run_delay(3000);
+        run_delay(2000);
         return;
     }
     this->run_step_task();
@@ -237,20 +235,18 @@ void Controller::start() {
     std::cout << "Connected to the server" << std::endl;
     uint64_t last_message_time = get_current_time_microseconds();
     while (true) {
-        if (this->recieve_message()) {
-            this->handle_messages();  // handles messages on queue
+        bool message_received = this->recieve_message();
+        if (message_received) {
             last_message_time = get_current_time_microseconds();
-        } else {
-            // if more than 5 seconds since last message
-            if (get_current_time_microseconds() - last_message_time >
-                2 * 1000000) {
-                std::cout << "No message in 5 seconds, stopping controller"
-                          << std::endl;
-                this->stop();
-                break;
-            }
         }
-        run_delay(10);
+        if (get_current_time_microseconds() - last_message_time > 2 * 1000000) {
+            std::cout << "No message in 5 seconds, stopping controller"
+                      << std::endl;
+            this->stop();
+            break;
+        }
+
+        this->handle_messages();
     }
 }
 
@@ -264,7 +260,7 @@ void Controller::handle_messages() {
         std::queue<Message *> *message_queue = val;
         if (message_queue->size() > 0) {
             Message *msg = message_queue->front();
-            char op = msg->get_op();
+            MessageOp op = msg->get_op();
             Controller::message_op_handler_t handler =
                 this->message_op_handler_map[op];
             (this->*handler)(msg);
@@ -348,20 +344,23 @@ void Controller::message_handler_status(Message *message) {
             for (uint8_t i = 0; i < this->joints.size(); i++) {
                 args[i] = this->joints[i]->get_current_angle();
             }
-            int move_message_queue_size = this->message_queues['M']->size();
+            int move_message_queue_size =
+                this->message_queues[MessageOp::MOVE]->size();
             // queue size
             args[message_size - 2] = move_message_queue_size;
             // homed
             args[message_size - 1] = this->is_homed() ? 1 : 0;
 
-            Message *status_message = new Message('S', 1, message_size, args);
+            Message *status_message =
+                new Message(MessageOp::STATUS, 1, message_size, args);
             this->arm_client.send_message(status_message);
             message->set_complete(true);
             message->set_called(true);
             delete status_message;
         } break;
         case 3: {
-            Message *status_message = new Message('S', 4, 0, nullptr);
+            Message *status_message =
+                new Message(MessageOp::STATUS, 4, 0, nullptr);
             this->arm_client.send_message(status_message);
             delete status_message;
 
@@ -390,7 +389,8 @@ void Controller::message_handler_config(Message *message) {
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = homing_direction_float;
-            Message *config_message = new Message('C', 4, 2, args_buff);
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 4, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
 
@@ -408,7 +408,8 @@ void Controller::message_handler_config(Message *message) {
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = speed_rad_per_second;
-            Message *config_message = new Message('C', 8, 2, args_buff);
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 8, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -430,7 +431,8 @@ void Controller::message_handler_config(Message *message) {
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = steps_per_revolution_motor_axis_float;
-            Message *config_message = new Message('C', 12, 2, args_buff);
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 12, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -449,7 +451,8 @@ void Controller::message_handler_config(Message *message) {
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = convertion_rate_axis_joint;
-            Message *config_message = new Message('C', 16, 2, args_buff);
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 16, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
@@ -467,7 +470,8 @@ void Controller::message_handler_config(Message *message) {
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = homing_offset;
-            Message *config_message = new Message('C', 20, 2, args_buff);
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 20, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
