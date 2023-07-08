@@ -1,13 +1,30 @@
 import dataclasses
 import time
+from enum import Enum
 from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
 from control.arm_kinematics import ArmKinematics, ArmParameters, ArmPose
 from control.controller_servers import ControllerServer, FIFOLock, WebsocketServer
-from utils.messages import Message
+from utils.messages import Message, MessageOp
 from utils.prints import console
+
+
+class Settings(Enum):
+    HOMING_DIRECTION = 1
+    SPEED_RAD_PER_S = 5
+    STEPS_PER_REV_MOTOR_AXIS = 9
+    CONVERSION_RATE_AXIS_JOINTS = 13
+    HOMING_OFFSET_RADS = 17
+
+
+@dataclasses.dataclass
+class Setting:
+    value: float
+    code_set: int
+    code_get: int
+    last_updated: float = -1
 
 
 class ArmController:
@@ -23,10 +40,10 @@ class ArmController:
         self.websocket_server: Optional[WebsocketServer] = WebsocketServer(65433, self)
 
         # register new handlers here
-        self.message_op_handlers: Dict[str, Callable[[Message], None]] = {
-            "M": self.handle_move_message,
-            "S": self.handle_status_message,
-            "C": self.handle_config_message,
+        self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {
+            MessageOp.MOVE: self.handle_move_message,
+            MessageOp.STATUS: self.handle_status_message,
+            MessageOp.CONFIG: self.handle_config_message,
         }
 
         # Arm parameters
@@ -53,30 +70,16 @@ class ArmController:
 
         self.connection_controller_timeout: int = 15
 
-        @dataclasses.dataclass
-        class Setting:
-            value: float
-            code_set: int
-            code_get: int
-            last_updated: float = -1
-
-        self.joint_settings: List[Dict[str, Setting]] = []
+        self.joint_settings: List[Dict[Settings, Setting]] = []
         self.joint_settings_response_code: List[Dict[int, Setting]] = []
 
         for _ in range(self.num_joints):
             current_joint_settings = {
-                # 1 for positive, -1 for negative
-                "homing_direction": Setting(value=1, code_set=1, code_get=3),
-                "speed_rad/s": Setting(value=1, code_set=5, code_get=7),  # speed in radians per second
-                "steps_per_rev_motor_axis": Setting(
-                    value=200, code_set=9, code_get=11
-                ),  # steps per revolution of motor axis (microstepping)
-                "conversion_rate_axis_joints": Setting(
-                    value=1, code_set=13, code_get=15
-                ),  # conversion rate from motor axis to joint angles
-                "homing_offset_rads": Setting(
-                    value=np.pi / 4, code_set=17, code_get=19
-                ),  # offset in radians for homing
+                Settings.HOMING_DIRECTION: Setting(value=1, code_set=1, code_get=3),
+                Settings.SPEED_RAD_PER_S: Setting(value=1, code_set=5, code_get=7),
+                Settings.STEPS_PER_REV_MOTOR_AXIS: Setting(value=200, code_set=9, code_get=11),
+                Settings.CONVERSION_RATE_AXIS_JOINTS: Setting(value=1, code_set=13, code_get=15),
+                Settings.HOMING_OFFSET_RADS: Setting(value=np.pi / 4, code_set=17, code_get=19),
             }
             self.joint_settings.append(current_joint_settings)
             self.joint_settings_response_code.append(
@@ -175,7 +178,7 @@ class ArmController:
         if not self.is_homed:
             console.print("Arm is not homed", style="error")
             return
-        message = Message("M", 1, angles)
+        message = Message(MessageOp.MOVE, 1, angles)
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
 
@@ -187,7 +190,7 @@ class ArmController:
         self.move_to_angles(target_angles)
 
     def home(self, wait: bool = True) -> None:
-        message = Message("M", 3)
+        message = Message(MessageOp.MOVE, 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
         start_time = time.time()
@@ -206,7 +209,7 @@ class ArmController:
                     raise TimeoutError("Arm took too long to home")
 
     def home_joint(self, joint_idx: int) -> None:
-        message = Message("M", 5, [joint_idx])
+        message = Message(MessageOp.MOVE, 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
 
@@ -228,7 +231,7 @@ class ArmController:
         if not self.is_ready:
             console.print("Not connected", style="error")
             return False
-        message = Message("S", 3)
+        message = Message(MessageOp.STATUS, 3)
         current_time = time.time()
         with self.controller_server.connection_mutex:
             self.controller_server.send_message(message)
@@ -243,27 +246,32 @@ class ArmController:
     ----------------------------------------
     """
 
-    def set_setting_joint(self, setting_key: str, value: float, joint_idx: int) -> None:
+    def set_setting_joint(self, setting_key: Settings, value: float, joint_idx: int) -> None:
+        if setting_key not in self.joint_settings[joint_idx].keys():
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_set
-        message = Message("C", code, [float(joint_idx), value])
+        message = Message(MessageOp.CONFIG, code, [float(joint_idx), value])
         self.controller_server.send_message(message, mutex=True)
         setting.last_updated = -1
 
-    def set_setting_joints(self, setting_key: str, value: float) -> None:
+    def set_setting_joints(self, setting_key: Settings, value: float) -> None:
         for joint_idx in range(self.num_joints):
             self.set_setting_joint(setting_key, value, joint_idx)
 
-    def get_setting_joint(self, setting_key: str, joint_idx: int) -> float:
+    def get_setting_joint(self, setting_key: Settings, joint_idx: int) -> float:
+        if setting_key not in self.joint_settings[joint_idx].keys():
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
+
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_get
 
         if setting.last_updated < 0:  # valid value
-            message = Message("C", code, [float(joint_idx)])
+            message = Message(MessageOp.CONFIG, code, [float(joint_idx)])
             self.controller_server.send_message(message, mutex=True)
             while setting.last_updated < 0:
                 time.sleep(0.01)
         return setting.value
 
-    def get_setting_joints(self, setting_key: str) -> List[float]:
+    def get_setting_joints(self, setting_key: Settings) -> List[float]:
         return [self.get_setting_joint(setting_key, joint_idx) for joint_idx in range(self.num_joints)]

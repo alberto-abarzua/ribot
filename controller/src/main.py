@@ -1,5 +1,4 @@
 from control.controller import ArmController
-from utils.prints import console
 
 if __name__ == "__main__":
     controller = ArmController()
@@ -7,7 +6,6 @@ if __name__ == "__main__":
     healthy = controller.health_check()
     if healthy:
         controller.home()
-        console.print("homing agaion", style="error")
         controller.home()
 
         controller.move_to_angles([0, 0, 0, 2, 0, 0])

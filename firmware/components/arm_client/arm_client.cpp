@@ -7,7 +7,7 @@ ArmClient::ArmClient() {}
 ArmClient::~ArmClient() {}
 
 #include "messages.h"
-int ArmClient::create_socket() {
+ArmClientCode ArmClient::create_socket() {
     struct addrinfo hints, *res, *rp;
     int s;
 
@@ -20,7 +20,7 @@ int ArmClient::create_socket() {
                     &res);
     if (s != 0) {
         std::cerr << "getaddrinfo error: " << s << "\n";
-        return -1;
+        return ArmClientCode::ADDR_INFO_ERROR;
     }
 
     for (rp = res; rp != NULL; rp = rp->ai_next) {
@@ -36,14 +36,13 @@ int ArmClient::create_socket() {
     freeaddrinfo(res);
 
     if (this->clientSocket == -1) {  // No address succeeded
-        std::cerr << "Could not create a socket\n";
-        return -1;
+        return ArmClientCode::SOCKET_CREATION_ERROR;
     } else {
-        return 0;
+        return ArmClientCode::SUCCESS;
     }
 }
 
-int ArmClient::attempt_connection() {
+ArmClientCode ArmClient::attempt_connection() {
     struct addrinfo hints, *res, *rp;
     int s;
 
@@ -56,7 +55,7 @@ int ArmClient::attempt_connection() {
                     &res);
     if (s != 0) {
         std::cerr << "getaddrinfo error: " << s << "\n";
-        return -1;
+        return ArmClientCode::ADDR_INFO_ERROR;
     }
 
     for (rp = res; rp != NULL; rp = rp->ai_next) {
@@ -71,90 +70,89 @@ int ArmClient::attempt_connection() {
     if (rp == NULL) {  // No address succeeded
         std::cerr << "Could not connect to host -> " << CONTROLLER_SERVER_HOST
                   << "\n";
-        return -1;
+        return ArmClientCode::CONNECTION_ERROR;
     } else {
-        return 0;
+        return ArmClientCode::SUCCESS;
     }
 }
 
-int ArmClient::setup() {
+ArmClientCode ArmClient::setup() {
     if (!this->socket_created) {
-        if (this->create_socket() == -1) {
-            return -1;
-        } else {
+        ArmClientCode socket_creation_result = this->create_socket();
+        if (socket_creation_result == ArmClientCode::SUCCESS) {
             this->socket_created = true;
+        } else {
+            return socket_creation_result;
         }
     }
 
-    // check socket is valid
     if (this->clientSocket == -1) {
         std::cerr << "Invalid socket\n";
-        return -1;
+        return ArmClientCode::SOCKET_CREATION_ERROR;
     }
+    ArmClientCode attempt_connection_result = this->attempt_connection();
 
-    if (this->attempt_connection() == -1) {
-        return -1;
+    if (attempt_connection_result != ArmClientCode::SUCCESS) {
+        return attempt_connection_result;
     }
 
     // Set the socket to be non-blocking
     int flags = fcntl(this->clientSocket, F_GETFL, 0);
     if (flags == -1) {
         perror("Unable to get socket flags");
-        return -1;
+        return ArmClientCode::SOCKET_CREATION_ERROR;
     }
 
     flags |= O_NONBLOCK;
     if (fcntl(this->clientSocket, F_SETFL, flags) == -1) {
         perror("Unable to set socket flags");
-        return -1;
+        return ArmClientCode::SOCKET_CREATION_ERROR;
     }
-    return 0;
+
+    return ArmClientCode::SUCCESS;
 }
-int ArmClient::send_message(Message *msg) {
+ArmClientCode ArmClient::send_message(Message *msg) {
     char *message_bytes = new char[msg->get_size()];
     msg->get_bytes(message_bytes);
     int ret = send(this->clientSocket, message_bytes, msg->get_size(), 0);
-    if (ret == -1) {
-        std::cout << "Error sending message\n";
-    }
     delete[] message_bytes;
-    return ret;
+    if (ret == -1) {
+        return ArmClientCode::FAILED_TO_SEND;
+    }
+    return ArmClientCode::SUCCESS;
 }
 
-int ArmClient::receive_message(Message **msg_loc) {
+ArmClientCode ArmClient::receive_message(Message **msg_loc) {
     char buffer[1024] = {0};
 
     int result = read(this->clientSocket, buffer, Message::HEADER_SIZE);
     if (result < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            return 0;
+            return ArmClientCode::NO_NEW_DATA;
         } else {
-            return -1;
+            return ArmClientCode::FAILED_TO_RECEIVE;
         }
     }
     if (result != Message::HEADER_SIZE) {
-        return -1;
+        return ArmClientCode::FAILED_TO_RECEIVE_HEADER;
     }
-    char op;
+    MessageOp op;
     int32_t code, num_args;
-    int ret = Message::parse_headers(buffer, &op, &code, &num_args);
-    if (ret == -1) {
-        return -1;
-    }
+    Message::parse_headers(buffer, &op, &code, &num_args);
     int32_t size_args = sizeof(float) * num_args;
     if (size_args > 0) {
         result =
             read(this->clientSocket, buffer + Message::HEADER_SIZE, size_args);
         if (result < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                return 0;
+                return ArmClientCode::NO_NEW_DATA;
             } else {
-                return -1;
+                return ArmClientCode::FAILED_TO_RECEIVE_ARGS;
             }
         }
     }
     *msg_loc = new Message(buffer);
-    return 1;
+    return ArmClientCode::SUCCESS;
 }
 
 void ArmClient::stop() { close(this->clientSocket); }
