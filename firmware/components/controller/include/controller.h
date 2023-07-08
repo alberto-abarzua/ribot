@@ -46,6 +46,7 @@ class Joint {
 
     int8_t step_pin;
     int8_t dir_pin;
+    int8_t sensor_pin;
     bool homing;
 
     // config

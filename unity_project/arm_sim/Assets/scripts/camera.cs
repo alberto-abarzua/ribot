@@ -27,7 +27,7 @@ public class camera : MonoBehaviour
         if (Input.GetKey("w")){
             vert = move_speed;
         }
-        if (Input.GetKey("s")){
+        if (Input.GetKey(MessageOp.STATUS)){
             vert = -move_speed;
         }
         if (Input.GetKey("a")){

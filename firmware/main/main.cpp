@@ -34,7 +34,7 @@ int run_controller() {
 }
 
 #ifdef ESP_PLATFORM
-extern "C" void app_main() { run_controller(); }
+extern MessageOp.CONFIG void app_main() { run_controller(); }
 #else
 
 int main() {

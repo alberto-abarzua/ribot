@@ -12,7 +12,7 @@ from typing import Any, Optional, Type, Union
 
 import websockets
 
-from utils.messages import Message
+from utils.messages import Message, MessageOp
 from utils.prints import console
 
 
@@ -77,7 +77,7 @@ class WebsocketServer(ControllerDependencies):
             console.print(f"Received message: {message}", style="info")
             if message.strip() == "get_angles":
                 angles = self.controller.current_angles
-                response = Message("0", 0, angles)
+                response = Message(MessageOp.STATUS, 0, angles)
                 await websocket.send(response.encode())
                 console.print(f"Received message: {message}", style="info")
 
@@ -124,7 +124,7 @@ class ControllerServer(ControllerDependencies):
 
     def _start_status(self) -> None:
         while not self.stop_event.is_set():
-            message = Message("S", 0)
+            message = Message(MessageOp.STATUS, 0)
             self.send_message(message, mutex=True)
             self.last_status_time = time.time()
             self.stop_event.wait(self.status_time_interval)
@@ -168,7 +168,7 @@ class ControllerServer(ControllerDependencies):
             try:
                 op = message.op
                 style = "info"
-                if op != "S":
+                if op != MessageOp.STATUS:
                     style = "big_info"
 
                 console.print(f"Sending message: {message}", style=style)
