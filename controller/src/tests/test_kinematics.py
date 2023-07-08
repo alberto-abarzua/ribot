@@ -96,3 +96,21 @@ class TestArmKinematics(unittest.TestCase):
         R2 = create_rotation_matrix_from_euler_angles(roll, pitch, yaw)
         all_close = np.allclose(R1, R2, rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {R1} actual: {R2}")
+
+    def test_stress(self) -> None:
+        possible_angles = []
+        for joint in self.controller.arm_params.joints:
+            possible_angles.append(np.arange(joint.min_val, joint.max_val, 0.05))
+
+        num_combinations = 10000
+        for _ in range(num_combinations):
+            # Generate a random combination of angles.
+            pos_angles = list(np.random.choice(angles) for angles in possible_angles)
+            pose = self.controller.kinematics.angles_to_pose(pos_angles)
+            angles = self.controller.kinematics.pose_to_angles(pose, self.controller.current_angles)
+            # calculate the pose from the angles and compare to the original pose
+            self.assertIsNotNone(angles)
+            if angles is not None:
+                pose2 = self.controller.kinematics.angles_to_pose(angles)
+                all_close = np.allclose(pose.as_list, pose2.as_list, rtol=self.EPSILON)
+                self.assertTrue(all_close, f"expected: {pose.as_list} actual: {pose2.as_list}")

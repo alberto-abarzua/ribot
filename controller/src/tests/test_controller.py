@@ -34,7 +34,7 @@ class TestController(unittest.TestCase):
     @disable_console
     def tearDown(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
-        self.controller.wait_queue_empty()
+        self.controller.wait_done_moving()
 
     @disable_console
     def test_health_check(self) -> None:
@@ -44,19 +44,26 @@ class TestController(unittest.TestCase):
     def test_move_to(self) -> None:
         angles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
         self.controller.move_to_angles(angles)
-        self.controller.wait_queue_empty()
+        self.controller.wait_done_moving()
         epsilon = 0.01
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
         angles = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
         self.controller.move_to_angles(angles)
-        self.controller.wait_queue_empty()
+        self.controller.wait_done_moving()
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
         angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.controller.move_to_angles(angles)
-        self.controller.wait_queue_empty()
+        self.controller.wait_done_moving()
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
+        # test negative numbers
+        self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
+        angles = [-0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
+        self.controller.move_to_angles(angles)
+        self.controller.wait_done_moving()
+        all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
+        self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
 
     @disable_console
     def test_double_home(self) -> None:
@@ -77,7 +84,7 @@ class TestController(unittest.TestCase):
                 value = init_value + i
             else:
                 value = init_value
-            self.controller.set_setting_joint(setting_key, i, value)
+            self.controller.set_setting_joint(setting_key, value, i)
             setting = self.controller.get_setting_joint(setting_key, i)
             correct = correct and (abs(setting - value) < self.EPSILON)
         return correct, f"Expected {value}, got {setting}"
@@ -108,3 +115,43 @@ class TestController(unittest.TestCase):
         correct, msg = self.get_and_set_joint_settings("homing_offset_rads", np.pi / 4, False)
 
         self.assertTrue(correct, msg)
+
+    @disable_console
+    def test_speed_settings(self) -> None:
+        # set speed to 1 rad/s
+        self.controller.set_setting_joints("speed_rad/s", 1)
+        self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
+        start_time = time.time()
+        self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
+        self.controller.wait_done_moving()
+        end_time = time.time()
+        self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
+
+        self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
+        # set speed to 0.5 rad/s
+        self.controller.set_setting_joints("speed_rad/s", 0.5)
+        start_time = time.time()
+        self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
+        self.controller.wait_done_moving()
+        end_time = time.time()
+        self.assertTrue(end_time - start_time > 1.9, msg=f"Expected 2s, got {end_time - start_time}")
+        self.controller.set_setting_joints("speed_rad/s", 1)
+
+    @disable_console
+    def test_speed_with_modified_settings(self) -> None:
+        self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
+        # set conversion rate to 1.5
+        self.controller.set_setting_joints("conversion_rate_axis_joints", 1.5)
+        self.controller.set_setting_joint("conversion_rate_axis_joints", 4, 2)
+        self.controller.set_setting_joint("conversion_rate_axis_joints", 0.5, 1)
+        # set steps per
+        self.controller.set_setting_joints("steps_per_rev_motor_axis", 1000)
+        self.controller.set_setting_joint("steps_per_rev_motor_axis", 3434, 0)
+        self.controller.set_setting_joint("steps_per_rev_motor_axis", 6457, 3)
+
+        # move to 1
+        start_time = time.time()
+        self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
+        self.controller.wait_done_moving()
+        end_time = time.time()
+        self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")

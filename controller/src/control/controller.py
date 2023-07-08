@@ -58,25 +58,30 @@ class ArmController:
             value: float
             code_set: int
             code_get: int
-            last_updated: float = 0
+            last_updated: float = -1
 
-        self.arm_settings: Dict[str, Setting] = {
-            "homing_direction": Setting(value=1, code_set=1, code_get=3),  # 1 for positive, -1 for negative
-            "speed_rad/s": Setting(value=1, code_set=5, code_get=7),  # speed in radians per second
-            "steps_per_rev_motor_axis": Setting(
-                value=200, code_set=9, code_get=11
-            ),  # steps per revolution of motor axis (microstepping)
-            "conversion_rate_axis_joints": Setting(
-                value=1, code_set=13, code_get=15
-            ),  # conversion rate from motor axis to joint angles
-            "homing_offset_rads": Setting(
-                value=np.pi / 4, code_set=17, code_get=19
-            ),  # offset in radians for homing
-        }
+        self.joint_settings: List[Dict[str, Setting]] = []
+        self.joint_settings_response_code: List[Dict[int, Setting]] = []
 
-        self.settings_get_code_response_to_setting: Dict[int, Setting] = {
-            setting.code_get + 1: setting for setting in self.arm_settings.values()
-        }
+        for _ in range(self.num_joints):
+            current_joint_settings = {
+                # 1 for positive, -1 for negative
+                "homing_direction": Setting(value=1, code_set=1, code_get=3),
+                "speed_rad/s": Setting(value=1, code_set=5, code_get=7),  # speed in radians per second
+                "steps_per_rev_motor_axis": Setting(
+                    value=200, code_set=9, code_get=11
+                ),  # steps per revolution of motor axis (microstepping)
+                "conversion_rate_axis_joints": Setting(
+                    value=1, code_set=13, code_get=15
+                ),  # conversion rate from motor axis to joint angles
+                "homing_offset_rads": Setting(
+                    value=np.pi / 4, code_set=17, code_get=19
+                ),  # offset in radians for homing
+            }
+            self.joint_settings.append(current_joint_settings)
+            self.joint_settings_response_code.append(
+                {setting.code_get + 1: setting for setting in current_joint_settings.values()}
+            )
 
     """
     ----------------------------------------
@@ -154,9 +159,10 @@ class ArmController:
     def handle_config_message(self, message: Message) -> None:
         console.print(f"Received config message: {message}", style="info")
         code = message.code
-        if code in self.settings_get_code_response_to_setting.keys():
-            setting = self.settings_get_code_response_to_setting[code]
-            setting.value = message.args[0]
+        joint_idx = int(message.args[0])
+        if code in self.joint_settings_response_code[joint_idx].keys():
+            setting = self.joint_settings_response_code[joint_idx][code]
+            setting.value = message.args[1]
             setting.last_updated = time.time()
 
     """
@@ -204,7 +210,11 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
 
-    def wait_queue_empty(self) -> None:
+    def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
+        while not np.allclose(self.current_angles, target_angles, atol=epsilon):
+            time.sleep(0.1)
+
+    def wait_done_moving(self) -> None:
         while self.move_queue_size > 0:
             time.sleep(0.1)
 
@@ -233,41 +243,27 @@ class ArmController:
     ----------------------------------------
     """
 
-    def set_setting_joint(self, setting_key: str, joint_idx: int, value: float) -> None:
-        setting = self.arm_settings[setting_key]
+    def set_setting_joint(self, setting_key: str, value: float, joint_idx: int) -> None:
+        setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_set
         message = Message("C", code, [float(joint_idx), value])
         self.controller_server.send_message(message, mutex=True)
         setting.last_updated = -1
 
-    def set_setting(self, setting_key: str, value: float) -> None:
-        setting = self.arm_settings[setting_key]
-        code = setting.code_set
-        message = Message("C", code, [value])
-        self.controller_server.send_message(message, mutex=True)
-        setting.last_updated = -1
-        setting.value = value
+    def set_setting_joints(self, setting_key: str, value: float) -> None:
+        for joint_idx in range(self.num_joints):
+            self.set_setting_joint(setting_key, value, joint_idx)
 
     def get_setting_joint(self, setting_key: str, joint_idx: int) -> float:
-        setting = self.arm_settings[setting_key]
+        setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_get
-        message = Message("C", code, [float(joint_idx)])
-        self.controller_server.send_message(message, mutex=True)
-        setting.last_updated = -1
-        # wait for setting to be updated
-        while setting.last_updated < 0:
-            time.sleep(0.01)
 
+        if setting.last_updated < 0:  # valid value
+            message = Message("C", code, [float(joint_idx)])
+            self.controller_server.send_message(message, mutex=True)
+            while setting.last_updated < 0:
+                time.sleep(0.01)
         return setting.value
 
-    def get_setting(self, setting_key: str) -> float:
-        setting = self.arm_settings[setting_key]
-        code = setting.code_get
-        message = Message("C", code)
-        self.controller_server.send_message(message, mutex=True)
-        setting.last_updated = -1
-        # wait for setting to be updated
-        while setting.last_updated < 0:
-            time.sleep(0.01)
-
-        return setting.value
+    def get_setting_joints(self, setting_key: str) -> List[float]:
+        return [self.get_setting_joint(setting_key, joint_idx) for joint_idx in range(self.num_joints)]
