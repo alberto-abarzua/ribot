@@ -22,6 +22,8 @@ microcontrollers feasible. The firmware takes commands from the controller,
 executing them accordingly. Additionally, it undertakes the responsibility of forwarding data 
 to the controller.
 
+![System diagram](docs/imgs/controller-firmware.png)
+
 ## Features
 
 -   [x] Basic control of the robotic arm using a Python script
