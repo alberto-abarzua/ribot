@@ -12,8 +12,8 @@ public class controller: MonoBehaviour {
 
     // Socket variables
     private WebSocket websocket = null;
-    private int web_socket_port = 65433;
-    private string web_socket_ip = "localhost";
+    private int web_socket_port;
+    private string web_socket_ip ;
 
     // Angles management
     private int[] inverted;
@@ -34,8 +34,8 @@ public class controller: MonoBehaviour {
         }
 
         this.TCP = GameObject.Find("TCP");
-        this.text_angles = GameObject.Find("cur_angles").GetComponent < Text > ();
-        this.TCP_location = GameObject.Find("TCP_location").GetComponent < TMP_Text > ();
+        // this.text_angles = GameObject.Find("cur_angles").GetComponent < Text > ();
+        // this.TCP_location = GameObject.Find("TCP_location").GetComponent < TMP_Text > ();
 
         this.current_angles = new float[6];
 
@@ -48,10 +48,17 @@ public class controller: MonoBehaviour {
             1
         };
 
+        Application.ExternalEval("GetWebSocketInfo();");
         this.SetupWebSocket();
         this.UpdateJoints();
         InvokeRepeating(nameof(CallGetAngles), 0f, 0.4f); // CallGetAngles every 0.1 seconds
 
+    }
+
+    public void SetWebSocketInfo(string info) {
+        string[] parts = info.Split(':');
+        web_socket_ip = parts[0];
+        web_socket_port = int.Parse(parts[1]);
     }
 
     private void UpdateJoints() {
@@ -108,8 +115,8 @@ public class controller: MonoBehaviour {
     private void UpdateText() {
         Vector3 pos = TCP.transform.position;
         Vector3 ang = TCP.transform.eulerAngles;
-        this.TCP_location.text = String.Format("X: {0:0.##} Y: {1:0.##} Z: {2:0.##}  A: {3:0.##} B: {4:0.##} C: {5:0.##}", pos[0], pos[1], pos[2], ang[0], ang[1], ang[2]);
-        this.text_angles.text = String.Format("cur_angles [{0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##},{5:0.##}]", this.current_angles[0], this.current_angles[1], this.current_angles[2], this.current_angles[3], this.current_angles[4], this.current_angles[5]);
+        // this.TCP_location.text = String.Format("X: {0:0.##} Y: {1:0.##} Z: {2:0.##}  A: {3:0.##} B: {4:0.##} C: {5:0.##}", pos[0], pos[1], pos[2], ang[0], ang[1], ang[2]);
+        // this.text_angles.text = String.Format("cur_angles [{0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##},{5:0.##}]", this.current_angles[0], this.current_angles[1], this.current_angles[2], this.current_angles[3], this.current_angles[4], this.current_angles[5]);
     }
 
     private void SetupWebSocket() {
@@ -122,10 +129,12 @@ public class controller: MonoBehaviour {
 
         this.websocket.OnError += (e) => {
             Debug.Log("Error! " + e);
+             Invoke("SetupWebSocket", 5f);
         };
 
         this.websocket.OnClose += (e) => {
             Debug.Log("Connection closed!");
+            Invoke("SetupWebSocket", 5f);
         };
 
         this.websocket.OnMessage += (bytes) => {
