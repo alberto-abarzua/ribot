@@ -54,7 +54,8 @@ public class controller: MonoBehaviour {
         InvokeRepeating(nameof(CallGetAngles), 0f, 0.4f); // CallGetAngles every 0.1 seconds
 
     }
-
+    
+    [JSInvokable]
     public void SetWebSocketInfo(string info) {
         string[] parts = info.Split(':');
         web_socket_ip = parts[0];
