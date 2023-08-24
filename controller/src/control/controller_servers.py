@@ -74,12 +74,10 @@ class WebsocketServer(ControllerDependencies):
 
     async def handler(self, websocket: Any, _: str) -> None:
         async for message in websocket:
-            console.print(f"Received message: {message}", style="info")
             if message.strip() == "get_angles":
                 angles = self.controller.current_angles
                 response = Message(MessageOp.STATUS, 0, angles)
                 await websocket.send(response.encode())
-                console.print(f"Received message: {message}", style="info")
 
     def _start(self) -> None:
         self.loop = asyncio.new_event_loop()
@@ -166,12 +164,6 @@ class ControllerServer(ControllerDependencies):
     def _send_message(self, message: Message) -> None:
         if self.is_ready and self.connection_socket is not None:
             try:
-                op = message.op
-                style = "info"
-                if op != MessageOp.STATUS:
-                    style = "big_info"
-
-                console.print(f"Sending message: {message}", style=style)
                 self.connection_socket.send(message.encode())
             except OSError as e:
                 console.print(f"Connection failed with error: {str(e)}", style="error")
