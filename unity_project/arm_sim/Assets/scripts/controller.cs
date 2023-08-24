@@ -39,7 +39,7 @@ public class Controller: MonoBehaviour {
 
     public void Start() {
         
-        PrintToConsole("\n\nHello from Unity!\n\n");
+        // PrintToConsole("\n\nHello from Unity!\n\n");
         this.joints = new GameObject[6];
 
         for (int i = 0; i < 6; i++) {
@@ -72,7 +72,7 @@ public class Controller: MonoBehaviour {
         int port = GetWebSocketPort();
         web_socket_ip = ip;
         web_socket_port = port;
-        PrintToConsole("ip: " + web_socket_ip + " port: " + web_socket_port);
+        // PrintToConsole("ip: " + web_socket_ip + " port: " + web_socket_port);
     }
 
     private void UpdateJoints() {
@@ -99,12 +99,12 @@ public class Controller: MonoBehaviour {
         int code = BitConverter.ToInt32(buf, 1);
         int num_args = BitConverter.ToInt32(buf, 5);
         float[] args = new float[num_args];
-        Debug.Log("num_args: " + num_args);
-        Debug.Log("args: " + args);
-        Debug.Log("buf: " + buf);
-        Debug.Log("buf length: " + buf.Length);
-        Debug.Log("op: " + op);
-        Debug.Log("code: " +code);
+        // Debug.Log("num_args: " + num_args);
+        // Debug.Log("args: " + args);
+        // Debug.Log("buf: " + buf);
+        // Debug.Log("buf length: " + buf.Length);
+        // Debug.Log("op: " + op);
+        // Debug.Log("code: " +code);
         for (int i = 0; i < num_args; i++) {
             args[i] = BitConverter.ToSingle(buf, i * 4 + 9); // Use ToSingle for float values
         }
@@ -112,10 +112,10 @@ public class Controller: MonoBehaviour {
     }
 
     private void CallGetAngles() {
-        Debug.Log("CallGetAngles");
+        // Debug.Log("CallGetAngles");
         // show websocket state
 
-        Debug.Log("State: " + websocket.State.ToString());
+        // Debug.Log("State: " + websocket.State.ToString());
         if (websocket.State == WebSocketState.Open){
             long current_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             if (current_time - this.last_call < this.call_interval * 1000) {
@@ -143,25 +143,25 @@ public class Controller: MonoBehaviour {
         this.websocket = new WebSocket(String.Format("ws://{0}:{1}", this.web_socket_ip, this.web_socket_port));
 
         this.websocket.OnOpen += () => {
-            Debug.Log("Connection open!");
+            // Debug.Log("Connection open!");
         };
 
         this.websocket.OnError += (e) => {
-            Debug.Log("Error! " + e);
+            // Debug.Log("Error! " + e);
              Invoke("SetupWebSocket", 5f);
         };
 
         this.websocket.OnClose += (e) => {
-            Debug.Log("Connection closed!");
+            // Debug.Log("Connection closed!");
             Invoke("SetupWebSocket", 5f);
         };
 
         this.websocket.OnMessage += (bytes) => {
-                Debug.Log("OnMessage!");
+                // Debug.Log("OnMessage!");
                 string packedMessageString = BitConverter.ToString(bytes);
-                Debug.Log("Packed message: " + packedMessageString);
+                // Debug.Log("Packed message: " + packedMessageString);
                 //print length of bytes
-                Debug.Log(bytes.Length);
+                // Debug.Log(bytes.Length);
                 (int op, int code, int numArgs, float[] args) = this.ReadMessage(bytes);
                 for (int i = 0; i < 6; i++) {
                     this.current_angles[i] = this.RadToDeg(args[i]);

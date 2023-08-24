@@ -42,3 +42,16 @@ services:
       - WIFI_PASSWORD
       - CONTROLLER_SERVER_HOST
       - CONTROLLER_SERVER_PORT
+  frontend:
+      build: ./frontend
+      volumes:
+        - ./frontend/src:/app/src
+        - ./frontend/package.json:/app/package.json
+        - ./frontend/package-lock.json:/app/package-lock.json
+        - ./frontend/tailwind.config.js:/app/tailwind.config.js
+        - ./frontend/postcss.config.js:/app/postcss.config.js
+      ports:
+        - "3000:3000"
+      environment:
+        - NEXT_PUBLIC_BACKEND_URL
+
