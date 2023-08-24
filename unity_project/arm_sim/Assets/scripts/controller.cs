@@ -8,12 +8,24 @@ using UnityEngine.UI;
 using TMPro;
 using NativeWebSocket;
 
-public class controller: MonoBehaviour {
+using System.Runtime.InteropServices;
+public class Controller: MonoBehaviour {
 
+    [DllImport("__Internal")]
+    private static extern int GetWebSocketPort();
+    [DllImport("__Internal")]
+    private static extern string GetWebSocketIp();
+
+    [DllImport("__Internal")]
+    private static extern void PrintToConsole(string str);
     // Socket variables
     private WebSocket websocket = null;
     private int web_socket_port;
     private string web_socket_ip ;
+    private float call_interval = 1f/40f; // 40 Hz
+    // last call timestamp
+    private long last_call =  0;
+
 
     // Angles management
     private int[] inverted;
@@ -26,7 +38,8 @@ public class controller: MonoBehaviour {
     private Text text_angles;
 
     public void Start() {
-
+        
+        PrintToConsole("\n\nHello from Unity!\n\n");
         this.joints = new GameObject[6];
 
         for (int i = 0; i < 6; i++) {
@@ -44,22 +57,22 @@ public class controller: MonoBehaviour {
             -1,
             -1,
             1,
-            -1,
+            -1, 
             1
         };
-
-        Application.ExternalEval("GetWebSocketInfo();");
-        this.SetupWebSocket();
+        SetWebSocketInfo();
+        this.SetupWebSocket(); 
         this.UpdateJoints();
-        InvokeRepeating(nameof(CallGetAngles), 0f, 0.4f); // CallGetAngles every 0.1 seconds
+        // InvokeRepeating(nameof(CallGetAngles), 0f, 0.03f); // CallGetAngles every 0.1 seconds
 
     }
-    
-    [JSInvokable]
-    public void SetWebSocketInfo(string info) {
-        string[] parts = info.Split(':');
-        web_socket_ip = parts[0];
-        web_socket_port = int.Parse(parts[1]);
+
+    public void SetWebSocketInfo() {
+        string ip = GetWebSocketIp();
+        int port = GetWebSocketPort();
+        web_socket_ip = ip;
+        web_socket_port = port;
+        PrintToConsole("ip: " + web_socket_ip + " port: " + web_socket_port);
     }
 
     private void UpdateJoints() {
@@ -101,10 +114,15 @@ public class controller: MonoBehaviour {
     private void CallGetAngles() {
         Debug.Log("CallGetAngles");
         // show websocket state
+
         Debug.Log("State: " + websocket.State.ToString());
         if (websocket.State == WebSocketState.Open){
-        this.websocket.SendText("get_angles");
-
+            long current_time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            if (current_time - this.last_call < this.call_interval * 1000) {
+                return;
+            }
+            this.websocket.SendText("get_angles");
+            this.last_call = DateTimeOffset.Now.ToUnixTimeMilliseconds();
         }
 
     }
@@ -162,7 +180,7 @@ public class controller: MonoBehaviour {
             this.websocket.DispatchMessageQueue();
             #endif
             this.UpdateJoints();
-
+            this.CallGetAngles();
         }
 
     }

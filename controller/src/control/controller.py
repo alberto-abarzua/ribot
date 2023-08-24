@@ -133,10 +133,7 @@ class ArmController:
         else:
             websocket_server_up = self.websocket_server.is_ready
         controller_server_up = self.controller_server.is_ready
-        console.print(
-            f"Websocket server up: {websocket_server_up}, controller server up: {controller_server_up}",
-            style="info",
-        )
+
         return websocket_server_up and controller_server_up
 
     """
@@ -146,7 +143,7 @@ class ArmController:
     """
 
     def handle_move_message(self, message: Message) -> None:
-        console.print(f"Received move message: {message}", style="info")
+        pass
 
     def handle_status_message(self, message: Message) -> None:
         code = message.code
@@ -157,10 +154,8 @@ class ArmController:
             self.is_homed = message.args[self.num_joints + 1] == 1
         if code == 4:
             self.last_health_check = time.time()
-        console.print(f"Received status message: {message}", style="info")
 
     def handle_config_message(self, message: Message) -> None:
-        console.print(f"Received config message: {message}", style="info")
         code = message.code
         joint_idx = int(message.args[0])
         if code in self.joint_settings_response_code[joint_idx].keys():
