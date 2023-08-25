@@ -26,6 +26,17 @@ services:
       - CONTROLLER_SERVER_HOST
       - CONTROLLER_SERVER_PORT  
       - TEST
+      - PDM_PUBLISH_USERNAME
+      - PDM_PUBLISH_PASSWORD
+
+
+  backend:
+    build: 
+      context: "./backend"
+      dockerfile: "Dockerfile"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/pyproject.toml:/app/pyproject.toml
 
   firmware:
     pid: "host"

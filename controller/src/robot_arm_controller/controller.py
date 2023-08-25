@@ -5,10 +5,10 @@ from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
-from control.arm_kinematics import ArmKinematics, ArmParameters, ArmPose
-from control.controller_servers import ControllerServer, FIFOLock, WebsocketServer
-from utils.messages import Message, MessageOp
-from utils.prints import console
+from robot_arm_controller.control.arm_kinematics import ArmKinematics, ArmParameters, ArmPose
+from robot_arm_controller.control.controller_servers import ControllerServer, FIFOLock, WebsocketServer
+from robot_arm_controller.utils.messages import Message, MessageOp
+from robot_arm_controller.utils.prints import console
 
 
 class Settings(Enum):

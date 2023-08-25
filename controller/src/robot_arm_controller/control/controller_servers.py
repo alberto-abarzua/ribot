@@ -12,8 +12,8 @@ from typing import Any, Optional, Type, Union
 
 import websockets
 
-from utils.messages import Message, MessageOp
-from utils.prints import console
+from robot_arm_controller.utils.messages import Message, MessageOp
+from robot_arm_controller.utils.prints import console
 
 
 class ControllerDependencies(ABC):

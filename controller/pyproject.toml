@@ -1,11 +1,17 @@
 
 [project]
-name = ""
-version = ""
-description = ""
+name = "robot-arm-controller"
+version = "0.1.6"
+description = "Robot arm controller"
 authors = [
     {name = "alberto-abarzua", email = "aabarzua@palvi.cl"},
 ]
+readme = "README.md"
+keywords = ["robot", "arm", "controller"]
+
+
+
+
 dependencies = [
     "websockets>=11.0.3",
     "asyncio>=3.4.3",
@@ -28,6 +34,8 @@ profile = "black"
 [tool.black]
 line-length = 110
 
+[project.urls]
+"Source Code" = "https://github.com/alberto-abarzua/Robot-Arm-Control"
 
 [mypy]
 ignore_missing_imports = "True"
@@ -39,7 +47,6 @@ isort = "isort src"
 black = "black src"
 pure_lint = "flake8 src"
 type_check = "mypy src"
-test = "python -m unittest discover -s src/tests -p 'test_*.py'"
-start = "python src/main.py"
+test = "python -m unittest discover -s src/robot_arm_controller/tests -p 'test_*.py'"
 format = {composite = ["isort", "black"]}
 lint = {composite = ["pure_lint", "type_check"]}

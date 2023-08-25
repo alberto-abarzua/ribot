@@ -3,14 +3,14 @@ from typing import List
 
 import numpy as np
 
-from control.arm_kinematics import ArmPose
-from control.controller import ArmController
-from utils.algebra import (
+from robot_arm_controller.control.arm_kinematics import ArmPose
+from robot_arm_controller.controller import ArmController
+from robot_arm_controller.utils.algebra import (
     create_rotation_matrix_from_euler_angles,
     degree2rad,
     extract_euler_angles,
 )
-from utils.prints import disable_console
+from robot_arm_controller.utils.prints import disable_console
 
 
 class TestArmKinematics(unittest.TestCase):

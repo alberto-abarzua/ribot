@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from utils.algebra import (
+from robot_arm_controller.utils.algebra import (
     create_rotation_matrix_from_euler_angles,
     degree2rad,
     extract_euler_angles,
@@ -15,7 +15,7 @@ from utils.algebra import (
     y_rotation_matrix,
     z_rotation_matrix,
 )
-from utils.prints import console
+from robot_arm_controller.utils.prints import console
 
 """
     ----------------------------------------

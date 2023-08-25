@@ -1,4 +1,5 @@
-from control.controller import ArmController, Settings
+from robot_arm_controller.control.controller import ArmController, Settings
+
 
 if __name__ == "__main__":
     controller = ArmController()

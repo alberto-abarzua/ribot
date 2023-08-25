@@ -4,8 +4,8 @@ from typing import Tuple
 
 import numpy as np
 
-from control.controller import ArmController, Settings
-from utils.prints import disable_console
+from robot_arm_controller.controller import ArmController, Settings
+from robot_arm_controller.utils.prints import disable_console
 
 
 class TestController(unittest.TestCase):
