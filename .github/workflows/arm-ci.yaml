@@ -8,47 +8,41 @@ jobs:
     runs-on: ubuntu-latest
     environment: general
     env:
-      CONTROLLER_WEBSOCKET_PORT : ${{ vars.CONTROLLER_WEBSOCKET_PORT }}
-      CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
-      CONTROLLER_SERVER_HOST: ${{ vars.CONTROLLER_SERVER_HOST }}
-      WIFI_SSID: ${{ vars.WIFI_SSID }}
-      WIFI_PASSWORD: ${{ vars.WIFI_PASSWORD }}
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.CONTROLLER_SERVER_HOST }}
+      ESP_WIFI_SSID: ${{ vars.WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.WIFI_PASSWORD }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
 
       - name: Build Docker Compose
-        run: docker compose build
+        run: ./manage.py build
 
-      - name: Run Docker Compose Up 
-        run: |
-          docker-compose up -d
-          sleep 5
-          docker-compose down
       - name: Lint Controller with Flake8
-        run: docker compose run controller pdm lint
+        run: ./manage.py lint   
 
       - name: Run Controller Tests
-        run: ./run.sh test
+        run: ./manage.py test
     
       - name: Stop and remove containers
         if: always()
-        run: docker compose down
+        run: ./manage.py down
     
   esp-idf-build: 
     runs-on: ubuntu-latest
     environment: general
     env:
-      CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
-      CONTROLLER_SERVER_HOST: ${{ vars.CONTROLLER_SERVER_HOST }}
-      WIFI_SSID: ${{ vars.WIFI_SSID }}
-      WIFI_PASSWORD: ${{ vars.WIFI_PASSWORD }}
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.CONTROLLER_SERVER_PORT }}
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_HOST }}
+      ESP_WIFI_SSID: ${{ vars.WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.WIFI_PASSWORD }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
 
       - name: Esp-idf Build
-        run: ./firmware/entrypoint_esp.sh
+        run: ./manage.py build-esp
 
          
 

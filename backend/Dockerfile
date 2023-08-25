@@ -7,6 +7,7 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH=/app/src
 
 
 
@@ -15,11 +16,11 @@ RUN pip install pdm==2.8.2
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./pdm.lock ./pdm.lock
 
-RUN pdm install
-
-
-
 COPY . .
 
 
-CMD ["pdm", "run","src/main.py"]
+RUN chmod +x ./entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+CMD ["pdm","run","start"]

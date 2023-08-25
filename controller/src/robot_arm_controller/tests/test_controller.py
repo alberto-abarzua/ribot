@@ -4,6 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
+from robot_arm_controller.control.arm_kinematics import ArmParameters
 from robot_arm_controller.controller import ArmController, Settings
 from robot_arm_controller.utils.prints import disable_console
 
@@ -15,13 +16,25 @@ class TestController(unittest.TestCase):
     @classmethod
     @disable_console
     def setUpClass(cls) -> None:
-        cls.controller = ArmController()
+        # Arm parameters
+        arm_params: ArmParameters = ArmParameters()
+        arm_params.a2x = 0
+        arm_params.a2z = 172.48
+
+        arm_params.a3z = 173.5
+
+        arm_params.a4z = 0
+        arm_params.a4x = 126.2
+
+        arm_params.a5x = 64.1
+        arm_params.a6x = 169
+
+        cls.controller = ArmController(arm_parameters=arm_params)
         cls.controller.start(websocket_server=False)
         start_time = time.time()
         while not cls.controller.is_ready:
             time.sleep(0.1)
             if time.time() - start_time > 3:
-                # fail all tests if controller takes too long to start
                 raise TimeoutError("Controller took too long to start")
 
         cls.controller.home()
@@ -57,7 +70,6 @@ class TestController(unittest.TestCase):
         self.controller.move_to_angles(angles)
         self.controller.wait_done_moving()
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
-        # test negative numbers
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
         angles = [-0.1, -0.2, -0.3, -0.4, -0.5, -0.6]
         self.controller.move_to_angles(angles)

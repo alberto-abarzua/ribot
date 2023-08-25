@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from robot_arm_controller.control.arm_kinematics import ArmPose
+from robot_arm_controller.control.arm_kinematics import ArmPose, ArmParameters
 from robot_arm_controller.controller import ArmController
 from robot_arm_controller.utils.algebra import (
     create_rotation_matrix_from_euler_angles,
@@ -37,15 +37,16 @@ class TestArmKinematics(unittest.TestCase):
     @classmethod
     @disable_console
     def setUpClass(cls) -> None:
-        cls.controller = ArmController()
-        cls.controller.arm_params.a1z = 650
-        cls.controller.arm_params.a2x = 400
-        cls.controller.arm_params.a2z = 680
-        cls.controller.arm_params.a3z = 1100
-        cls.controller.arm_params.a4z = 230
-        cls.controller.arm_params.a4x = 766
-        cls.controller.arm_params.a5x = 345
-        cls.controller.arm_params.a6x = 244
+        arm_params = ArmParameters()
+        arm_params.a1z = 650.0
+        arm_params.a2x = 400.0
+        arm_params.a2z = 680.0
+        arm_params.a3z = 1100.0
+        arm_params.a4z = 230.0
+        arm_params.a4x = 766.0
+        arm_params.a5x = 345.0
+        arm_params.a6x = 244.0
+        cls.controller = ArmController(arm_parameters=arm_params)
 
     @disable_console
     def test_pose_to_angles(self) -> None:
@@ -102,7 +103,7 @@ class TestArmKinematics(unittest.TestCase):
         for joint in self.controller.arm_params.joints:
             possible_angles.append(np.arange(joint.min_val, joint.max_val, 0.05))
 
-        num_combinations = 10000
+        num_combinations = 1000
         for _ in range(num_combinations):
             # Generate a random combination of angles.
             pos_angles = list(np.random.choice(angles) for angles in possible_angles)

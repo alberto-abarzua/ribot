@@ -54,7 +54,9 @@ ArmClientCode ArmClient::attempt_connection() {
                     std::to_string(CONTROLLER_SERVER_PORT).c_str(), &hints,
                     &res);
     if (s != 0) {
-        std::cerr << "getaddrinfo error: " << s << "\n";
+        std::cerr << "getaddrinfo error: " << s << "when connecting to"
+                  << CONTROLLER_SERVER_HOST << ":" << CONTROLLER_SERVER_PORT
+                  << "\n";
         return ArmClientCode::ADDR_INFO_ERROR;
     }
 

@@ -64,7 +64,7 @@ class FIFOLock:
 
 
 class WebsocketServer(ControllerDependencies):
-    def __init__(self, port: int, controller: Any) -> None:
+    def __init__(self, controller: Any, port: int) -> None:
         super().__init__(controller)
         self.port: int = port
         self.kill: bool = False

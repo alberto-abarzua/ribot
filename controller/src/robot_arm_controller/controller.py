@@ -5,8 +5,16 @@ from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
-from robot_arm_controller.control.arm_kinematics import ArmKinematics, ArmParameters, ArmPose
-from robot_arm_controller.control.controller_servers import ControllerServer, FIFOLock, WebsocketServer
+from robot_arm_controller.control.arm_kinematics import (
+    ArmKinematics,
+    ArmParameters,
+    ArmPose,
+)
+from robot_arm_controller.control.controller_servers import (
+    ControllerServer,
+    FIFOLock,
+    WebsocketServer,
+)
 from robot_arm_controller.utils.messages import Message, MessageOp
 from robot_arm_controller.utils.prints import console
 
@@ -28,7 +36,12 @@ class Setting:
 
 
 class ArmController:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        arm_parameters: ArmParameters,
+        websocket_port: int = 8600,
+        server_port: int = 8500,
+    ) -> None:
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
         self.num_joints: int = len(self._current_angles)
         self.move_queue_size: int = 0
@@ -36,8 +49,8 @@ class ArmController:
         self.last_health_check: float = 0
 
         self.current_angles_lock: FIFOLock = FIFOLock()
-        self.controller_server: ControllerServer = ControllerServer(self, 8500)
-        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(65433, self)
+        self.controller_server: ControllerServer = ControllerServer(self, server_port)
+        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
 
         # register new handlers here
         self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {
@@ -46,23 +59,7 @@ class ArmController:
             MessageOp.CONFIG: self.handle_config_message,
         }
 
-        # Arm parameters
-        self.arm_params: ArmParameters = ArmParameters()
-        self.arm_params.a2x = 0
-        self.arm_params.a2z = 172.48
-
-        self.arm_params.a3z = 173.5
-
-        self.arm_params.a4z = 0
-        self.arm_params.a4x = 126.2
-
-        self.arm_params.a5x = 64.1
-        self.arm_params.a6x = 169
-
-        self.arm_params.j1.set_bounds(-np.pi / 2, np.pi / 2)
-        self.arm_params.j2.set_bounds(-1.39626, 1.57)
-        self.arm_params.j3.set_bounds(-np.pi / 2, np.pi / 2)
-        self.arm_params.j5.set_bounds(-np.pi / 2, np.pi / 2)
+        self.arm_params = arm_parameters
 
         self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
 
@@ -93,7 +90,7 @@ class ArmController:
     """
 
     def start(self, wait: bool = True, websocket_server: bool = True) -> None:
-        console.print("Starting controller", style="setup")
+        console.print("Starting controller!", style="setup")
         if websocket_server and self.websocket_server is not None:
             self.websocket_server.start()
         else:
@@ -113,6 +110,10 @@ class ArmController:
             self.websocket_server.stop()
         self.controller_server.stop()
         console.print("Controller Stopped", style="setup")
+
+    @property
+    def current_pose(self) -> ArmPose:
+        return self.kinematics.angles_to_pose(self.current_angles)
 
     @property
     def current_angles(self) -> List[float]:
@@ -270,3 +271,28 @@ class ArmController:
 
     def get_setting_joints(self, setting_key: Settings) -> List[float]:
         return [self.get_setting_joint(setting_key, joint_idx) for joint_idx in range(self.num_joints)]
+
+
+class SingletonArmController:
+    _instance: Optional[ArmController] = None
+
+    @classmethod
+    def create_instance(
+        cls,
+        arm_parameters: ArmParameters,
+        websocket_port: int = 8600,
+        server_port: int = 8500,
+    ) -> None:
+        cls._instance = ArmController(
+            arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port
+        )
+
+    @classmethod
+    def get_instance(cls) -> ArmController:
+        if cls._instance is None:
+            raise ValueError("ArmController has not been initialized")
+        return cls._instance
+
+    @classmethod
+    def was_initialized(cls) -> bool:
+        return cls._instance is not None

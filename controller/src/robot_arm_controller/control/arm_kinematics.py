@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from robot_arm_controller.utils.prints import console
 
 
 class Joint:
-    def __init__(self, min_val: float = -2 * np.pi, max_val: float = 2 * np.pi) -> None:
+    def __init__(self, min_val: float = - np.pi/2, max_val: float = np.pi/2) -> None:
         self.min_val = min_val
         self.max_val = max_val
 
@@ -40,29 +40,29 @@ class Joint:
 class ArmParameters:
     def __init__(self) -> None:
         # J1
-        self.a1x: float = 0
-        self.a1y: float = 0
-        self.a1z: float = 0
+        self.a1x: int = 0
+        self.a1y: int = 0
+        self.a1z: int = 0
         # J2
-        self.a2x: float = 0
-        self.a2y: float = 0
-        self.a2z: float = 0
+        self.a2x: int = 0
+        self.a2y: int = 0
+        self.a2z: int = 0
         # J3
-        self.a3x: float = 0
-        self.a3y: float = 0
-        self.a3z: float = 0
+        self.a3x: int = 0
+        self.a3y: int = 0
+        self.a3z: int = 0
         # J4
-        self.a4x: float = 0
-        self.a4y: float = 0
-        self.a4z: float = 0
+        self.a4x: int = 0
+        self.a4y: int = 0
+        self.a4z: int = 0
         # J5
-        self.a5x: float = 0
-        self.a5y: float = 0
-        self.a5z: float = 0
+        self.a5x: int = 0
+        self.a5y: int = 0
+        self.a5z: int = 0
         # J6
-        self.a6x: float = 0
-        self.a6z: float = 0
-        self.a6y: float = 0
+        self.a6x: int = 0
+        self.a6z: int = 0
+        self.a6y: int = 0
 
         self.joint_ratios: List[float] = []
 
@@ -75,6 +75,28 @@ class ArmParameters:
 
         self.joints: List[Joint] = [self.j1, self.j2, self.j3, self.j4, self.j5, self.j6]
 
+    def __str__(self) -> str:
+        return f"""
+        a1x: {self.a1x}
+        a1y: {self.a1y}
+        a1z: {self.a1z}
+        a2x: {self.a2x}
+        a2y: {self.a2y}
+        a2z: {self.a2z}
+        a3x: {self.a3x}
+        a3y: {self.a3y}
+        a3z: {self.a3z}
+        a4x: {self.a4x}
+        a4y: {self.a4y}
+        a4z: {self.a4z}
+        a5x: {self.a5x}
+        a5y: {self.a5y}
+        a5z: {self.a5z}
+        a6x: {self.a6x}
+        a6y: {self.a6y}
+        a6z: {self.a6z}
+        """
+    
 
 @dataclasses.dataclass
 class ArmPose:
@@ -116,6 +138,17 @@ class ArmPose:
     @property
     def as_list(self) -> List[float]:
         return list(self.as_tuple)
+
+    @property
+    def as_dict(self) -> Dict[str, float]:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "roll": self.roll,
+            "pitch": self.pitch,
+            "yaw": self.yaw,
+        }
 
 
 """
@@ -251,4 +284,4 @@ class ArmKinematics:
                     J6 = J6_1
             found_angles = [J1, J2, J3, J4, J5, J6]
             return [nearest_by_2pi_ref(angle, ref) for angle, ref in zip(found_angles, prev_angles)]
-        raise self.NotReachableError("Target pose is not reachable", found_angles)
+        raise self.NotReachableError("Target pose is not reachable", target_pose)

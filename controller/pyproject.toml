@@ -1,7 +1,7 @@
 
 [project]
 name = "robot-arm-controller"
-version = "0.1.6"
+version = "0.1.9"
 description = "Robot arm controller"
 authors = [
     {name = "alberto-abarzua", email = "aabarzua@palvi.cl"},
@@ -25,6 +25,9 @@ dependencies = [
 ]
 requires-python = ">=3.11"
 license = {text = "MIT"}
+
+[tool.pdm.files]
+"robot_arm_controller/py.typed" = "src/robot_arm_controller/py.typed"
 
 
 
