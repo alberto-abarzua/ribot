@@ -1,0 +1,29 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "fastapi>=0.101.1",
+    "uvicorn>=0.23.2",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "-e file:///app/controller#egg=robot-arm-controller",
+]
+
+
+[tool.pdm.scripts]
+start = "pdm run uvicorn src.main:app  --host 0.0.0.0"
+isort = "isort src"
+black = "black src"
+pure_lint = "flake8 src"
+type_check = "mypy src"
+format = {composite = ["isort", "black"]}
+lint = {composite = ["pure_lint", "type_check"]}
