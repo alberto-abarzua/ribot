@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from robot_arm_controller.control.arm_kinematics import ArmPose, ArmParameters
+from robot_arm_controller.control.arm_kinematics import ArmParameters, ArmPose
 from robot_arm_controller.controller import ArmController
 from robot_arm_controller.utils.algebra import (
     create_rotation_matrix_from_euler_angles,

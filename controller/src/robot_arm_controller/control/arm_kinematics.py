@@ -25,7 +25,7 @@ from robot_arm_controller.utils.prints import console
 
 
 class Joint:
-    def __init__(self, min_val: float = - np.pi/2, max_val: float = np.pi/2) -> None:
+    def __init__(self, min_val: float = -np.pi / 2, max_val: float = np.pi / 2) -> None:
         self.min_val = min_val
         self.max_val = max_val
 
@@ -40,29 +40,29 @@ class Joint:
 class ArmParameters:
     def __init__(self) -> None:
         # J1
-        self.a1x: int = 0
-        self.a1y: int = 0
-        self.a1z: int = 0
+        self.a1x: float = 0
+        self.a1y: float = 0
+        self.a1z: float = 0
         # J2
-        self.a2x: int = 0
-        self.a2y: int = 0
-        self.a2z: int = 0
+        self.a2x: float = 0
+        self.a2y: float = 0
+        self.a2z: float = 0
         # J3
-        self.a3x: int = 0
-        self.a3y: int = 0
-        self.a3z: int = 0
+        self.a3x: float = 0
+        self.a3y: float = 0
+        self.a3z: float = 0
         # J4
-        self.a4x: int = 0
-        self.a4y: int = 0
-        self.a4z: int = 0
+        self.a4x: float = 0
+        self.a4y: float = 0
+        self.a4z: float = 0
         # J5
-        self.a5x: int = 0
-        self.a5y: int = 0
-        self.a5z: int = 0
+        self.a5x: float = 0
+        self.a5y: float = 0
+        self.a5z: float = 0
         # J6
-        self.a6x: int = 0
-        self.a6z: int = 0
-        self.a6y: int = 0
+        self.a6x: float = 0
+        self.a6z: float = 0
+        self.a6y: float = 0
 
         self.joint_ratios: List[float] = []
 
@@ -96,7 +96,7 @@ class ArmParameters:
         a6y: {self.a6y}
         a6z: {self.a6z}
         """
-    
+
 
 @dataclasses.dataclass
 class ArmPose:
@@ -163,9 +163,9 @@ class ArmKinematics:
         self.arm_params: ArmParameters = arm_parameters
 
     class NotReachableError(Exception):
-        def __init__(self, message: str, angles: List[float]) -> None:
+        def __init__(self, message: str, angles: Optional[List[float]]) -> None:
             super().__init__(message)
-            self.angles: List[float] = angles
+            self.angles: Optional[List[float]] = angles
             self.message: str = message
 
     def angles_to_pose(self, angles: List[float]) -> ArmPose:
@@ -284,4 +284,4 @@ class ArmKinematics:
                     J6 = J6_1
             found_angles = [J1, J2, J3, J4, J5, J6]
             return [nearest_by_2pi_ref(angle, ref) for angle, ref in zip(found_angles, prev_angles)]
-        raise self.NotReachableError("Target pose is not reachable", target_pose)
+        raise self.NotReachableError("Target pose is not reachable", angles=prev_angles)
