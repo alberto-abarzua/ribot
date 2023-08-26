@@ -18,12 +18,9 @@ jobs:
       NEXT_PUBLIC_BACKEND_URL: ${{ vars.NEXT_PUBLIC_BACKEND_URL }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set Env File
-        run: |
-         printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
-         cat .env
-         ls -la
+        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
       - name: Build Docker Compose
         run: ./manage.py build
 
@@ -47,7 +44,7 @@ jobs:
       ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Esp-idf Build
         run: ./manage.py build-esp
