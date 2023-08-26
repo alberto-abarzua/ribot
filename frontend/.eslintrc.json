@@ -1,3 +1,44 @@
 {
-  "extends": "next/core-web-vitals"
+    "extends": [
+        "eslint:recommended",
+        "plugin:@next/next/recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["react", "prettier", "import-helpers"],
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "rules": {
+        "prettier/prettier": ["error", {}, { "usePrettierrc": true }],
+        "react/react-in-jsx-scope": "off",
+        "react/jsx-filename-extension": [1, { "extensions": [".jsx"] }],
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "indent": ["error", 4],
+        "import-helpers/order-imports": [
+            "error",
+            {
+                "newlinesBetween": "always",
+                "groups": ["/^@/", "module", ["parent", "sibling", "index"]],
+                "alphabetize": { "order": "asc", "ignoreCase": true }
+            }
+        ]
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "es2021": true,
+        "jest": true
+    }
 }

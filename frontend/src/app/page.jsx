@@ -1,10 +1,11 @@
-"use client";
-import ArmSimulation from "@/components/ArmSimulation/ArmSimulation";
-import { useEffect, useState } from "react";
-import api from "@/utils/api";
-import ArmStatus from "@/components/controls/ArmStatus";
-import AxisControls from "@/components/controls/AxisControls";
-import HomeButton from "@/components/controls/HomeButton";
+'use client';
+import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
+import ArmStatus from '@/components/controls/ArmStatus';
+import AxisControls from '@/components/controls/AxisControls';
+import HomeButton from '@/components/controls/HomeButton';
+import api from '@/utils/api';
+
+import { useEffect, useState } from 'react';
 export default function Home() {
     const [currentPose, setCurrentPose] = useState({
         x: 0,
@@ -18,7 +19,7 @@ export default function Home() {
 
     useEffect(() => {
         const fetchCurrentPose = async () => {
-            const response = await api.get("/move/pose/current/");
+            const response = await api.get('/move/pose/current/');
             setCurrentPose(response.data);
         };
 
@@ -28,31 +29,31 @@ export default function Home() {
 
     useEffect(() => {
         const updateCurrentPose = async () => {
-            await api.post("/move/pose/move/", currentPose);
+            await api.post('/move/pose/move/', currentPose);
         };
         if (isLoading) {
             return;
         }
         updateCurrentPose();
-    }, [currentPose]);
+    }, [currentPose, isLoading]);
 
     return (
-        <div className="h-full flex-col justify-end items-end">
+        <div className="h-full flex-col items-end justify-end">
             <ArmSimulation></ArmSimulation>
-                <div className="flex-col flex bg-gray-200 py-10 px-10 w-full lg:w-1/2 ">
-                    <div className="flex-row flex-wrap flex space-x-2 items-center">
-                        <ArmStatus status={currentPose}></ArmStatus>
-                    </div>
-                    <AxisControls
-                        currentPose={currentPose}
-                        setCurrentPose={setCurrentPose}
-                    ></AxisControls>
-                    <div className="flex flex-row">
-                        <div className = "w-1/3">
-                            <HomeButton className></HomeButton>
-                        </div>
+            <div className="flex w-full flex-col bg-gray-200 px-10 py-10 lg:w-1/2 ">
+                <div className="flex flex-row flex-wrap items-center space-x-2">
+                    <ArmStatus status={currentPose}></ArmStatus>
+                </div>
+                <AxisControls
+                    currentPose={currentPose}
+                    setCurrentPose={setCurrentPose}
+                ></AxisControls>
+                <div className="flex flex-row">
+                    <div className="w-1/3">
+                        <HomeButton className></HomeButton>
                     </div>
                 </div>
+            </div>
         </div>
     );
 }

@@ -10,6 +10,15 @@ import signal
 def get_ip(**kwargs):
     return subprocess.getoutput("hostname -I | awk '{print $1}'").strip()
 
+def source_env(file_path):
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('#') or not line:
+                continue
+            key, value = line.split('=', 1)
+            os.environ[key] = value
+
 
 
 
@@ -37,6 +46,10 @@ def format_code(**kwargs):
         ['docker', 'compose', 'run', '--rm', 'controller', 'pdm', 'run', 'format'])
     subprocess.check_call(
         ['docker', 'compose', 'run', '--rm', 'backend', 'pdm', 'run', 'format'])
+    
+    subprocess.check_call(
+        ['docker', 'compose', 'run', '--rm', 'frontend', 'npm','run','format'])
+    
 
 
 def lint(**kwargs):
@@ -45,6 +58,9 @@ def lint(**kwargs):
     
     subprocess.check_call(
         ['docker', 'compose', 'run', '--rm', 'backend', 'pdm', 'run', 'lint'])
+    
+    subprocess.check_call(
+        ['docker', 'compose', 'run', '--rm', 'frontend', 'npm','run','lint'])
 
 def test(**kwargs):
     build_firmware()
@@ -76,13 +92,13 @@ def test(**kwargs):
 def build_flash_esp(**kwargs):
     os.environ['ESP_CONTROLLER_SERVER_HOST'] = get_ip()
     print("Requires idf.py to be installed and environment variables to be set")
+    print("Also requires to export variables from .env file -->\n\t source .env")
     if 'IDF_PATH' not in os.environ:
         print("IDF_PATH is not set")
         exit(1)
-    subprocess.check_call(['cd', 'firmware'])
-    subprocess.check_call(['rm', '-rf', 'build'])
-    subprocess.check_call(['idf.py', 'build', 'flash'])
-    subprocess.check_call(['cd', '..'])
+
+    subprocess.check_call(['rm', '-rf', 'build'], cwd='firmware')
+    subprocess.check_call(['idf.py', 'build', 'flash'], cwd='firmware', env=os.environ)
 
 
 def test_esp(**kwargs):
