@@ -38,21 +38,8 @@ to the controller.
 -   [x] Implementing a basic controller for the robotic arm
 -   [x] Implementing a basic firmware for the robotic arm
 -   [x] Support for 6DOF robotic arm
+-   [x] Python controller is a python package on [PyPI](https://pypi.org/project/robot-arm-controller/) 
 
-### Planned features
-
--   [ ] Making controller platform-independent (can run on any computer or OS)
--   [ ] Additional commands for the firmware
--   [ ] Additional commands for the controller
--   [ ] Robotic arm controllable via a joystick
--   [ ] Robotic arm controllable via a web interface
--   [ ] Make the controller a python package
--   [ ] Build HTTP API for the controller
--   [ ] Advanced control of the robotic arm using a Python script
--   [ ] Advanced control of the robotic arm using a web interface
--   [ ] Advanced control of the robotic arm using a joystick
--   [ ] Movement planning for the robotic arm (e.g. move from A to B in 5 seconds)
--   [ ] Firmware compatibility with other microcontrollers
 
 ## How to run
 
@@ -71,20 +58,20 @@ Firstly, clone this repository. After that, execute the command `./run.sh` in th
 
 ```bash
 # Run the controller main.py and the firmware (default)
-./run.sh 
+./manage.py runserver
 
 # Lint the controller code
-./run.sh lint
+./manage.py lint
 
 # Format firmware and controller code
-./run.sh format
+./manage.py format
 
 # Run the tests
-./run.sh test
+./manage.py test
 
 # Check build for esp-idf (no dependencies needed)
-./run.sh build-esp
+./manage.py build-esp
 
 # Run tests for the esp (esp-idf needed)
-./run.sh test-esp
+./manage.py test-esp
 ```
