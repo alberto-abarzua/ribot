@@ -7,7 +7,7 @@ const HomeButton = () => {
 
     return (
         <div>
-            <button className="w-full rounded bg-green-500 p-2" onClick={call_home}>
+            <button className="w-full rounded shadow-md bg-green-500 p-2 hover:bg-green-300" onClick={call_home}>
                 {' '}
                 Home{' '}
             </button>

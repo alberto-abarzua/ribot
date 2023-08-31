@@ -4,7 +4,8 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import HomeButton from '@/components/controls/HomeButton';
 import api from '@/utils/api';
-
+import TextVariable from '@/components/general/text/TextVariable';
+import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import { useEffect, useState } from 'react';
 export default function Home() {
     const [currentPose, setCurrentPose] = useState({
@@ -54,6 +55,17 @@ export default function Home() {
                     </div>
                 </div>
             </div>
+            <TextVariable
+                label="X"
+                value={currentPose.x}
+                setValue={value => setCurrentPose(prev => ({ ...prev, x: value }))}
+            ></TextVariable>
+            <TextVariableInfo
+                label="X"
+                value={currentPose.x}
+                setValue={value => setCurrentPose(prev => ({ ...prev, x: value }))}
+                infoText={'Current value of the X coordinate'}
+            ></TextVariableInfo>
         </div>
     );
 }

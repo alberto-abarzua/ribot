@@ -17,23 +17,26 @@ const MoveAxis = ({ label, pose, setPose, step = 10 }) => {
         }));
     };
     return (
-        <div className="flex w-40 flex-col justify-center rounded bg-slate-200 p-2">
-            <div className="w-full pb-2 text-center text-lg font-bold uppercase">{label}</div>
-            <div className=" flex flex-col space-y-3">
-                <button className="w-full rounded bg-slate-400 p-2" onClick={upValue}>
+            <div className="inline-flex h-36 w-24 flex-col items-center justify-start gap-2 px-1">
+                <div className="text-base font-bold text-black">{label}</div>
+                <button
+                    onClick={upValue}
+                    className="hover:bg-slate-600 flex h-7 w-20 flex-col items-center justify-center gap-2.5 rounded bg-slate-400 p-2.5 text-white shadow"
+                >
                     +
                 </button>
-                <input
-                    className="w-full appearance-none rounded bg-white p-2 text-center"
-                    type="text"
-                    readOnly // Make the input read-only since the value is controlled by the buttons
-                    value={value.toFixed(2)}
-                ></input>
-                <button className="w-full rounded bg-slate-400 p-2" onClick={downValue}>
+                <div className="inline-flex h-6 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-200 shadow cursor-default">
+                    <div className="w-12 text-center text-xs font-normal text-black select-none">
+                        {value.toFixed(2)}
+                    </div>
+                </div>
+                <button
+                    onClick={downValue}
+                    className="hover:bg-slate-600 flex  h-7 w-20 flex-col items-center justify-center gap-2.5 rounded-sm bg-slate-400 p-2.5 text-white shadow"
+                >
                     -
                 </button>
             </div>
-        </div>
     );
 };
 
