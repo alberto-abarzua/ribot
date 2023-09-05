@@ -1,18 +1,22 @@
 import PropTypes from 'prop-types';
 
-const TextVariable = ({ label, value, setValue }) => {
+const TextVariable = ({ label, value, setValue, disabled = true }) => {
     const onChangeFunc = e => {
         if (setValue) {
             setValue(e.target.value);
         }
     };
     return (
-        <div className="inline-flex h-10 w-36 items-center justify-start gap-2.5 px-2 py-1.5">
-            <div className="text-xs font-normal text-black">{label}</div>
+        <div className="flex h-10 w-auto items-center justify-end gap-2.5 px-2 py-1.5">
+            <div className="text-xs font-normal">{label}</div>
             <div className="flex h-7 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-50 shadow">
-                <div className="text-xs font-normal text-black" onChange={onChangeFunc}>
-                    {value}
-                </div>
+                <input
+                    type="text"
+                    value={value}
+                    onChange={onChangeFunc}
+                    className="w-full text-center text-xs font-normal text-gray-800"
+                    disabled={disabled}
+                />
             </div>
         </div>
     );
@@ -20,7 +24,7 @@ const TextVariable = ({ label, value, setValue }) => {
 
 TextVariable.propTypes = {
     label: PropTypes.string.isRequired,
-    value: PropTypes.number.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     setValue: PropTypes.func,
 };
 
