@@ -1,7 +1,8 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
-import { useState } from 'react';
+
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 const AxisControls = ({ currentPose, setCurrentPose }) => {
     const [coordsStep, setCoordsStep] = useState(10);
     const [anglesStep, setAnglesStep] = useState(0.1);

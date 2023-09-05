@@ -1,5 +1,5 @@
-import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import SettingsIcon from '@mui/icons-material/Settings';
 const SideNav = () => {
     return (

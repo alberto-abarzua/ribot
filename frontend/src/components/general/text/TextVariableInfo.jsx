@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
-
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
+import PropTypes from 'prop-types';
 
 const TextVariableInfo = ({ label, value, setValue, infoText }) => {
     const onChangeFunc = e => {
@@ -41,6 +41,7 @@ TextVariableInfo.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     setValue: PropTypes.func,
+    infoText: PropTypes.string.isRequired,
 };
 
 export default TextVariableInfo;

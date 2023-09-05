@@ -1,13 +1,14 @@
 'use client';
-import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
-import ArmStatus from '@/components/controls/ArmStatus';
-import AxisControls from '@/components/controls/AxisControls';
-import api from '@/utils/api';
-import ToolBar from '@/components/actions/ToolBar';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
+import ToolBar from '@/components/actions/ToolBar';
+import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
+import ArmStatus from '@/components/controls/ArmStatus';
+import AxisControls from '@/components/controls/AxisControls';
 import SideNav from '@/components/general/layout/SideNav';
+import api from '@/utils/api';
+
 import { useEffect, useState } from 'react';
 export default function Home() {
     const [currentPose, setCurrentPose] = useState({

@@ -1,8 +1,9 @@
 import BedtimeIcon from '@mui/icons-material/Bedtime';
-import TextVariable from '../general/text/TextVariable';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import BaseAction from './BaseAction';
+
 import { useState } from 'react';
+
+import TextVariable from '../general/text/TextVariable';
+import BaseAction from './BaseAction';
 
 const SleepAction = () => {
     const [sleepValue, setsleepValue] = useState({
@@ -19,10 +20,8 @@ const SleepAction = () => {
                     <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
                         <TextVariable
                             label="Timeout (s)"
+                            setValue={value => setsleepValue(prev => ({ ...prev, timeout: value }))}
                             value={sleepValue.timeout}
-                            setValue={value =>
-                                setCurrentPose(prev => ({ ...prev, timeout: value }))
-                            }
                         />
                     </div>
                 </div>

@@ -1,8 +1,9 @@
-import PropTypes from 'prop-types';
-import TextVariable from '@/components/general/text/TextVariable';
 import PrimaryButton from '@/components/general/buttons/PrimaryButton';
 import WarningButton from '@/components/general/buttons/WarningButton';
+import TextVariable from '@/components/general/text/TextVariable';
 import api from '@/utils/api';
+
+import PropTypes from 'prop-types';
 
 const ArmStatus = ({ setCurrentPose, currentPose }) => {
     const call_home = async () => {

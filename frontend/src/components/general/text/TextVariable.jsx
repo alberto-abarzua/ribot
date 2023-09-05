@@ -26,6 +26,7 @@ TextVariable.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     setValue: PropTypes.func,
+    disabled: PropTypes.bool,
 };
 
 export default TextVariable;

@@ -1,11 +1,12 @@
-import TextVariable from '../general/text/TextVariable';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import BuildIcon from '@mui/icons-material/Build';
-import BaseAction from './BaseAction';
+
 import { useState } from 'react';
 
+import TextVariable from '../general/text/TextVariable';
+import BaseAction from './BaseAction';
+
 const ToolAction = () => {
-    const [sleepValue, setsleepValue] = useState({
+    const [toolValue, setToolValue] = useState({
         timeout: 0,
     });
 
@@ -16,10 +17,9 @@ const ToolAction = () => {
                     <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
                         <TextVariable
                             label="Tool (%)"
-                            value={sleepValue.timeout}
-                            setValue={value =>
-                                setCurrentPose(prev => ({ ...prev, timeout: value }))
-                            }
+                            value={toolValue.timeout}
+                            setValue={value => setToolValue(prev => ({ ...prev, timeout: value }))}
+                            disabled={true}
                         />
                     </div>
                 </div>

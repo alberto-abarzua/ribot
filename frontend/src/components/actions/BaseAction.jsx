@@ -1,14 +1,8 @@
-import BedtimeIcon from '@mui/icons-material/Bedtime';
-import TextVariable from '../general/text/TextVariable';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
-import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const SleepAction = ({ icon, children, className }) => {
-    const [sleepValue, setsleepValue] = useState({
-        timeout: 0,
-    });
-
     return (
         <div
             className={
@@ -24,6 +18,12 @@ const SleepAction = ({ icon, children, className }) => {
             </div>
         </div>
     );
+};
+
+SleepAction.propTypes = {
+    icon: PropTypes.element.isRequired,
+    children: PropTypes.element.isRequired,
+    className: PropTypes.string,
 };
 
 export default SleepAction;
