@@ -1,124 +1,23 @@
 #include "controller.h"
 
-/**
- * -----------------------------------------------------------------
- * ------------------------ JOINT CLASS ---------------------------
- * -----------------------------------------------------------------
- */
-Joint::Joint(int8_t step_pin, int8_t dir_pin, int8_t homing_direction,
-             uint32_t steps_per_revolution_motor_axis) {
-    this->current_angle = 0.0;
-    this->target_angle = 0.0;
-    this->current_steps = 0;
-    this->step_pin = step_pin;
-    this->dir_pin = dir_pin;
-    this->homing_direction = homing_direction;
-    this->steps_per_revolution_motor_axis = steps_per_revolution_motor_axis;
-    this->convertion_rate_axis_joint = 1.0;
-    this->steps_per_revolution = this->steps_per_revolution_motor_axis *
-                                 this->convertion_rate_axis_joint;
-    this->epsilon = this->steps_to_angle(1);
-    this->last_step_time = get_current_time_microseconds();
-    this->homing_offset = (PI * this->homing_direction) / 4;  // 45 degrees
-    this->homed = false;
-}
+#include "movement.h"
+#include "utils.h"
 
-Joint::~Joint() {}
+#ifdef ESP_PLATFORM
+#include <rom/ets_sys.h>
 
-void Joint::set_target_angle(float angle) {
-    this->last_step_time = get_current_time_microseconds();
-    this->target_angle = angle;
-}
+#include "esp_event.h"
+#include "esp_system.h"
+#include "esp_task_wdt.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+#else
 
-uint32_t Joint::steps_to_take(uint64_t current_time) {
-    // gets the number of steps that should be taken
-    uint64_t dif = current_time - this->last_step_time;
-    uint64_t steps = std::floor(dif / this->step_interval);
-    uint64_t steps_to_target =
-        std::abs(this->angle_to_steps(this->target_angle) -
-                 this->angle_to_steps(this->current_angle));
-    return std::min(steps, steps_to_target);
-}
+#include "chrono"
+#include "thread"
 
-float Joint::get_current_angle() { return this->current_angle; }
-
-float Joint::get_target_angle() { return this->target_angle; }
-
-bool Joint::home_joint() {
-    this->set_target_angle(this->homing_direction * 2 * PI);
-    this->homing = true;
-    this->homed = false;
-    return true;
-}
-
-bool Joint::set_home() {
-    this->current_angle = this->homing_offset;
-    this->target_angle = 0;
-    this->current_steps = this->angle_to_steps(this->current_angle);
-    this->homed = true;
-    return true;
-}
-
-bool Joint::step() {
-    uint64_t current_time = get_current_time_microseconds();
-    uint32_t steps_to_take = this->steps_to_take(current_time);
-    int8_t step_dir;
-    if (steps_to_take > 0) {
-        step_dir = this->target_angle > this->current_angle ? 1 : -1;
-        for (uint16_t i = 0; i < steps_to_take; i++) {
-            this->hardware_step(step_dir > 0 ? 1 : 0);
-            this->current_steps += step_dir;
-            this->current_angle = this->steps_to_angle(this->current_steps);
-            this->last_step_time = get_current_time_microseconds();
-            if (this->homing) {
-                if (this->hardware_end_stop_read()) {
-                    this->set_home();
-                    this->homing = false;
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    return false;
-}
-
-bool Joint::at_target() {
-    return (std::abs(this->current_angle - this->target_angle) <=
-            this->epsilon);
-}
-
-void Joint::set_speed_steps_per_second(uint32_t speed_steps_per_second) {
-    this->speed_steps_per_second = speed_steps_per_second;
-    // convert to microseconds
-    this->step_interval = std::abs(1000000.0 / this->speed_steps_per_second);
-}
-
-void Joint::set_speed_rad_per_second(float speed_rad_per_second) {
-    this->set_speed_steps_per_second(
-        this->angle_to_steps(speed_rad_per_second));
-}
-
-int32_t Joint::get_speed_steps_per_second() {
-    return this->speed_steps_per_second;
-}
-
-float Joint::get_speed_rad_per_second() {
-    return this->steps_to_angle(this->speed_steps_per_second);
-}
-
-void Joint::update_current_angle() {
-    this->current_angle = this->steps_to_angle(this->current_steps);
-}
-
-float Joint::steps_to_angle(int64_t steps) {
-    return static_cast<float>(steps) /
-           static_cast<float>(this->steps_per_revolution) * 2.0 * PI;
-}
-
-int64_t Joint::angle_to_steps(float angle) {
-    return static_cast<int64_t>(angle / (2 * PI) * this->steps_per_revolution);
-}
+#endif
 
 /**
  * -----------------------------------------------------------------
@@ -129,16 +28,31 @@ int64_t Joint::angle_to_steps(float angle) {
 Controller::Controller() {
     this->arm_client = ArmClient();
     this->joints = std::vector<Joint *>();
-    this->joints.push_back(new Joint(0, 0, 1, 8000));
-    this->joints.push_back(new Joint(0, 0, 1, 8000));
-    this->joints.push_back(new Joint(0, 0, 1, 8000));
-    this->joints.push_back(new Joint(0, 0, 1, 8000));
-    this->joints.push_back(new Joint(0, 0, 1, 8000));
-    this->joints.push_back(new Joint(0, 0, 1, 5000));
 
-    // set speeds
-    for (uint16_t i = 0; i < this->joints.size(); i++) {
-        this->joints[i]->set_speed_rad_per_second(1.0);
+    this->joints.push_back(new Joint());
+    this->joints.push_back(new Joint());
+    this->joints.push_back(new Joint());
+    this->joints.push_back(new Joint());
+    this->joints.push_back(new Joint());
+    this->joints.push_back(new Joint());
+
+    for (uint8_t i = 0; i < this->joints.size(); i++) {
+        this->joints[i]->set_movement_driver(new Stepper(0, 0));
+        MovementDriver *movement_driver =
+            this->joints[i]->get_movement_driver();
+        movement_driver->set_homing_direction(1);
+        movement_driver->set_speed(0.1);
+        movement_driver->set_homing_offset(0);
+
+        this->joints[i]->set_steps_per_revolution_motor_axis(200);
+        this->joints[i]->set_conversion_rate_axis_joint(1);
+#ifdef ESP_PLATFORM
+        this->joints[i]->register_end_stop(new HallEffectSensor(0));
+#else
+
+        this->joints[i]->register_end_stop(new DummyEndStop(0));
+
+#endif
     }
     // Message handlers
     this->message_op_handler_map[MessageOp::MOVE] =
@@ -191,9 +105,10 @@ bool Controller::is_homed() {
     if (this->homed) {
         return true;
     }
+
     bool all_homed = true;
     for (uint8_t i = 0; i < this->joints.size(); i++) {
-        all_homed &= this->joints[i]->homed;
+        all_homed &= this->joints[i]->is_homed();
     }
     this->homed = all_homed;
     return all_homed;
@@ -305,7 +220,7 @@ void Controller::message_handler_move(Message *message) {
             } else {
                 bool all_homed = true;
                 for (int i = 0; i < num_args; i++) {
-                    all_homed &= this->joints[i]->homed;
+                    all_homed &= this->joints[i]->is_homed();
                 }
                 if (all_homed) {
                     message->set_complete(true);
@@ -322,10 +237,13 @@ void Controller::message_handler_move(Message *message) {
                 this->homed = false;
 
             } else {
-                if (this->joints[joint_idx]->homed) {
+                if (this->joints[joint_idx]->is_homed()) {
                     message->set_complete(true);
                 }
             }
+
+        } break;
+        case 7: {  // set tool value
 
         } break;
         default:
@@ -338,26 +256,36 @@ void Controller::message_handler_status(Message *message) {
     switch (code) {
         case 0: {
             // angles + move_queue_size + homed
-            int message_size = this->joints.size() + 2;
-            float *args =
-                static_cast<float *>(malloc(sizeof(float) * message_size));
-            for (uint8_t i = 0; i < this->joints.size(); i++) {
-                args[i] = this->joints[i]->get_current_angle();
-            }
-            int move_message_queue_size =
-                this->message_queues[MessageOp::MOVE]->size();
-            // queue size
-            args[message_size - 2] = move_message_queue_size;
-            // homed
-            args[message_size - 1] = this->is_homed() ? 1 : 0;
+           arm_status_t* status = (arm_status_t*)malloc(sizeof(arm_status_t));
 
-            Message *status_message =
-                new Message(MessageOp::STATUS, 1, message_size, args);
+            status->tool_value = 0;
+            status->code = 0;
+            status->homed = this->is_homed() ? 1 : 0;
+            status->moving = 0;
+            status->move_queue_size =
+                this->message_queues[MessageOp::MOVE]->size();
+            for (uint8_t i = 0; i < this->joints.size(); i++) {
+                status->joint_angles[i] = this->joints[i]->get_current_angle();
+                // print driver read 
+                this->joints[i]->get_end_stop()->hardware_read_state();
+            }
+            int32_t num_args = sizeof(arm_status_t) / sizeof(float);
+
+            // for every joint
+
+          
+
+           Message *status_message =
+    new Message(MessageOp::STATUS, 1, num_args, reinterpret_cast<float *>(status));
+
             this->arm_client.send_message(status_message);
             message->set_complete(true);
             message->set_called(true);
             delete status_message;
-        } break;
+
+        }
+
+        break;
         case 3: {
             Message *status_message =
                 new Message(MessageOp::STATUS, 4, 0, nullptr);
@@ -380,11 +308,16 @@ void Controller::message_handler_config(Message *message) {
         case 1: {  // set homing_direction
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             int8_t homing_direction = static_cast<int8_t>(args[1]);
-            this->joints[joint_idx]->homing_direction = homing_direction;
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            movement_driver->set_homing_direction(homing_direction);
         } break;
         case 3: {  // get homing_direction
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
-            int8_t homing_direction = this->joints[joint_idx]->homing_direction;
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+            int8_t homing_direction = movement_driver->get_homing_direction();
             float homing_direction_float = static_cast<float>(homing_direction);
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
@@ -398,13 +331,16 @@ void Controller::message_handler_config(Message *message) {
         case 5: {  // set seeed rad/s
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float speed_rad_per_second = args[1];
-            this->joints[joint_idx]->set_speed_rad_per_second(
-                speed_rad_per_second);
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            movement_driver->set_speed(speed_rad_per_second);
         } break;
         case 7: {  // get speed rad/s
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
-            float speed_rad_per_second =
-                this->joints[joint_idx]->get_speed_rad_per_second();
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+            float speed_rad_per_second = movement_driver->get_speed();
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = speed_rad_per_second;
@@ -418,13 +354,14 @@ void Controller::message_handler_config(Message *message) {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint32_t steps_per_revolution_motor_axis =
                 static_cast<uint32_t>(args[1]);
-            this->joints[joint_idx]->steps_per_revolution_motor_axis =
-                steps_per_revolution_motor_axis;
+            this->joints[joint_idx]->set_steps_per_revolution_motor_axis(
+                steps_per_revolution_motor_axis);
+
         } break;
         case 11: {  // get steps_per_revolution_axis
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint32_t steps_per_revolution_motor_axis =
-                this->joints[joint_idx]->steps_per_revolution_motor_axis;
+                this->joints[joint_idx]->get_steps_per_revolution_motor_axis();
             float steps_per_revolution_motor_axis_float =
                 static_cast<float>(steps_per_revolution_motor_axis);
 
@@ -440,14 +377,14 @@ void Controller::message_handler_config(Message *message) {
         case 13: {  // set convertion_rate_axis_joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float convertion_rate_axis_joint = args[1];
-            this->joints[joint_idx]->convertion_rate_axis_joint =
-                convertion_rate_axis_joint;
+            this->joints[joint_idx]->set_conversion_rate_axis_joint(
+                convertion_rate_axis_joint);
         } break;
 
         case 15: {  // get convertion_rate_axis_joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float convertion_rate_axis_joint =
-                this->joints[joint_idx]->convertion_rate_axis_joint;
+                this->joints[joint_idx]->get_conversion_rate_axis_joint();
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = convertion_rate_axis_joint;
@@ -460,13 +397,19 @@ void Controller::message_handler_config(Message *message) {
         case 17: {  // set homing offset rads
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             float homing_offset = args[1];
-            this->joints[joint_idx]->homing_offset = homing_offset;
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+            movement_driver->set_homing_offset(homing_offset);
 
         } break;
 
-        case 19: {
+        case 19: {  // get homing offset rads
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
-            float homing_offset = this->joints[joint_idx]->homing_offset;
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            float homing_offset = movement_driver->get_homing_offset();
+
             float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
             args_buff[0] = args[0];
             args_buff[1] = homing_offset;
@@ -482,3 +425,63 @@ void Controller::message_handler_config(Message *message) {
     message->set_complete(true);
     message->set_called(true);
 }
+
+// Hardware related methods
+
+#ifdef ESP_PLATFORM
+
+bool Controller::hardware_setup() {
+    std::cout << "Setting up hardware" << std::endl;
+    global_setup_hardware();
+
+    return true;
+}
+
+void Controller::step_target_fun() {
+    // Add this task to the task watchdog
+    esp_task_wdt_add(NULL);
+
+    while (this->stop_flag == false) {
+        esp_task_wdt_reset();
+        this->step();
+        // Feed the task watchdog
+        esp_task_wdt_reset();
+        run_delay(10);
+    }
+    esp_task_wdt_delete(NULL);
+}
+// Static member function
+static void step_target_fun_adapter(void *pvParameters) {
+    Controller *instance = static_cast<Controller *>(pvParameters);
+    instance->step_target_fun();
+}
+
+void Controller::run_step_task() {
+    xTaskCreate(&step_target_fun_adapter, "step_task", 2048, this,
+                configMAX_PRIORITIES - 1, NULL);
+}
+
+void Controller::stop_step_task() {}
+
+#else
+
+bool Controller::hardware_setup() { return true; }
+
+void Controller::step_target_fun() {
+    while (this->stop_flag == false) {
+        this->step();
+    }
+}
+
+void Controller::run_step_task() {
+    this->step_thread = new std::thread(&Controller::step_target_fun, this);
+}
+
+void Controller::stop_step_task() {
+    if (this->step_thread == nullptr) {
+        return;
+    }
+    this->step_thread->join();
+    delete this->step_thread;
+}
+#endif

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const TextVariable = ({ label, value, setValue, disabled = true }) => {
+const TextVariable = ({ label, value, setValue, disabled = false }) => {
     const onChangeFunc = e => {
         if (setValue) {
             setValue(e.target.value);
@@ -14,7 +14,7 @@ const TextVariable = ({ label, value, setValue, disabled = true }) => {
                     type="text"
                     value={value}
                     onChange={onChangeFunc}
-                    className="w-full text-center text-xs font-normal text-gray-800"
+                    className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
                     disabled={disabled}
                 />
             </div>

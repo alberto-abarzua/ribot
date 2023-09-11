@@ -14,7 +14,7 @@ class TestController(unittest.TestCase):
     EPSILON = 0.01
 
     @classmethod
-    @disable_console
+    # @disable_console
     def setUpClass(cls) -> None:
         # Arm parameters
         arm_params: ArmParameters = ArmParameters()
@@ -38,22 +38,23 @@ class TestController(unittest.TestCase):
                 raise TimeoutError("Controller took too long to start")
 
         cls.controller.home()
+        
 
     @classmethod
-    @disable_console
+    # @disable_console
     def tearDownClass(cls) -> None:
         cls.controller.stop()
 
-    @disable_console
+    # @disable_console
     def tearDown(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         self.controller.wait_done_moving()
 
-    @disable_console
+    # @disable_console
     def test_health_check(self) -> None:
         self.assertTrue(self.controller.health_check())
 
-    @disable_console
+    # @disable_console
     def test_move_to(self) -> None:
         angles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
         self.controller.move_to_angles(angles)
@@ -77,7 +78,7 @@ class TestController(unittest.TestCase):
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
 
-    @disable_console
+    # @disable_console
     def test_double_home(self) -> None:
         self.controller.home()
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
@@ -101,7 +102,7 @@ class TestController(unittest.TestCase):
             correct = correct and (abs(setting - value) < self.EPSILON)
         return correct, f"Expected {value}, got {setting}"
 
-    @disable_console
+    # @disable_console
     def test_joint_settings(self) -> None:
         correct, msg = self.get_and_set_joint_settings(Settings.HOMING_DIRECTION, -1, False)
         correct, msg = self.get_and_set_joint_settings(Settings.HOMING_DIRECTION, 1, False)
@@ -123,7 +124,7 @@ class TestController(unittest.TestCase):
 
         self.assertTrue(correct, msg)
 
-    @disable_console
+    # @disable_console
     def test_speed_settings(self) -> None:
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
@@ -142,7 +143,7 @@ class TestController(unittest.TestCase):
         self.assertTrue(end_time - start_time > 1.9, msg=f"Expected 2s, got {end_time - start_time}")
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
 
-    @disable_console
+    # @disable_console
     def test_speed_with_modified_settings(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         self.controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1.5)

@@ -5,7 +5,8 @@ import subprocess
 import os
 import time
 import signal
-
+import threading
+import sys
 
 def get_ip(**kwargs):
     return subprocess.getoutput("hostname -I | awk '{print $1}'").strip()
@@ -61,24 +62,30 @@ def lint(**kwargs):
     
     subprocess.check_call(
         ['docker', 'compose', 'run', '--rm', 'frontend', 'npm','run','lint'])
+    
+
 
 def test(**kwargs):
     build_firmware()
-    subprocess.check_call(['docker', 'compose', 'up', 'firmware', '-d'],
-                          env={'ESP_CONTROLLER_SERVER_HOST': 'controller'})
+    subprocess.check_call(['docker', 'compose', 'up', 'firmware', '-d'], env={'ESP_CONTROLLER_SERVER_HOST': 'controller'})
+    
     start_timestamp = int(time.time())
     while "Hardware setup complete" not in subprocess.getoutput('docker compose logs firmware'):
         time.sleep(1)
-        if int(time.time()) - start_timestamp > 120:
+        time_passed = int(time.time()) - start_timestamp
+        print(f"Waiting for firmware to start... {time_passed}",end = '\r')
+        if time_passed % 10 == 0:
+            subprocess.check_call(['docker', 'compose', 'logs', 'firmware'])
+        if time_passed > 120:
             print("Firmware failed to start")
             subprocess.check_call(['docker', 'compose', 'logs', 'firmware'])
-            subprocess.check_call(
-                ['docker', 'compose', 'down', '--remove-orphans'])
+            subprocess.check_call(['docker', 'compose', 'down', '--remove-orphans'])
             exit(1)
     time.sleep(5)
     subprocess.check_call(['docker', 'compose', 'logs', 'firmware'])
     print("Firmware is ready")
     os.environ['CONTROLLER_SERVER_HOST'] = 'controller'
+
     exit_code = subprocess.call(['docker', 'compose', 'run', '--rm', '--service-ports', '--use-aliases',
                                 'controller', 'pdm', 'run', 'test'])
     if exit_code == 0:
@@ -86,9 +93,9 @@ def test(**kwargs):
     else:
         print("Tests failed")
         subprocess.check_call(['docker', 'compose', 'logs', 'firmware'])
+        subprocess.check_call(['docker', 'compose', 'logs', 'controller'])
     subprocess.check_call(['docker', 'compose', 'down', '--remove-orphans'])
     exit(exit_code)
-
 def build_flash_esp(**kwargs):
     os.environ['ESP_CONTROLLER_SERVER_HOST'] = get_ip()
     print("Requires idf.py to be installed and environment variables to be set")

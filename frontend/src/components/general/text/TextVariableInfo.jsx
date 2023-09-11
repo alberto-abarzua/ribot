@@ -2,7 +2,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import PropTypes from 'prop-types';
 
-const TextVariableInfo = ({ label, value, setValue, infoText }) => {
+const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }) => {
     const onChangeFunc = e => {
         if (setValue) {
             setValue(e.target.value);
@@ -30,7 +30,8 @@ const TextVariableInfo = ({ label, value, setValue, infoText }) => {
                     type="text"
                     value={value}
                     onChange={onChangeFunc}
-                    className="w-full text-center text-xs font-normal text-gray-800 "
+                    className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
+                    disabled={disabled}
                 />
             </div>
         </div>

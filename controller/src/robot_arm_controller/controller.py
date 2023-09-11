@@ -2,7 +2,6 @@ import dataclasses
 import time
 from enum import Enum
 from typing import Callable, Dict, List, Optional
-
 import numpy as np
 
 from robot_arm_controller.control.arm_kinematics import (
@@ -43,6 +42,7 @@ class ArmController:
         server_port: int = 8500,
     ) -> None:
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
+        self.tool_value: float = 0
         self.num_joints: int = len(self._current_angles)
         self.move_queue_size: int = 0
         self.is_homed: bool = False
@@ -150,9 +150,21 @@ class ArmController:
         code = message.code
         if code == 1:
             angles = message.args[: self.num_joints]
+            tool_value = message.args[self.num_joints]
+            move_queue_size = message.args[self.num_joints + 1]
+            homed = message.args[self.num_joints + 2] == 1
+            moving = message.args[self.num_joints + 3] == 1
+            status_code = message.args[self.num_joints + 4]
             self.current_angles = angles
-            self.move_queue_size = int(message.args[self.num_joints])
-            self.is_homed = message.args[self.num_joints + 1] == 1
+            self.move_queue_size = move_queue_size
+            self.is_homed = homed
+            # print all vars
+            console.print(
+                f"Angles: {angles}, Tool Value: {tool_value}, Move Queue Size: {move_queue_size}, Homed: {homed}, Moving: {moving}, Status Code: {status_code}",
+                style="info",
+            )
+            print(message.args)
+
         if code == 4:
             self.last_health_check = time.time()
 

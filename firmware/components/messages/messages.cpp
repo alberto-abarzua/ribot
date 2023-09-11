@@ -37,9 +37,10 @@ Message::Message(char *message_bytes) {
 
 Message::~Message() {
     if (this->args != NULL && this->num_args > 1) {
-        free(this->args);
+        free(this->args) ; 
     }
 }
+
 
 MessageOp Message::get_op() { return this->op; }
 

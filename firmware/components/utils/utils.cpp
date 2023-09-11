@@ -1,5 +1,26 @@
 
-#include "controller.h"
+#include "utils.h"
+
+#ifdef ESP_PLATFORM
+#include <string.h>
+
+#include "esp_event.h"
+#include "esp_log.h"
+#include "esp_system.h"
+#include "esp_task_wdt.h"
+#include "esp_timer.h"
+#include "esp_wifi.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+#include "lwip/err.h"
+#include "nvs_flash.h"
+#else
+
+#include "chrono"
+#include "thread"
+
+#endif
 
 #ifdef ESP_PLATFORM
 
@@ -8,7 +29,7 @@ static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
 
-static const char* TAG = "wifi station";
+static const char* TAG = "Arm Controller";
 
 static int s_retry_num = 0;
 
@@ -98,60 +119,11 @@ void nvs_init() {
     ESP_ERROR_CHECK(ret);
 }
 
-bool Controller::hardware_setup() {
-    std::cout << "Setting up hardware" << std::endl;
-    nvs_init();
-    wifi_init_sta();
-
-    return true;
-}
-
 void run_delay(uint32_t delay_ms) { vTaskDelay(pdMS_TO_TICKS(delay_ms)); }
 
 uint64_t get_current_time_microseconds() {
     TickType_t ticks = xTaskGetTickCount();
     return static_cast<uint64_t>(ticks) * (1000000 / configTICK_RATE_HZ);
-}
-
-bool Joint::hardware_step(uint8_t step_dir) {
-    gpio_set_level(static_cast<gpio_num_t>(this->dir_pin), step_dir);
-    gpio_set_level(static_cast<gpio_num_t>(this->step_pin), 1);
-    ets_delay_us(this->min_pulse_width);
-    gpio_set_level(static_cast<gpio_num_t>(this->step_pin), 0);
-    return true;
-}
-
-bool Joint::hardware_end_stop_read() {
-    // In a real implementation this would be a digital read
-
-    if (std::abs(this->current_angle - this->homing_offset) < 0.1) {
-        return true;
-    }
-    return false;
-}
-
-void Controller::step_target_fun() {
-    // Add this task to the task watchdog
-    esp_task_wdt_add(NULL);
-
-    while (this->stop_flag == false) {
-        esp_task_wdt_reset();
-        this->step();
-        // Feed the task watchdog
-        esp_task_wdt_reset();
-        run_delay(10);
-    }
-    esp_task_wdt_delete(NULL);
-}
-// Static member function
-static void step_target_fun_adapter(void* pvParameters) {
-    Controller* instance = static_cast<Controller*>(pvParameters);
-    instance->step_target_fun();
-}
-
-void Controller::run_step_task() {
-    xTaskCreate(&step_target_fun_adapter, "step_task", 2048, this,
-                configMAX_PRIORITIES - 1, NULL);
 }
 
 void task_add() { esp_task_wdt_add(NULL); }
@@ -160,8 +132,11 @@ void task_feed() { esp_task_wdt_reset(); }
 
 void task_end() { esp_task_wdt_delete(NULL); }
 
-void Controller::stop_step_task() {}
 #else
+
+void nvs_init() {}
+
+void wifi_init_sta() {}
 
 void task_add() {}
 
@@ -169,17 +144,6 @@ void task_feed() {}
 
 void task_end() {}
 
-bool Controller::hardware_setup() { return true; }
-
-bool Joint::hardware_step(uint8_t step_dir) { return step_dir < 100; }
-bool Joint::hardware_end_stop_read() {
-    // In a real implementation this would be a digital read
-
-    if (std::abs(this->current_angle - this->homing_offset) < 0.2) {
-        return true;
-    }
-    return false;
-}
 void run_delay(uint32_t delay_ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 }
@@ -189,21 +153,9 @@ uint64_t get_current_time_microseconds() {
     return std::chrono::duration_cast<std::chrono::microseconds>(now).count();
 }
 
-void Controller::step_target_fun() {
-    while (this->stop_flag == false) {
-        this->step();
-    }
-}
-
-void Controller::run_step_task() {
-    this->step_thread = new std::thread(&Controller::step_target_fun, this);
-}
-
-void Controller::stop_step_task() {
-    if (this->step_thread == nullptr) {
-        return;
-    }
-    this->step_thread->join();
-    delete this->step_thread;
-}
 #endif
+
+void global_setup_hardware() {
+    nvs_init();
+    wifi_init_sta();
+}
