@@ -1,4 +1,5 @@
 'use client';
+import ActionContainer from '@/components/actions/ActionContainer';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
@@ -8,11 +9,10 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import SideNav from '@/components/general/layout/SideNav';
 import api from '@/utils/api';
-import ActionContainer from '@/components/actions/ActionContainer';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { useEffect, useState } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 export default function Home() {
     const [currentPose, setCurrentPose] = useState({
         x: 0,
@@ -51,8 +51,7 @@ export default function Home() {
                     <SideNav></SideNav>
                 </div>
                 <div className="flex h-full w-full flex-col items-center bg-white px-10 lg:w-5/12 ">
-                    <div className="flex h-full w-4/5 p-0 m-0">
-                        
+                    <div className="m-0 flex h-full w-4/5 p-0">
                         <ActionContainer></ActionContainer>
                     </div>
                 </div>

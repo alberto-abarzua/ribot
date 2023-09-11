@@ -41,7 +41,7 @@ class DummyEndStop : public EndStop {
 
 class MovementDriver {
    protected:
-    float epsilon = 0.001;
+    float epsilon = 0.1;
     int64_t current_steps = 0;
     float current_angle = 0;
     float target_angle = 0;

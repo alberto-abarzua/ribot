@@ -4,7 +4,7 @@ import GamesIcon from '@mui/icons-material/Games';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 const ToolBar = () => {
     return (
-        <div className="inline-flex mx-auto h-14 w-64 items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
+        <div className="mx-auto inline-flex h-14 w-64 items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
             <div className="flex h-14 shrink grow basis-0 items-center justify-center gap-2.5 bg-slate-500 hover:bg-slate-600">
                 <div className="relative flex h-10 w-10 items-center justify-center text-3xl text-white">
                     <GamesIcon className="text-3xl"></GamesIcon>

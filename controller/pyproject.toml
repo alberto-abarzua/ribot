@@ -53,3 +53,4 @@ type_check = "mypy src"
 test = "python -m unittest discover -s src/robot_arm_controller/tests -p 'test_*.py'"
 format = {composite = ["isort", "black"]}
 lint = {composite = ["pure_lint", "type_check"]}
+main = "python src/robot_arm_controller/sample_main.py"

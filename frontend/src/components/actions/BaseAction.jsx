@@ -1,8 +1,9 @@
+import { ItemTypes } from '@/utils/ItemTypes';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+
+import PropTypes from 'prop-types';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { ItemTypes } from '@/utils/ItemTypes';
-import PropTypes from 'prop-types';
 
 const BaseAction = ({ icon, children, className, id, index, moveInListAction, ...props }) => {
     const ref = useRef(null);

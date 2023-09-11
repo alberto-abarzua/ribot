@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include "config.h"
 
 void run_delay(uint32_t delay_ms);

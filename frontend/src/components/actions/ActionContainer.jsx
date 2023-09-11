@@ -1,10 +1,12 @@
+import ToolBar from '@/components/actions/ToolBar';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+
 import update from 'immutability-helper';
 import { useCallback, useState, useEffect } from 'react';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+
 import MoveAction from './MoveAction';
 import SleepAction from './SleepAction';
 import ToolAction from './ToolAction';
-import ToolBar from '@/components/actions/ToolBar';
 
 const ActionContainer = () => {
     const [actions, setActions] = useState([
@@ -86,8 +88,8 @@ const ActionContainer = () => {
             <ToolBar></ToolBar>
             {actions.map((action, i) => renderAction(action, i))}
 
-            <div className="absolute -right-20 bottom-10 flex h-14 px-2 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 hover:bg-green-500">
-                <div className = "text-white text-lg"> Run</div>
+            <div className="absolute -right-20 bottom-10 flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 px-2 hover:bg-green-500">
+                <div className="text-lg text-white"> Run</div>
                 <PlayArrowIcon className="text-4xl text-white"></PlayArrowIcon>
             </div>
         </div>

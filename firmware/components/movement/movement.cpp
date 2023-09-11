@@ -19,6 +19,7 @@ float MovementDriver::get_target_angle() { return this->target_angle; }
 
 void MovementDriver::set_steps_per_revolution(uint32_t steps_per_revolution) {
     this->steps_per_revolution = steps_per_revolution;
+    this->epsilon = 10.0 / steps_per_revolution;
 }
 
 uint32_t MovementDriver::get_steps_per_revolution() {
@@ -26,7 +27,8 @@ uint32_t MovementDriver::get_steps_per_revolution() {
 }
 
 bool MovementDriver::at_target() {
-    return (this->target_angle - this->current_angle) < this->epsilon;
+    float diff = std::abs(this->target_angle - this->current_angle);
+    return diff < this->epsilon;
 }
 
 void MovementDriver::set_speed(float speed) {
@@ -48,7 +50,6 @@ uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
         std::abs(this->angle_to_steps(this->target_angle) -
                  this->angle_to_steps(this->current_angle));
 
-    
     return std::min(steps, steps_to_target);
 }
 
@@ -70,7 +71,7 @@ bool MovementDriver::step() {
     if (this->at_target()) {
         return false;
     }
-    
+
     uint64_t current_time = get_current_time_microseconds();
 
     uint32_t steps_to_take = this->steps_to_take(current_time);

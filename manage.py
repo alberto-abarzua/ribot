@@ -37,6 +37,7 @@ def build(**kwargs):
     
 def build_esp(**kwargs):
     os.environ['CONTROLLER_SERVER_HOST'] = get_ip()
+    source_env('.env')
     subprocess.check_call(['./firmware/entrypoint_esp.sh'])
 
 
@@ -63,7 +64,7 @@ def lint(**kwargs):
     subprocess.check_call(
         ['docker', 'compose', 'run', '--rm', 'frontend', 'npm','run','lint'])
     
-
+    
 
 def test(**kwargs):
     build_firmware()
