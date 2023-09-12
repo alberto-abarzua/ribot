@@ -83,7 +83,7 @@ class WebsocketServer(ControllerDependencies):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         start_server = websockets.serve(self.handler, "0.0.0.0", self.port)  # type: ignore
-        console.print(f"Starting websocket server on port {self.port}", style="setup")
+        console.log(f"Starting websocket server on port {self.port}", style="setup")
         asyncio.get_event_loop().run_until_complete(start_server)
         asyncio.get_event_loop().run_forever()
 
@@ -132,12 +132,12 @@ class ControllerServer(ControllerDependencies):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(addr)
         self.server_socket.listen(1)
-        console.print(f"Listening on {addr}", style="setup")
+        console.log(f"Listening on {addr}", style="setup")
 
         while not self.stop_event.is_set():
             conn, addr = self.server_socket.accept()
 
-            console.print(f"Connected to {addr}", style="setup")
+            console.log(f"Connected to {addr}", style="setup")
             self.connection_socket = conn
             # Make the socket non-blocking
             self.connection_socket.setblocking(False)
@@ -166,7 +166,7 @@ class ControllerServer(ControllerDependencies):
             try:
                 self.connection_socket.send(message.encode())
             except OSError as e:
-                console.print(f"Connection failed with error: {str(e)}", style="error")
+                console.log(f"Connection failed with error: {str(e)}", style="error")
 
     def send_message(self, message: Message, mutex: bool = False) -> None:
         if mutex:
@@ -210,7 +210,7 @@ class ControllerServer(ControllerDependencies):
         except BlockingIOError:
             return self.ReceiveStatusCode.NO_NEW_DATA
         except OSError as e:
-            console.print(f"Connection failed with error: {str(e)}", style="error")
+            console.log(f"Connection failed with error: {str(e)}", style="error")
             return self.ReceiveStatusCode.ERROR
 
     def receive_message(

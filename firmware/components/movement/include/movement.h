@@ -64,6 +64,7 @@ class MovementDriver {
     float get_target_angle();
     bool at_target();
     void set_speed(float speed);
+    void update_speed();
     float get_speed();
     int64_t angle_to_steps(float angle);
     float steps_to_angle(int64_t steps);
@@ -77,13 +78,14 @@ class MovementDriver {
     int8_t get_homing_direction();
     float get_homing_offset();
     bool step();
+    void print_state();
 
     void register_end_stop(EndStop* end_stop);
     void set_home();
     virtual ~MovementDriver() = default;
     virtual void hardware_setup() = 0;
     virtual void hardware_step(int8_t step_dir) = 0;
-
+    bool verify_step_interval();
     // TODO: add acceleration
     //  virtual void set_acceleration(float acceleration) = 0;
 };

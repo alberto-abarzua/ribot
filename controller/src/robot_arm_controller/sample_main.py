@@ -5,7 +5,7 @@ from robot_arm_controller.controller import ArmController, Settings
 from robot_arm_controller.utils.prints import console
 
 if __name__ == "__main__":
-    console.print("Starting sample_main.py!", style="bold green")
+    console.log("Starting sample_main.py!", style="bold green")
     EPSILON = 0.01
 
     # Arm parameters

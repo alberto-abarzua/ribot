@@ -106,6 +106,7 @@ def format_code(**kwargs):
     dcr('controller.yaml', 'controller pdm run format')
     dcr('backend.yaml', 'backend pdm run format')
     dcr('frontend.yaml', 'frontend npm run format')
+    dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml', 'frontend.yaml'])
 
 
 def lint(**kwargs):
@@ -113,12 +114,14 @@ def lint(**kwargs):
     dcr('controller.yaml', 'controller pdm run lint')
     dcr('backend.yaml', 'backend pdm run lint')
     dcr('frontend.yaml', 'frontend npm run lint')
+    dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml', 'frontend.yaml'])
 
 
 def test(**kwargs):
     # build_firmware()
     dcu(['controller.yaml', 'firmware.yaml'], env={
         "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
+    dcd(['controller.yaml', 'firmware.yaml'])
 
 
 def build_flash_esp(**kwargs):
@@ -130,14 +133,17 @@ def build_flash_esp(**kwargs):
         exit(1)
 
     subprocess.check_call(['rm', '-rf', 'build'], cwd='firmware')
-    subprocess.check_call(['idf.py', 'build', 'flash'],
+    subprocess.check_call(['idf.py', 'build', 'flash','monitor'],
                           cwd='firmware', env=os.environ)
 
 
 def test_esp(**kwargs):
-    build_flash_esp()
-    subprocess.check_call(['idf.py', 'monitor'], cwd='firmware', env={
-                          "ESP_CONTROLLER_SERVER_HOST": get_ip()})
+    # build_flash_esp()
+    dcu(['controller.yaml' ], env={ "CONTROLLER_COMMAND": "test"})
+    
+    # subprocess.check_call(['idf.py', 'monitor'], cwd='firmware', env={
+    #                       "ESP_CONTROLLER_SERVER_HOST": get_ip()})
+
 
 
 def gdb(**kwargs):
@@ -279,8 +285,7 @@ def main(**kwargs):
         else:
             print(f"Unknown command: {next_command}")
             exit(1)
-    dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml',
-        'frontend.yaml', 'unity_webgl_server.yaml'])
+
     
 
 

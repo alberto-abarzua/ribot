@@ -217,7 +217,7 @@ class ArmKinematics:
             found_angles = self._pose_to_angles(target_pose, current_angles)
             return found_angles
         except self.NotReachableError as exception:
-            console.print(f"NotReachableError in pose_to_angles: {exception}", style="error")
+            console.log(f"NotReachableError in pose_to_angles: {exception}", style="error")
             return None
 
     def _pose_to_angles(

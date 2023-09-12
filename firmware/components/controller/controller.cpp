@@ -38,7 +38,7 @@ Controller::Controller() {
 
     this->tool = new Tool(0);
 
-    this->tool->get_movement_driver()->set_speed(0.5);
+    this->tool->get_movement_driver()->set_speed(1);
 
     for (uint8_t i = 0; i < this->joints.size(); i++) {
         this->joints[i]->set_movement_driver(new Stepper(0, 0));
@@ -48,7 +48,7 @@ Controller::Controller() {
         movement_driver->set_speed(0.5);
         movement_driver->set_homing_offset(0);
 
-        this->joints[i]->set_steps_per_revolution_motor_axis(200);
+        this->joints[i]->set_steps_per_revolution_motor_axis(800);
         this->joints[i]->set_conversion_rate_axis_joint(1);
 #ifdef ESP_PLATFORM
         this->joints[i]->register_end_stop(new HallEffectSensor(0));
@@ -365,6 +365,9 @@ void Controller::message_handler_config(Message *message) {
             Message *config_message =
                 new Message(MessageOp::CONFIG, 8, 2, args_buff);
             this->arm_client.send_message(config_message);
+            std::cout
+                << "printing the state of driver while getting the speed \n";
+            movement_driver->print_state();
             delete config_message;
         } break;
 
