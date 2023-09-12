@@ -99,8 +99,6 @@ class ArmController:
         output.append(f"Queue Size: {self.move_queue_size}")
 
         return "\n".join(output)
-    
-
 
     def start(self, wait: bool = True, websocket_server: bool = True) -> None:
         console.print("Starting controller!", style="setup")
@@ -167,7 +165,6 @@ class ArmController:
             self.move_queue_size = int(message.args[self.num_joints + 1])
             self.is_homed = message.args[self.num_joints + 2] == 1
 
-
         if code == 4:
             self.last_health_check = time.time()
 
@@ -185,8 +182,6 @@ class ArmController:
     ----------------------------------------
     """
 
-
-
     def move_to_angles(self, angles: List[float]) -> None:
         if not self.is_homed:
             console.print("Arm is not homed", style="error")
@@ -195,14 +190,15 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
 
-    def move_to(self, pose: ArmPose) -> None:
+    def move_to(
+        self,
+        pose: ArmPose,
+    ) -> None:
         target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
             console.print("Target pose is not reachable", style="error")
             return
         self.move_to_angles(target_angles)
-
-
 
     def home(self, wait: bool = True) -> None:
         message = Message(MessageOp.MOVE, 3)
@@ -228,11 +224,10 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
 
-    def set_tool_value(self,angle:float)-> None:
+    def set_tool_value(self, angle: float) -> None:
         message = Message(MessageOp.MOVE, 7, [angle])
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
-
 
     def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
         while not np.allclose(self.current_angles, target_angles, atol=epsilon):

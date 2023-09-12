@@ -47,7 +47,4 @@ class Joint {
     void step();
 };
 
-
-
-
 #endif

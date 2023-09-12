@@ -43,6 +43,7 @@ TextVariableInfo.propTypes = {
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     setValue: PropTypes.func,
     infoText: PropTypes.string.isRequired,
+    disabled: PropTypes.bool,
 };
 
 export default TextVariableInfo;

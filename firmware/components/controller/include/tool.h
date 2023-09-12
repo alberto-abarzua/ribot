@@ -6,25 +6,22 @@
 
 #include "movement.h"
 
-
-class Tool{
-
+class Tool {
     MovementDriver *movement_driver = nullptr;
 
+   public:
+    Tool(int8_t pin);
+    ~Tool();
 
-    public:
-        Tool(int8_t pin);
-        ~Tool();
+    MovementDriver *get_movement_driver();
 
-        MovementDriver *get_movement_driver();
+    float set_target_value(float target_value);
+    float get_target_value();
+    float get_current_value();
 
-        float set_target_value(float target_value);
-        float get_target_value();
-        float get_current_value();
+    bool at_target();
 
-        bool at_target();
-
-        void step();
+    void step();
 };
 
 #endif

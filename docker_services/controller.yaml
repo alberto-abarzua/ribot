@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  # ---- CONTROLLER PYTHON PACKAGE
+  controller:
+    pid: "host"
+    build:
+      context: ../controller
+
+    command: "pdm run ${CONTROLLER_COMMAND:-main}"
+
+    ports:
+      - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
+      - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller 
+    volumes:
+      - ../controller/src:/app/src
+      - ../controller/pyproject.toml:/app/pyproject.toml
+      - ../controller/pdm.lock:/app/pdm.lock
+    environment:
+      - PDM_PUBLISH_USERNAME=$CONTROLLER_PDM_PUBLISH_USERNAME
+      - PDM_PUBLISH_PASSWORD=$CONTROLLER_PDM_PUBLISH_PASSWORD

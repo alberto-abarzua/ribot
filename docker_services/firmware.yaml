@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+# ---- FIRMWARE (Linux runtime)
+  firmware:
+    pid: "host"
+    build:
+      context: ../firmware
+      dockerfile: Dockerfile
+    volumes:
+      - ../firmware/main:/app/main
+      - ../firmware/CMakeLists.txt:/app/CMakeLists.txt
+      - ../firmware/components:/app/components
+    environment:
+      - ESP_WIFI_SSID
+      - ESP_WIFI_PASSWORD
+      - ESP_CONTROLLER_SERVER_HOST
+      - ESP_CONTROLLER_SERVER_PORT

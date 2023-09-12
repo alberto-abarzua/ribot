@@ -30,7 +30,7 @@ class Controller {
     ArmClient arm_client;
 
     std::vector<Joint *> joints;
-    Tool * tool = nullptr;
+    Tool *tool = nullptr;
     std::queue<Message *> message_queue;
 
     typedef void (Controller::*message_op_handler_t)(Message *);
@@ -59,15 +59,12 @@ class Controller {
     void step_target_fun();
 
     bool is_homed();
-    Tool * get_tool();
-    void set_tool(Tool * tool);
+    Tool *get_tool();
+    void set_tool(Tool *tool);
     void message_handler_status(Message *message);
     void message_handler_move(Message *message);
     void message_handler_config(Message *message);
     bool hardware_setup();
 };
-
-
-
 
 #endif

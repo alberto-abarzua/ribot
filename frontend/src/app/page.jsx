@@ -1,9 +1,5 @@
 'use client';
 import ActionContainer from '@/components/actions/ActionContainer';
-import MoveAction from '@/components/actions/MoveAction';
-import SleepAction from '@/components/actions/SleepAction';
-import ToolAction from '@/components/actions/ToolAction';
-import ToolBar from '@/components/actions/ToolBar';
 import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';

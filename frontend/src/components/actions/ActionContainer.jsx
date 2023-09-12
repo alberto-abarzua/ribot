@@ -2,7 +2,7 @@ import ToolBar from '@/components/actions/ToolBar';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 import update from 'immutability-helper';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 
 import MoveAction from './MoveAction';
 import SleepAction from './SleepAction';

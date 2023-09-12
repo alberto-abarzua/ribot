@@ -6,15 +6,16 @@ import numpy as np
 
 from robot_arm_controller.control.arm_kinematics import ArmParameters
 from robot_arm_controller.controller import ArmController, Settings
-from robot_arm_controller.utils.prints import disable_console,console
+from robot_arm_controller.utils.prints import console
+
 
 class TestController(unittest.TestCase):
     controller: ArmController
     EPSILON = 0.01
 
     @classmethod
-    @disable_console
     def setUpClass(cls) -> None:
+        console.print("Starting test_controller.py!", style="bold green")
         # Arm parameters
         arm_params: ArmParameters = ArmParameters()
         arm_params.a2x = 0
@@ -37,24 +38,20 @@ class TestController(unittest.TestCase):
                 raise TimeoutError("Controller took too long to start")
 
         cls.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 400)
+
         cls.controller.home()
 
-
     @classmethod
-    @disable_console
     def tearDownClass(cls) -> None:
         cls.controller.stop()
 
-    @disable_console
     def tearDown(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         self.controller.wait_done_moving()
 
-    @disable_console
     def test_health_check(self) -> None:
         self.assertTrue(self.controller.health_check())
 
-    @disable_console
     def test_move_to(self) -> None:
         angles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
         self.controller.move_to_angles(angles)
@@ -78,7 +75,6 @@ class TestController(unittest.TestCase):
         all_close = np.allclose(self.controller.current_angles, angles, atol=epsilon)
         self.assertTrue(all_close, msg=f"Expected {angles}, got {self.controller.current_angles}")
 
-    @disable_console
     def test_double_home(self) -> None:
         self.controller.home()
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
@@ -102,7 +98,6 @@ class TestController(unittest.TestCase):
             correct = correct and (abs(setting - value) < self.EPSILON)
         return correct, f"Expected {value}, got {setting}"
 
-    @disable_console
     def test_joint_settings(self) -> None:
         correct, msg = self.get_and_set_joint_settings(Settings.HOMING_DIRECTION, -1, False)
         correct, msg = self.get_and_set_joint_settings(Settings.HOMING_DIRECTION, 1, False)
@@ -124,22 +119,20 @@ class TestController(unittest.TestCase):
 
         self.assertTrue(correct, msg)
 
-    @disable_console
     def test_speed_settings(self) -> None:
         self.controller.wait_done_moving()
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
         self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
-        console.print(self.controller)
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         start_time = time.time()
-        console.print(self.controller)
 
         self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
         self.controller.wait_done_moving()
-        console.print(self.controller)
-
         end_time = time.time()
+        # get speed again
+        speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
+        self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
         self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
 
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
@@ -151,20 +144,27 @@ class TestController(unittest.TestCase):
         self.assertTrue(end_time - start_time > 1.9, msg=f"Expected 2s, got {end_time - start_time}")
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
 
-
-    def test_set_tool_value(self):
+    def test_set_tool_value(self) -> None:
         self.controller.set_tool_value(0)
-        self.assertTrue(self.controller.tool_value == 0)
-        self.controller.set_tool_value(1)
-        self.assertTrue(self.controller.tool_value == 1)
-        self.controller.set_tool_value(-1)
-        self.assertTrue(self.controller.tool_value == -1)
-        self.controller.set_tool_value(0.5)
-        self.assertTrue(self.controller.tool_value == 0.5)
-        self.controller.set_tool_value(-0.5)
-        self.assertTrue(self.controller.tool_value == -0.5)
+        self.controller.wait_done_moving()
+        self.assertTrue(np.allclose(self.controller.tool_value, 0, atol=0.1))
 
-    @disable_console
+        self.controller.set_tool_value(1)
+        self.controller.wait_done_moving()
+        self.assertTrue(np.allclose(self.controller.tool_value, 1, atol=0.1))
+
+        self.controller.set_tool_value(-1)
+        self.controller.wait_done_moving()
+        self.assertTrue(np.allclose(self.controller.tool_value, -1, atol=0.1))
+
+        self.controller.set_tool_value(0.5)
+        self.controller.wait_done_moving()
+        self.assertTrue(np.allclose(self.controller.tool_value, 0.5, atol=0.1))
+
+        self.controller.set_tool_value(-0.5)
+        self.controller.wait_done_moving()
+        self.assertTrue(np.allclose(self.controller.tool_value, -0.5, atol=0.1))
+
     def test_speed_with_modified_settings(self) -> None:
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         self.controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1.5)

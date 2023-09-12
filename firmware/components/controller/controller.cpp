@@ -38,12 +38,14 @@ Controller::Controller() {
 
     this->tool = new Tool(0);
 
+    this->tool->get_movement_driver()->set_speed(0.5);
+
     for (uint8_t i = 0; i < this->joints.size(); i++) {
         this->joints[i]->set_movement_driver(new Stepper(0, 0));
         MovementDriver *movement_driver =
             this->joints[i]->get_movement_driver();
         movement_driver->set_homing_direction(1);
-        movement_driver->set_speed(0.1);
+        movement_driver->set_speed(0.5);
         movement_driver->set_homing_offset(0);
 
         this->joints[i]->set_steps_per_revolution_motor_axis(200);
@@ -77,8 +79,8 @@ Controller::~Controller() {
         std::queue<Message *> *message_queue = val;
         while (message_queue->size() > 0) {
             Message *msg = message_queue->front();
-            message_queue->pop();
             delete msg;
+            message_queue->pop();
         }
         delete message_queue;
     }
@@ -86,6 +88,7 @@ Controller::~Controller() {
     for (uint8_t i = 0; i < this->joints.size(); i++) {
         delete this->joints[i];
     }
+    delete this->tool;
 }
 
 bool Controller::recieve_message() {
@@ -122,14 +125,9 @@ void Controller::stop() {
     this->stop_step_task();
 }
 
-Tool * Controller::get_tool() {
-    return this->tool;
-}
+Tool *Controller::get_tool() { return this->tool; }
 
-void Controller::set_tool(Tool * tool) {
-    this->tool = tool;
-}
-
+void Controller::set_tool(Tool *tool) { this->tool = tool; }
 
 void Controller::stop(int signum) {
     std::cout << "Stopping controller " << signum << std::endl;
@@ -221,14 +219,12 @@ void Controller::message_handler_move(Message *message) {
                 }
 
                 if (all_at_target) {
-                    std::cout << "All joints at target\n";
                     message->set_complete(true);
                 }
             }
         } break;
         case 3: {  // home all joints
             if (!called) {
-                std::cout << "Homing all joints\n";
                 for (uint8_t i = 0; i < this->joints.size(); i++) {
                     this->joints[i]->home_joint();
                 }
@@ -241,7 +237,6 @@ void Controller::message_handler_move(Message *message) {
                 }
                 if (all_homed) {
                     message->set_complete(true);
-                    std::cout << "All joints homed\n";
                 }
             }
 
@@ -261,13 +256,13 @@ void Controller::message_handler_move(Message *message) {
 
         } break;
         case 7: {  // set tool value
-            MovementDriver* tool_driver = this->tool->get_movement_driver();
-            if (!called){
+            MovementDriver *tool_driver = this->tool->get_movement_driver();
+            if (!called) {
                 tool_driver->set_target_angle(args[0]);
                 message->set_called(true);
 
-            }else{
-                if (tool_driver->at_target()){
+            } else {
+                if (tool_driver->at_target()) {
                     message->set_complete(true);
                 }
             }
@@ -284,7 +279,8 @@ void Controller::message_handler_status(Message *message) {
             // angles + move_queue_size + homed
             arm_status_t *status = (arm_status_t *)malloc(sizeof(arm_status_t));
 
-            status->tool_value = 0;
+            status->tool_value =
+                this->tool->get_movement_driver()->get_current_angle();
             status->code = 0;
             status->homed = this->is_homed() ? 1 : 0;
             status->move_queue_size =
@@ -448,8 +444,8 @@ void Controller::message_handler_config(Message *message) {
     message->set_called(true);
 }
 
-
-bool Controller::hardware_setup() { // every function here should be defined for every platform
+bool Controller::hardware_setup() {  // every function here should be defined
+                                     // for every platform
     std::cout << "Setting up hardware" << std::endl;
     global_setup_hardware();
     for (uint8_t i = 0; i < this->joints.size(); i++) {
@@ -458,22 +454,16 @@ bool Controller::hardware_setup() { // every function here should be defined for
 
         movement_driver->hardware_setup();
     }
-    Tool * tool = this->get_tool();
+    Tool *tool = this->get_tool();
 
     tool->get_movement_driver()->hardware_setup();
-
 
     return true;
 }
 
-
 // Hardware related methods
 
-
-
-
 #ifdef ESP_PLATFORM
-
 
 void Controller::step_target_fun() {
     // Add this task to the task watchdog
@@ -517,9 +507,12 @@ void Controller::stop_step_task() {
     if (this->step_thread == nullptr) {
         return;
     }
-    this->step_thread->join();
+
+    if (this->step_thread->joinable()) {
+        this->step_thread->join();
+    }
+
     delete this->step_thread;
+    this->step_thread = nullptr;
 }
 #endif
-
-

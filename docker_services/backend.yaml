@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  backend:
+    build: 
+      context: "../backend"
+      dockerfile: "Dockerfile"
+    volumes:
+      - ../backend/src:/app/src
+      - ../backend/pyproject.toml:/app/pyproject.toml
+      - ../controller:/app/controller
+      - pdm_cache:/root/.cache/pdm
+    ports:
+      - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
+      - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller 
+      - "$BACKEND_HTTP_PORT:$BACKEND_HTTP_PORT" # fastapi
+    environment:
+      - BACKEND_HTTP_PORT
+      - CONTROLLER_WEBSOCKET_PORT
+      - CONTROLLER_SERVER_PORT
+
+volumes:
+  pdm_cache:
