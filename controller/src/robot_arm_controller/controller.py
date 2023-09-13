@@ -103,7 +103,7 @@ class ArmController:
 
         return "\n".join(output)
 
-    def start(self, wait: bool = True, websocket_server: bool = True) -> None:
+    def start(self, wait: bool = False, websocket_server: bool = True) -> None:
         console.log("Starting controller!", style="setup")
         if websocket_server and self.websocket_server is not None:
             self.websocket_server.start()
@@ -212,11 +212,14 @@ class ArmController:
         self.move_to_angles(target_angles)
 
     def home(self, wait: bool = True) -> None:
+        if self.print_status:
+            console.log("Homing arm...", style="homing")
         message = Message(MessageOp.MOVE, 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
         start_time = time.time()
         self.is_homed = False
+        time.sleep(1)
         if wait:
             while not self.is_homed:
                 time.sleep(0.1)
@@ -229,6 +232,8 @@ class ArmController:
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
+        if self.print_status:
+            console.log("Arm homed!", style="homing")
 
     def home_joint(self, joint_idx: int) -> None:
         message = Message(MessageOp.MOVE, 5, [joint_idx])

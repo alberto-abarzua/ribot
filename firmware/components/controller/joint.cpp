@@ -32,10 +32,7 @@ bool Joint::at_target() { return this->movement_driver->at_target(); }
 bool Joint::is_homed() { return this->movement_driver->is_homed(); }
 
 bool Joint::home_joint() {
-    // this->movement_driver->home();
-    int8_t homing_dir = this->movement_driver->get_homing_direction();
-
-    this->movement_driver->set_target_angle(homing_dir * 2 * PI);
+    this->movement_driver->home();
     return this->movement_driver->is_homed();
 }
 

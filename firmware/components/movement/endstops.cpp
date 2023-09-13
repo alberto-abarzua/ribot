@@ -7,28 +7,26 @@
 #endif
 EndStop::EndStop(int8_t pin) { this->pin = pin; }
 
-DummyEndStop::DummyEndStop(int8_t pin) : EndStop(pin) {}
+DummyEndStop::DummyEndStop(int8_t pin, float* current_angle) : EndStop(pin) {
+    this->current_angle = current_angle;
+}
 
 DummyEndStop::~DummyEndStop() {}
 
 void DummyEndStop::hardware_setup() {}
 
 bool DummyEndStop::hardware_read_state() {
-    uint64_t current_time = get_current_time_microseconds();
-
-    if (last_time_read == 0) {
-        last_time_read = current_time;
+    if (this->current_angle == nullptr) {
         return false;
     }
-    uint64_t time_difference = current_time - last_time_read;
 
-    if (time_difference > 2000000) {
-        this->was_triggered = true;
+    float current_angle_value = *this->current_angle;
+    if (current_angle_value >= (float)(PI / 4.0)) {
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
+
 HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin) {}
 
 HallEffectSensor::~HallEffectSensor() {}

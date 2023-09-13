@@ -26,6 +26,7 @@ class Move(BaseModel):
 
 @router.post("/home/")
 def home(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+    print("Homing the arm in home endpoint")
     controller.home()
     return {"message": "Homed"}
 

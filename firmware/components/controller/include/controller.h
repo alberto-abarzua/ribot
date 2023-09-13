@@ -48,7 +48,7 @@ class Controller {
    public:
     Controller();
     ~Controller();
-    void start();
+    bool start();
     void stop();
     void stop(int signum);
     void step();

@@ -156,9 +156,11 @@ def runserver(**kwargs):
 
     esp = kwargs['esp']
     if esp:
+        print("Running server for the esp-32")
         dcu(['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml'],
             env={"ESP_CONTROLLER_SERVER_HOST": get_ip()})
     else:
+        print('Running server for the linux platform')
         dcu(['backend.yaml', 'unity_webgl_server.yaml',
             'frontend.yaml', 'firmware.yaml'])
 

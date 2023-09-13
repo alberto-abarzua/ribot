@@ -34,9 +34,10 @@ class TestController(unittest.TestCase):
         arm_params.a6x = 169
 
         cls.controller = ArmController(arm_parameters=arm_params)
-        cls.controller.start(websocket_server=False)
+        cls.controller.start(websocket_server=False, wait=True)
 
         cls.controller.print_status = os.environ.get("PRINT_STATUS", "False").upper() == "TRUE"
+        console.log("Runing with print_status:", cls.controller.print_status, style="bold green")
         start_time = time.time()
         while not cls.controller.is_ready:
             time.sleep(0.1)
@@ -46,7 +47,7 @@ class TestController(unittest.TestCase):
         cls.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
         cls.controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1)
         cls.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.3)
-
+        cls.controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, np.pi / 4)
         cls.controller.home()
 
     @classmethod
@@ -98,6 +99,7 @@ class TestController(unittest.TestCase):
 
     def test_double_home(self) -> None:
         console.log("Running test: test_double_home", style="bold yellow")
+        self.controller.wait_done_moving()
         self.controller.home()
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
         self.assertTrue(self.controller.is_homed)

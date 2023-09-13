@@ -29,11 +29,10 @@ class HallEffectSensor : public EndStop {
 
 class DummyEndStop : public EndStop {
    private:
-    uint64_t last_time_read = 0;
-    bool was_triggered = false;
+    float* current_angle = nullptr;
 
    public:
-    DummyEndStop(int8_t pin);
+    DummyEndStop(int8_t pin, float* current_angle);
     ~DummyEndStop();
     void hardware_setup() override;
     bool hardware_read_state() override;
@@ -62,6 +61,7 @@ class MovementDriver {
     void set_current_angle(float angle);
     float get_current_angle();
     float get_target_angle();
+    float* get_current_angle_ptr();
     bool at_target();
     void set_speed(float speed);
     void update_speed();
@@ -73,6 +73,7 @@ class MovementDriver {
     uint32_t get_steps_per_revolution();
     uint32_t steps_to_take(uint64_t current_time);
     bool is_homed();
+    bool home();
     void set_homing_direction(int8_t homing_direction);
     void set_homing_offset(float homing_offset);
     int8_t get_homing_direction();
@@ -100,6 +101,7 @@ class Servo : public MovementDriver {
 
     void hardware_setup() override;
     void hardware_step(int8_t step_dir) override;
+    bool home();
 };
 
 class Stepper : public MovementDriver {

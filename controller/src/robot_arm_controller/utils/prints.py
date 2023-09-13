@@ -14,6 +14,7 @@ custom_theme = Theme(
         "move_angles": "green",
         "set_tool": "blue",
         "set_settings": "purple",
+        "homing": "bold green",
         "waiting": "bold red",
         "big_info": "bold green_yellow",
         "important": "bold green",

@@ -9,7 +9,6 @@ void MovementDriver::set_target_angle(float angle) {
 
 void MovementDriver::set_current_angle(float angle) {
     this->current_angle = angle;
-    this->target_angle = angle;
     this->current_steps = this->angle_to_steps(angle);
 }
 
@@ -19,7 +18,7 @@ float MovementDriver::get_target_angle() { return this->target_angle; }
 
 void MovementDriver::set_steps_per_revolution(uint32_t steps_per_revolution) {
     this->steps_per_revolution = steps_per_revolution;
-    this->epsilon = 10.0 / steps_per_revolution;
+    this->epsilon = this->steps_to_angle(2);
     this->update_speed();
 }
 
@@ -79,6 +78,12 @@ uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
 
 bool MovementDriver::is_homed() { return this->homed; }
 
+bool MovementDriver::home() {
+    int8_t homing_dir = this->homing_direction;
+    this->set_target_angle(homing_dir * 2 * PI);
+    this->homed = false;
+    return this->is_homed();
+}
 void MovementDriver::set_homing_direction(int8_t homing_direction) {
     this->homing_direction = homing_direction;
 }
@@ -124,9 +129,10 @@ void MovementDriver::register_end_stop(EndStop* end_stop) {
 
 void MovementDriver::set_home() {
     this->homed = true;
-    this->current_angle = this->homing_offset;
-    this->target_angle = 0;
-    this->current_steps = this->angle_to_steps(this->current_angle);
+    this->set_current_angle(this->homing_offset);
+    this->set_target_angle(0.0);
+    std::cout << "homed and current angle is " << this->current_angle
+              << std::endl;
 }
 
 float MovementDriver::steps_to_angle(int64_t steps) {
@@ -161,3 +167,5 @@ bool MovementDriver::verify_step_interval() {
     // Verify if the difference is within the acceptable margin (epsilon)
     return interval_difference <= epsilon;
 }
+
+float* MovementDriver::get_current_angle_ptr() { return &this->current_angle; }

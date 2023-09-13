@@ -36,3 +36,5 @@ Servo::~Servo() {
         delete this->end_stop;
     }
 }
+
+bool Servo::home() { return true; }

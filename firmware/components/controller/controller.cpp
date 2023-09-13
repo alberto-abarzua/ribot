@@ -54,7 +54,8 @@ Controller::Controller() {
         this->joints[i]->register_end_stop(new HallEffectSensor(0));
 #else
 
-        this->joints[i]->register_end_stop(new DummyEndStop(0));
+        this->joints[i]->register_end_stop(
+            new DummyEndStop(0, movement_driver->get_current_angle_ptr()));
 
 #endif
     }
@@ -141,7 +142,7 @@ void Controller::step() {
     this->tool->step();
 }
 
-void Controller::start() {
+bool Controller::start() {
     run_delay(1000);
     std::cout << "Starting controller" << std::endl;
     this->hardware_setup();
@@ -153,7 +154,7 @@ void Controller::start() {
         std::cout << "Failed to setup arm client, retrying in 3 seconds"
                   << std::endl;
         run_delay(2000);
-        return;
+        return false;
     }
     this->run_step_task();
 
@@ -167,12 +168,12 @@ void Controller::start() {
         if (get_current_time_microseconds() - last_message_time > 2 * 1000000) {
             std::cout << "No message in 5 seconds, stopping controller"
                       << std::endl;
-            this->stop();
             break;
         }
 
         this->handle_messages();
     }
+    return true;
 }
 
 /**
@@ -365,9 +366,6 @@ void Controller::message_handler_config(Message *message) {
             Message *config_message =
                 new Message(MessageOp::CONFIG, 8, 2, args_buff);
             this->arm_client.send_message(config_message);
-            std::cout
-                << "printing the state of driver while getting the speed \n";
-            movement_driver->print_state();
             delete config_message;
         } break;
 

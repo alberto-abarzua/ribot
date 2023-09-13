@@ -28,9 +28,11 @@ int run_controller(bool loop) {
     do {
         Controller* controller = new Controller();
         global_controller = controller;
-        controller->start();  // if controller is stopped, start it
-        controller->stop();   // if controller is running, stop it
-        delete controller;  // Delete the controller object to release resources
+        bool exited = controller->start();
+        if (exited) {
+            break;
+        }
+        delete controller;
         global_controller = nullptr;
     } while (loop);
 
@@ -47,6 +49,6 @@ extern "C" void app_main() {
 int main() {
     signal(SIGINT, handleSIGINT);
 
-    run_controller(false);
+    run_controller(true);
 }
 #endif
