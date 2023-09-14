@@ -1,5 +1,4 @@
 import PrimaryButton from '@/components/general/buttons/PrimaryButton';
-import WarningButton from '@/components/general/buttons/WarningButton';
 import TextVariable from '@/components/general/text/TextVariable';
 import api from '@/utils/api';
 

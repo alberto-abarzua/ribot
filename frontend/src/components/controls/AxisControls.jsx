@@ -1,9 +1,9 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
-import { useSelector, useDispatch } from 'react-redux';
 import { armPoseActions } from '@/redux/ArmPose';
 
 import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 const AxisControls = () => {
     const [coordsStep, setCoordsStep] = useState(10);
@@ -32,19 +32,19 @@ const AxisControls = () => {
                         label="X"
                         value={currentPose.x}
                         setValue={value => dispatch(armPoseActions.updateX(value))}
-                        step = {coordsStep}
+                        step={coordsStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Y"
                         value={currentPose.y}
                         setValue={value => dispatch(armPoseActions.updateY(value))}
-                        step = {coordsStep}
+                        step={coordsStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Z"
                         value={currentPose.z}
                         setValue={value => dispatch(armPoseActions.updateZ(value))}
-                        step = {coordsStep}
+                        step={coordsStep}
                     ></MoveAxis>
                 </div>
             </div>

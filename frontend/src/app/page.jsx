@@ -4,78 +4,70 @@ import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import SideNav from '@/components/general/layout/SideNav';
-import api from '@/utils/api';
-import { Provider } from 'react-redux';
+import { armPoseActions } from '@/redux/ArmPose';
 import store from '@/redux/store';
+import api from '@/utils/api';
+
+import { useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
-import { useEffect, useState ,useRef} from 'react';
+import { Provider } from 'react-redux';
 import { useSelector, useDispatch } from 'react-redux';
-import { armPoseActions } from '@/redux/ArmPose';
+
 export default function Home() {
     const dispatch = useDispatch();
     const currentPose = useSelector(state => state.armPose);
     const intervalIdRef = useRef();
 
-
-
-    const fetchCurrentPose = async () => {
-        const response = await api.get('/move/pose/current/');
-        dispatch(armPoseActions.updateCurrentX(response.data.x));
-        dispatch(armPoseActions.updateCurrentY(response.data.y));
-        dispatch(armPoseActions.updateCurrentZ(response.data.z));
-        dispatch(armPoseActions.updateCurrentRoll(response.data.roll));
-        dispatch(armPoseActions.updateCurrentPitch(response.data.pitch));
-        dispatch(armPoseActions.updateCurrentYaw(response.data.yaw));
-        dispatch(armPoseActions.updateCurrentToolValue(response.data.toolValue));
-    };
-
-    const moveToPose = async () => {
-        if (Object.values(currentPose.toMove).some(value => value !== 0)) {
-            console.log(currentPose.toMove);
-            let pose = {
-                x: currentPose.x + currentPose.toMove.x,
-                y: currentPose.y + currentPose.toMove.y,
-                z: currentPose.z + currentPose.toMove.z,
-                roll: currentPose.roll + currentPose.toMove.roll,
-                pitch: currentPose.pitch + currentPose.toMove.pitch,
-                yaw: currentPose.yaw + currentPose.toMove.yaw,
-                toolValue: currentPose.toolValue + currentPose.toMove.toolValue,
-            };
-            dispatch(armPoseActions.updateX(0));
-            dispatch(armPoseActions.updateY(0));
-            dispatch(armPoseActions.updateZ(0));
-            dispatch(armPoseActions.updateRoll(0));
-            dispatch(armPoseActions.updatePitch(0));
-            dispatch(armPoseActions.updateYaw(0));
-            dispatch(armPoseActions.updateToolValue(0));
-
-            await api.post('/move/pose/move/', pose);
-        }
-    };
-
-
     useEffect(() => {
         if (intervalIdRef.current) {
-          clearInterval(intervalIdRef.current);
+            clearInterval(intervalIdRef.current);
         }
-    
-        intervalIdRef.current = setInterval(() => {
-          moveToPose();
-          fetchCurrentPose();
-        }, 300);
-    
-        return () => {
-          clearInterval(intervalIdRef.current);
-        };
-      }, [dispatch, currentPose]);
 
-    // useEffect(() => {
-    //     moveToPose();
-    //     fetchCurrentPose();
-    // }
-    // , [currentPose.toMove]);
+        const fetchCurrentPose = async () => {
+            const response = await api.get('/move/pose/current/');
+            dispatch(armPoseActions.updateCurrentX(response.data.x));
+            dispatch(armPoseActions.updateCurrentY(response.data.y));
+            dispatch(armPoseActions.updateCurrentZ(response.data.z));
+            dispatch(armPoseActions.updateCurrentRoll(response.data.roll));
+            dispatch(armPoseActions.updateCurrentPitch(response.data.pitch));
+            dispatch(armPoseActions.updateCurrentYaw(response.data.yaw));
+            dispatch(armPoseActions.updateCurrentToolValue(response.data.toolValue));
+        };
+
+        const moveToPose = async () => {
+            if (Object.values(currentPose.toMove).some(value => value !== 0)) {
+                console.log(currentPose.toMove);
+                let pose = {
+                    x: currentPose.x + currentPose.toMove.x,
+                    y: currentPose.y + currentPose.toMove.y,
+                    z: currentPose.z + currentPose.toMove.z,
+                    roll: currentPose.roll + currentPose.toMove.roll,
+                    pitch: currentPose.pitch + currentPose.toMove.pitch,
+                    yaw: currentPose.yaw + currentPose.toMove.yaw,
+                    toolValue: currentPose.toolValue + currentPose.toMove.toolValue,
+                };
+                dispatch(armPoseActions.updateX(0));
+                dispatch(armPoseActions.updateY(0));
+                dispatch(armPoseActions.updateZ(0));
+                dispatch(armPoseActions.updateRoll(0));
+                dispatch(armPoseActions.updatePitch(0));
+                dispatch(armPoseActions.updateYaw(0));
+                dispatch(armPoseActions.updateToolValue(0));
+
+                await api.post('/move/pose/move/', pose);
+            }
+        };
+
+        intervalIdRef.current = setInterval(() => {
+            moveToPose();
+            fetchCurrentPose();
+        }, 300);
+
+        return () => {
+            clearInterval(intervalIdRef.current);
+        };
+    }, [dispatch, currentPose]);
 
     return (
         <Provider store={store}>
