@@ -12,7 +12,7 @@ const TextVariable = ({ label, value, setValue, disabled = false }) => {
             <div className="flex h-7 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-50 shadow">
                 <input
                     type="text"
-                    value={value}
+                    value={value.toFixed(2)}
                     onChange={onChangeFunc}
                     className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
                     disabled={disabled}

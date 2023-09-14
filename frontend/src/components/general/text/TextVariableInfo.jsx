@@ -11,13 +11,10 @@ const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }
     return (
         <div className="inline-flex h-10 w-auto items-center justify-end gap-0.5 px-2 py-1.5">
             <div className="relative flex items-center justify-start">
-                <div className="text-xs font-normal ">{label}</div>
+                <div className="w-fit whitespace-nowrap text-xs font-normal ">{label}</div>
                 <div className={'group relative'}>
                     <InfoOutlinedIcon className=" relative -top-1 cursor-pointer pl-1 text-blue-600 group-hover:text-blue-400"></InfoOutlinedIcon>
-                    <div
-                        className="absolute bottom-12 left-0 z-20 hidden w-40 flex-col-reverse rounded-md bg-gray-50 px-3 py-2 text-sm group-hover:flex"
-                        style={{ maxWidth: '200px', wordWrap: 'break-word' }}
-                    >
+                    <div className="absolute bottom-12 left-0 z-20 hidden w-52 flex-col-reverse rounded-md bg-gray-50 px-3 py-2 text-sm group-hover:flex">
                         {infoText}
                     </div>
 

@@ -17,6 +17,7 @@ class Move(BaseModel):
     roll: float
     pitch: float
     yaw: float
+    toolValue: float
 
 
 # --------
@@ -41,15 +42,22 @@ def move(
     move: Move, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
     move_dict = move.dict()
+    # remove tool_value
+    tool_value = move_dict.pop("toolValue")
     pose = ArmPose(**move_dict)
     controller.move_to(pose)
+    controller.set_tool_value(tool_value)
+    print(f"This is controller in move:\n {controller}")
     return {"message": "Moved"}
 
 
 @router.get("/pose/current/")
 def currentpose(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     pose = controller.current_pose
-    return pose.as_dict
+    pose_dict = pose.as_dict
+    pose_dict["toolValue"] = controller.tool_value
+    print(f"This is controller in current pose:\n {controller}")
+    return pose_dict
 
 
 # --------

@@ -1,21 +1,15 @@
 import PropTypes from 'prop-types';
 
-const MoveAxis = ({ label, pose, setPose, step = 10 }) => {
-    const value = pose[label]; // Extract the value for the specific axis
-
+const MoveAxis = ({ label, value, setValue, step = 10 }) => {
+    const step_int = parseInt(step);
     const upValue = () => {
-        setPose(prev => ({
-            ...prev,
-            [label]: prev[label] + step,
-        }));
+        setValue(step_int);
     };
 
     const downValue = () => {
-        setPose(prev => ({
-            ...prev,
-            [label]: prev[label] - step,
-        }));
+        setValue(-step_int);
     };
+
     return (
         <div className="inline-flex h-36 w-24 flex-col items-center justify-start gap-2 px-1">
             <div className="text-base font-bold text-black">{label}</div>
@@ -42,16 +36,9 @@ const MoveAxis = ({ label, pose, setPose, step = 10 }) => {
 
 MoveAxis.propTypes = {
     label: PropTypes.string.isRequired,
-    pose: PropTypes.shape({
-        x: PropTypes.number,
-        y: PropTypes.number,
-        z: PropTypes.number,
-        roll: PropTypes.number,
-        pitch: PropTypes.number,
-        yaw: PropTypes.number,
-    }).isRequired,
-    setPose: PropTypes.func.isRequired,
-    step: PropTypes.number,
+    value: PropTypes.number.isRequired,
+    setValue: PropTypes.func.isRequired,
+    step: PropTypes.number | PropTypes.string,
 };
 
 export default MoveAxis;

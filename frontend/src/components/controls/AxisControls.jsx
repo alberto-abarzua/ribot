@@ -1,14 +1,20 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
+import { useSelector, useDispatch } from 'react-redux';
+import { armPoseActions } from '@/redux/ArmPose';
 
-import PropTypes from 'prop-types';
 import { useState } from 'react';
-const AxisControls = ({ currentPose, setCurrentPose }) => {
+
+const AxisControls = () => {
     const [coordsStep, setCoordsStep] = useState(10);
     const [anglesStep, setAnglesStep] = useState(0.1);
+    const [toolStep, setToolStep] = useState(0.1);
+
+    const dispatch = useDispatch();
+    const currentPose = useSelector(state => state.armPose);
 
     return (
-        <div className="flex items-center justify-center space-x-5  p-4">
+        <div className="flex flex-wrap items-center gap-4 p-4">
             <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
                 <div>
                     <h3 className="mb-2 text-lg font-medium">Coordinates Control</h3>
@@ -21,10 +27,25 @@ const AxisControls = ({ currentPose, setCurrentPose }) => {
                         infoText={'The amount the arm moves for coordinate changes'}
                     ></TextVariableInfo>
                 </div>
-                <div className="flex flex-row">
-                    <MoveAxis label="x" pose={currentPose} setPose={setCurrentPose}></MoveAxis>
-                    <MoveAxis label="y" pose={currentPose} setPose={setCurrentPose}></MoveAxis>
-                    <MoveAxis label="z" pose={currentPose} setPose={setCurrentPose}></MoveAxis>
+                <div className="flex flex-row justify-center">
+                    <MoveAxis
+                        label="X"
+                        value={currentPose.x}
+                        setValue={value => dispatch(armPoseActions.updateX(value))}
+                        step = {coordsStep}
+                    ></MoveAxis>
+                    <MoveAxis
+                        label="Y"
+                        value={currentPose.y}
+                        setValue={value => dispatch(armPoseActions.updateY(value))}
+                        step = {coordsStep}
+                    ></MoveAxis>
+                    <MoveAxis
+                        label="Z"
+                        value={currentPose.z}
+                        setValue={value => dispatch(armPoseActions.updateZ(value))}
+                        step = {coordsStep}
+                    ></MoveAxis>
                 </div>
             </div>
 
@@ -41,41 +62,51 @@ const AxisControls = ({ currentPose, setCurrentPose }) => {
                     ></TextVariableInfo>
                 </div>
 
-                <div className="flex flex-row">
+                <div className="flex flex-row justify-center">
                     <MoveAxis
-                        label="roll"
-                        pose={currentPose}
-                        setPose={setCurrentPose}
-                        step={0.1}
+                        label="Roll"
+                        value={currentPose.roll}
+                        setValue={value => dispatch(armPoseActions.updateRoll(value))}
+                        step={anglesStep}
                     ></MoveAxis>
                     <MoveAxis
-                        label="pitch"
-                        pose={currentPose}
-                        setPose={setCurrentPose}
-                        step={0.1}
+                        label="Pitch"
+                        value={currentPose.pitch}
+                        setValue={value => dispatch(armPoseActions.updatePitch(value))}
+                        step={anglesStep}
                     ></MoveAxis>
                     <MoveAxis
-                        label="yaw"
-                        pose={currentPose}
-                        setPose={setCurrentPose}
-                        step={0.1}
+                        label="Yaw"
+                        value={currentPose.yaw}
+                        setValue={value => dispatch(armPoseActions.updateYaw(value))}
+                        step={anglesStep}
+                    ></MoveAxis>
+                </div>
+            </div>
+            <div className="flex flex-col  rounded-md bg-slate-200 p-4 shadow-md ">
+                <div>
+                    <h3 className="mb-2 text-lg font-medium">Tool Control</h3>
+                </div>
+                <div className="w-2/3">
+                    <TextVariableInfo
+                        label="Step Size"
+                        value={toolStep}
+                        setValue={setToolStep}
+                        infoText={'The amount the arm moves for coordinate changes'}
+                    ></TextVariableInfo>
+                </div>
+
+                <div className="flex flex-row justify-center">
+                    <MoveAxis
+                        label="Tool Value"
+                        value={currentPose.toolValue}
+                        setValue={value => dispatch(armPoseActions.updateToolValue(value))}
+                        step={toolStep}
                     ></MoveAxis>
                 </div>
             </div>
         </div>
     );
-};
-
-AxisControls.propTypes = {
-    currentPose: PropTypes.shape({
-        x: PropTypes.number,
-        y: PropTypes.number,
-        z: PropTypes.number,
-        roll: PropTypes.number,
-        pitch: PropTypes.number,
-        yaw: PropTypes.number,
-    }).isRequired,
-    setCurrentPose: PropTypes.func.isRequired,
 };
 
 export default AxisControls;
