@@ -62,7 +62,7 @@ class ArmController:
         self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
 
         self.command_cooldown: float = 0.01
-        self.connection_controller_timeout: int = 15
+        self.connection_controller_timeout: int = 60
 
         self.joint_settings: List[Dict[Settings, Setting]] = []
         self.joint_settings_response_code: List[Dict[int, Setting]] = []
@@ -190,26 +190,27 @@ class ArmController:
     ----------------------------------------
     """
 
-    def move_to_angles(self, angles: List[float]) -> None:
+    def move_to_angles(self, angles: List[float]) -> bool:
         if not self.is_homed:
             console.log("Arm is not homed", style="error")
-            return
+            return False
         message = Message(MessageOp.MOVE, 1, angles)
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
 
         if self.print_status:
             console.log(f"Moving to angles: {angles}", style="move_angles")
+        return True
 
     def move_to(
         self,
         pose: ArmPose,
-    ) -> None:
+    ) -> bool:
         target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
             console.log("Target pose is not reachable", style="error")
-            return
-        self.move_to_angles(target_angles)
+            return False
+        return self.move_to_angles(target_angles)
 
     def home(self, wait: bool = True) -> None:
         if self.print_status:

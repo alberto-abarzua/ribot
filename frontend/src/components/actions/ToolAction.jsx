@@ -1,14 +1,27 @@
+import { actionListActions } from '@/redux/ActionListSlice';
 import BuildIcon from '@mui/icons-material/Build';
 
-import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 import TextVariable from '../general/text/TextVariable';
 import BaseAction from './BaseAction';
 
 const ToolAction = ({ ...props }) => {
-    const [toolValue, setToolValue] = useState({
-        timeout: 0,
-    });
+    const dispatch = useDispatch();
+
+    const action = useSelector(state => state.actionList.actions[props.index]);
+    const [toolValue, setToolValue] = useState(action.value);
+
+    useEffect(() => {
+        dispatch(
+            actionListActions.updateValueByIndex({
+                index: props.index,
+                value: toolValue,
+            })
+        );
+    }, [toolValue, dispatch, props.index]);
 
     return (
         <BaseAction
@@ -20,9 +33,11 @@ const ToolAction = ({ ...props }) => {
                 <div className="flex items-center justify-end text-black">
                     <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
                         <TextVariable
-                            label="Tool (%)"
-                            value={toolValue.timeout}
-                            setValue={value => setToolValue(prev => ({ ...prev, timeout: value }))}
+                            label="Tool Value"
+                            value={toolValue.tool_value}
+                            setValue={value =>
+                                setToolValue(prev => ({ ...prev, tool_value: value }))
+                            }
                             disabled={false}
                         />
                     </div>
@@ -30,6 +45,10 @@ const ToolAction = ({ ...props }) => {
             </div>
         </BaseAction>
     );
+};
+
+ToolAction.propTypes = {
+    index: PropTypes.number.isRequired,
 };
 
 export default ToolAction;

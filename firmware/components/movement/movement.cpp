@@ -131,7 +131,6 @@ void MovementDriver::set_home() {
     this->homed = true;
     this->set_current_angle(this->homing_offset);
     this->set_target_angle(0.0);
-
 }
 
 float MovementDriver::steps_to_angle(int64_t steps) {

@@ -8,6 +8,8 @@ const initialState = {
     pitch: 0,
     yaw: 0,
     toolValue: 0,
+    isHomed: false,
+    moveQueueSize: 0,
     toMove: {
         x: 0,
         y: 0,
@@ -45,6 +47,16 @@ const armPoseSlice = createSlice({
             state.toMove.toolValue = action.payload;
         },
 
+        update(state, action) {
+            state.toMove.x = action.payload.x;
+            state.toMove.y = action.payload.y;
+            state.toMove.z = action.payload.z;
+            state.toMove.roll = action.payload.roll;
+            state.toMove.pitch = action.payload.pitch;
+            state.toMove.yaw = action.payload.yaw;
+            state.toMove.toolValue = action.payload.toolValue;
+        },
+
         updateCurrentX(state, action) {
             state.x = action.payload;
         },
@@ -65,6 +77,17 @@ const armPoseSlice = createSlice({
         },
         updateCurrentToolValue(state, action) {
             state.toolValue = action.payload;
+        },
+        updateCurrent(state, action) {
+            state.x = action.payload.x;
+            state.y = action.payload.y;
+            state.z = action.payload.z;
+            state.roll = action.payload.roll;
+            state.pitch = action.payload.pitch;
+            state.yaw = action.payload.yaw;
+            state.toolValue = action.payload.toolValue;
+            state.isHomed = action.payload.isHomed;
+            state.moveQueueSize = action.payload.isHomed;
         },
     },
 });

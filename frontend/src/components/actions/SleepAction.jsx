@@ -1,14 +1,25 @@
+import { actionListActions } from '@/redux/ActionListSlice';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 
-import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 import TextVariable from '../general/text/TextVariable';
 import BaseAction from './BaseAction';
 
 const SleepAction = ({ ...props }) => {
-    const [sleepValue, setsleepValue] = useState({
-        timeout: 0,
-    });
+    const dispatch = useDispatch();
+    const action = useSelector(state => state.actionList.actions[props.index]);
+    const [sleepValue, setsleepValue] = useState(action.value);
+    useEffect(() => {
+        dispatch(
+            actionListActions.updateValueByIndex({
+                index: props.index,
+                value: sleepValue,
+            })
+        );
+    }, [sleepValue, dispatch, props.index]);
 
     return (
         <BaseAction
@@ -21,8 +32,10 @@ const SleepAction = ({ ...props }) => {
                     <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
                         <TextVariable
                             label="Timeout (s)"
-                            setValue={value => setsleepValue(prev => ({ ...prev, timeout: value }))}
-                            value={sleepValue.timeout}
+                            setValue={value =>
+                                setsleepValue(prev => ({ ...prev, duration: value }))
+                            }
+                            value={sleepValue.duration}
                             disabled={false}
                         />
                     </div>
@@ -32,4 +45,7 @@ const SleepAction = ({ ...props }) => {
     );
 };
 
+SleepAction.propTypes = {
+    index: PropTypes.number.isRequired,
+};
 export default SleepAction;

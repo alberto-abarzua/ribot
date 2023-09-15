@@ -3,16 +3,23 @@ import PropTypes from 'prop-types';
 const TextVariable = ({ label, value, setValue, disabled = false }) => {
     const onChangeFunc = e => {
         if (setValue) {
-            setValue(e.target.value);
+            let newValue = e.target.value;
+            if (e.target.type === 'number') {
+                newValue = newValue ? parseFloat(newValue) : null;
+            }
+            setValue(newValue);
         }
     };
+    let formatted_value = typeof value === 'number' ? value.toFixed(2) : value;
+    // TODO: if it is a number / float formated to 2 decimals
+
     return (
         <div className="flex h-10 w-auto items-center justify-end gap-2.5 px-2 py-1.5">
-            <div className="text-xs font-normal">{label}</div>
+            <div className="w-fit whitespace-nowrap text-xs font-normal">{label}</div>
             <div className="flex h-7 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-50 shadow">
                 <input
                     type="text"
-                    value={value.toFixed(2)}
+                    value={formatted_value}
                     onChange={onChangeFunc}
                     className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
                     disabled={disabled}

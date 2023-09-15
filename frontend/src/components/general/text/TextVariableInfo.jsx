@@ -5,7 +5,11 @@ import PropTypes from 'prop-types';
 const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }) => {
     const onChangeFunc = e => {
         if (setValue) {
-            setValue(e.target.value);
+            let newValue = e.target.value;
+            if (e.target.type === 'number') {
+                newValue = newValue ? parseFloat(newValue) : null;
+            }
+            setValue(newValue);
         }
     };
     return (

@@ -4,7 +4,7 @@ const WarningButton = ({ onClick, className, ...props }) => {
     return (
         <button
             onClick={onClick}
-            className={`inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-md bg-yellow-400 p-2.5 text-white shadow transition duration-300 hover:bg-yellow-500 ${className}`}
+            className={`inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-md bg-red-400 p-2.5 text-white shadow transition duration-300 hover:bg-red-500 ${className}`}
             {...props}
         ></button>
     );

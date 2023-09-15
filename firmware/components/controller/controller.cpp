@@ -88,8 +88,10 @@ Controller::~Controller() {
     // delete joints
     for (uint8_t i = 0; i < this->joints.size(); i++) {
         delete this->joints[i];
+        this->joints[i] = nullptr;
     }
     delete this->tool;
+
 }
 
 bool Controller::recieve_message() {

@@ -1,11 +1,15 @@
+import { actionListActions } from '@/redux/ActionListSlice';
 import { ItemTypes } from '@/utils/ItemTypes';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import PropTypes from 'prop-types';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { useDispatch } from 'react-redux';
 
-const BaseAction = ({ icon, children, className, id, index, moveInListAction, ...props }) => {
+const BaseAction = ({ icon, children, className, id, index, ...props }) => {
+    const dispatch = useDispatch();
+
     const ref = useRef(null);
     const [{ handlerId }, drop] = useDrop({
         accept: ItemTypes.ACTION,
@@ -18,10 +22,7 @@ const BaseAction = ({ icon, children, className, id, index, moveInListAction, ..
             if (!ref.current) {
                 return;
             }
-            console.log(item);
             const dragIndex = item.index;
-            console.log('dragIndex', dragIndex);
-            console.log('index', index);
             const hoverIndex = index;
             if (dragIndex === hoverIndex) {
                 return;
@@ -34,10 +35,15 @@ const BaseAction = ({ icon, children, className, id, index, moveInListAction, ..
                 (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) ||
                 (dragIndex > hoverIndex && hoverClientY > hoverMiddleY)
             ) {
-                console.log('herer');
                 return;
             }
-            moveInListAction(dragIndex, hoverIndex);
+            dispatch(
+                actionListActions.moveInList({
+                    dragIndex,
+                    hoverIndex,
+                })
+            );
+
             item.index = hoverIndex;
         },
     });
@@ -52,7 +58,7 @@ const BaseAction = ({ icon, children, className, id, index, moveInListAction, ..
     if (!isDragging) {
         return (
             <div
-                className={`flex items-center justify-center space-x-4 rounded-md px-6 py-3 text-white shadow ${className}`}
+                className={`group flex items-center justify-center space-x-4 rounded-md px-6 py-3 text-white shadow ${className}`}
                 {...props}
                 ref={ref}
                 style={{ opacity: isDragging ? 0 : 1 }}
@@ -61,7 +67,7 @@ const BaseAction = ({ icon, children, className, id, index, moveInListAction, ..
                 <div className="flex flex-1 items-center justify-start">{icon}</div>
                 {children}
                 <div className="flex cursor-grab items-center justify-start ">
-                    <DragIndicatorIcon className="text-4xl" />
+                    <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-gray-600" />
                 </div>
             </div>
         );
@@ -81,9 +87,8 @@ BaseAction.propTypes = {
     icon: PropTypes.element.isRequired,
     children: PropTypes.element.isRequired,
     className: PropTypes.string,
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
     index: PropTypes.number.isRequired,
-    moveInListAction: PropTypes.func.isRequired,
 };
 
 export default BaseAction;

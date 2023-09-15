@@ -38,11 +38,6 @@ class TestController(unittest.TestCase):
 
         cls.controller.print_status = os.environ.get("PRINT_STATUS", "False").upper() == "TRUE"
         console.log("Runing with print_status:", cls.controller.print_status, style="bold green")
-        start_time = time.time()
-        while not cls.controller.is_ready:
-            time.sleep(0.1)
-            if time.time() - start_time > 3:
-                raise TimeoutError("Controller took too long to start")
 
         cls.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
         cls.controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1)

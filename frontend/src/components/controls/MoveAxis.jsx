@@ -1,13 +1,14 @@
 import PropTypes from 'prop-types';
 
-const MoveAxis = ({ label, value, setValue, step = 10 }) => {
-    const step_int = parseInt(step);
+const MoveAxis = ({ label, value, setValue, step_amount = 10 }) => {
+    const step_float = parseFloat(step_amount);
+
     const upValue = () => {
-        setValue(step_int);
+        setValue(step_float);
     };
 
     const downValue = () => {
-        setValue(-step_int);
+        setValue(-step_float);
     };
 
     return (
@@ -38,7 +39,7 @@ MoveAxis.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.number.isRequired,
     setValue: PropTypes.func.isRequired,
-    step: PropTypes.number | PropTypes.string,
+    step_amount: PropTypes.number,
 };
 
 export default MoveAxis;

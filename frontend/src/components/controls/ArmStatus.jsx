@@ -4,6 +4,8 @@ import api from '@/utils/api';
 
 import { useSelector } from 'react-redux';
 
+import WarningButton from '../general/buttons/WarningButton';
+
 const ArmStatus = () => {
     const call_home = async () => {
         await api.post('/move/home/');
@@ -30,7 +32,7 @@ const ArmStatus = () => {
                     <PrimaryButton className="mr-10" onClick={call_home}>
                         Home Arm
                     </PrimaryButton>
-                    {/* <WarningButton>Restart</WarningButton> */}
+                    <WarningButton onClick={() => {}}>STOP</WarningButton>
                 </div>
             </div>
         </div>
