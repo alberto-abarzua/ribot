@@ -229,19 +229,18 @@ class TestController(unittest.TestCase):
     def test_move_queue_size(self) -> None:
         self.controller.wait_done_moving()
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
-        time.sleep(0.1)
+        time.sleep(1)
         self.controller.wait_done_moving()
-
+        self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.4)
-
         self.controller.move_to_angles([-1, -1, -1, -1, -1, -1])
-        time.sleep(0.05)
+        time.sleep(1)
         self.assertEqual(self.controller.move_queue_size, 1)
         self.controller.move_to_angles([0.7, 0.7, 0.7, 0.7, 0.7, 0.7])
         self.controller.move_to_angles([0.8, 0.8, 0.8, 0.8, 0.8, 0.8])
         self.controller.move_to_angles([0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
         self.controller.set_tool_value(1)
-        time.sleep(0.05)
+        time.sleep(1)
         self.assertEqual(self.controller.move_queue_size, 5)
         self.controller.wait_done_moving()
         self.assertEqual(self.controller.move_queue_size, 0)
