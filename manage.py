@@ -28,18 +28,25 @@ def get_file_list(files: List[str]):
     return file_list
 
 
-def dcr(file_str: str, command: str, env={}):
+def dcr(file_str: str, command: str, env={},service_ports_and_aliases=False):
     command_list = command.split(' ')
     file_path = DOCKER_SERVICES/file_str
+    if not service_ports_and_aliases:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'run', '--rm', *command_list], env={**os.environ, **env})
+    else:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'run', '--rm', '--service-ports', '--use-aliases', *command_list], env={**os.environ, **env})
 
-    subprocess.check_call(
-        ['docker', 'compose', '-f', str(file_path), 'run', '--rm', *command_list], env={**os.environ, **env})
 
-
-def dcu(files: List[str], env: dict = {}):
+def dcu(files: List[str], env: dict = {}, detached=False):
     file_list = get_file_list(files)
-    subprocess.check_call(
-        ['docker', 'compose', *file_list, 'up'], env={**os.environ, **env})
+    if not detached:
+        subprocess.check_call(
+            ['docker', 'compose', *file_list, 'up'], env={**os.environ, **env})
+    else:
+        subprocess.check_call(
+            ['docker', 'compose', *file_list, 'up', '-d'], env={**os.environ, **env})
 
 
 def dcd(files: List[str]):
@@ -58,6 +65,12 @@ def dcb(files: List[str], no_cache=False):
         subprocess.check_call(
             ['docker', 'compose', *file_list, 'build'], env={**os.environ})
 
+
+
+def dcl(files: List[str]):
+    file_list = get_file_list(files)
+    subprocess.check_call(
+        ['docker', 'compose', *file_list, 'logs', '--follow'])
 
 def get_ip(**kwargs):
     return subprocess.getoutput("hostname -I | awk '{print $1}'").strip()
@@ -117,11 +130,40 @@ def lint(**kwargs):
     dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml', 'frontend.yaml'])
 
 
-def test(**kwargs):
-    # build_firmware()
+def test_debug(**kwargs):
     dcu(['controller.yaml', 'firmware.yaml'], env={
         "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
     dcd(['controller.yaml', 'firmware.yaml'])
+
+
+def test_no_debug(**kwargs):
+    build_firmware()
+
+    dcu(['firmware.yaml'], env={
+        "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
+
+
+    
+
+
+
+    exit_code = dcr('controller.yaml', 'controller pdm run test', service_ports_and_aliases=True)
+
+    if exit_code == 0:
+        print("Tests passed")
+    else:
+        print("Tests failed")
+        dcl(['controller.yaml', 'firmware.yaml'])
+
+    dcd(['controller.yaml', 'firmware.yaml'])
+    exit(exit_code)
+
+def test(**kwargs):
+    debug = kwargs['debug']
+    if debug:
+        test_debug(**kwargs)
+    else:
+        test_no_debug(**kwargs)
 
 
 def build_flash_esp(**kwargs):
@@ -133,17 +175,16 @@ def build_flash_esp(**kwargs):
         exit(1)
 
     subprocess.check_call(['rm', '-rf', 'build'], cwd='firmware')
-    subprocess.check_call(['idf.py', 'build', 'flash','monitor'],
+    subprocess.check_call(['idf.py', 'build', 'flash', 'monitor'],
                           cwd='firmware', env=os.environ)
 
 
 def test_esp(**kwargs):
     # build_flash_esp()
-    dcu(['controller.yaml' ], env={ "CONTROLLER_COMMAND": "test"})
-    
+    dcu(['controller.yaml'], env={"CONTROLLER_COMMAND": "test"})
+
     # subprocess.check_call(['idf.py', 'monitor'], cwd='firmware', env={
     #                       "ESP_CONTROLLER_SERVER_HOST": get_ip()})
-
 
 
 def gdb(**kwargs):
@@ -165,7 +206,6 @@ def runserver(**kwargs):
             'frontend.yaml', 'firmware.yaml'])
 
 
-
 def shell(**kwargs):
     container_name = kwargs['container']
     if container_name == 'firmware':
@@ -181,6 +221,7 @@ def shell(**kwargs):
     else:
         print(f"Unknown container: {container_name}")
         exit(1)
+
 
 def handle_sigint(signum, frame):
     down()
@@ -222,6 +263,10 @@ def main(**kwargs):
 
     parser_test = subparsers.add_parser('test', help='Run all tests')
     parser_test.set_defaults(func=test)
+    
+    parser_test.add_argument(
+        '--debug', action='store_true', help='Run tests in debug mode')
+    
 
     parser_test_esp = subparsers.add_parser(
         'test-esp', help='Run all tests on esp32')
@@ -245,17 +290,12 @@ def main(**kwargs):
         'build-flash-esp', help='Build and flash firmware to esp32')
     parser_build_flash_esp.set_defaults(func=build_flash_esp)
 
-
     parser_shell = subparsers.add_parser(
         'shell', help='Run shell in container')
     parser_shell.set_defaults(func=shell)
 
     parser_shell.add_argument(
         'container', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to run shell in')
-    
-    
-
-    
 
     parsed_args, remaining_args = parser.parse_known_args()
     command_map = {
@@ -287,8 +327,6 @@ def main(**kwargs):
         else:
             print(f"Unknown command: {next_command}")
             exit(1)
-
-    
 
 
 if __name__ == "__main__":

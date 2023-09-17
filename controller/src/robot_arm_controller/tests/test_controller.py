@@ -16,7 +16,6 @@ class TestController(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        # create a log file
 
         console.log("Starting test_controller.py!", style="bold green")
 
@@ -153,7 +152,6 @@ class TestController(unittest.TestCase):
         self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
         self.controller.wait_done_moving()
         end_time = time.time()
-        # get speed again
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
         self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
         self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
@@ -210,36 +208,32 @@ class TestController(unittest.TestCase):
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 8000)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 3434, 0)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 6457, 3)
-        # set speed
 
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
-        # check speeds
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
         self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
 
         self.controller.wait_done_moving()
 
-        # assert current position is 0
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
         start_time = time.time()
         self.controller.move_to_angles([1, 1, 1, 1, 1, 1])
         self.controller.wait_done_moving()
-        # assert at 1
         self.assertTrue(np.allclose(self.controller.current_angles, [1, 1, 1, 1, 1, 1], atol=0.1))
         end_time = time.time()
 
-        # check speeds again
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
         self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
 
         self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
 
     def test_move_queue_size(self) -> None:
-        # add 3 moves and 1 tool
-        # check that the queue is 4
-        # add 1 more move
-        # check that the queue is 5
 
+        self.controller.wait_done_moving()
+        self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
+        time.sleep(0.1)
+        self.controller.wait_done_moving()
+        
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.4)
 
         self.controller.move_to_angles([-1, -1, -1, -1, -1, -1])
