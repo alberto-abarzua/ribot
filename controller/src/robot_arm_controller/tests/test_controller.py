@@ -16,7 +16,6 @@ class TestController(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-
         console.log("Starting test_controller.py!", style="bold green")
 
         # Arm parameters
@@ -228,12 +227,11 @@ class TestController(unittest.TestCase):
         self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
 
     def test_move_queue_size(self) -> None:
-
         self.controller.wait_done_moving()
         self.controller.move_to_angles([0, 0, 0, 0, 0, 0])
         time.sleep(0.1)
         self.controller.wait_done_moving()
-        
+
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.4)
 
         self.controller.move_to_angles([-1, -1, -1, -1, -1, -1])

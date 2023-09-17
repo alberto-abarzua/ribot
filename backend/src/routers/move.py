@@ -60,7 +60,9 @@ def currentpose(controller: ArmController = controller_dependency) -> Dict[Any, 
 
 
 @router.post("/tool/move/")
-def too_post(tool: Tool, controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+def too_post(
+    tool: Tool, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
     tool_dict = tool.dict()
     tool_value = tool_dict["toolValue"]
     controller.set_tool_value(tool_value)

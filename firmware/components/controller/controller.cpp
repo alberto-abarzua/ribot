@@ -91,7 +91,6 @@ Controller::~Controller() {
         this->joints[i] = nullptr;
     }
     delete this->tool;
-
 }
 
 bool Controller::recieve_message() {

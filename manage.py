@@ -143,10 +143,6 @@ def test_no_debug(**kwargs):
         "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
 
 
-    
-
-
-
     exit_code = dcr('controller.yaml', 'controller pdm run test', service_ports_and_aliases=True)
 
     if exit_code == 0:
