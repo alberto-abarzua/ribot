@@ -41,7 +41,7 @@ class BaseActionObj {
         throw new Error('You have to implement the method render!');
     }
 
-    run() {
+    async run() {
         throw new Error('You have to implement the method run!');
     }
 
@@ -80,8 +80,17 @@ class MoveActionObj extends BaseActionObj {
             ></MoveAction>
         );
     }
-    run() {
-        api.post;
+    async run() {
+        let pose = {
+            x: this.value.x,
+            y: this.value.y,
+            z: this.value.z,
+            roll: this.value.roll,
+            pitch: this.value.pitch,
+            yaw: this.value.yaw,
+        };
+        console.log(pose);
+        await api.post('/move/pose/move/', pose);
     }
 }
 
@@ -101,7 +110,13 @@ class ToolActionObj extends BaseActionObj {
         );
     }
 
-    run() {}
+    async run() {
+        let target = {
+            toolValue: this.value.toolValue,
+        };
+        console.log(target);
+        await api.post('/move/tool/move/', target);
+    }
 }
 
 class SleepActionObj extends BaseActionObj {
@@ -119,7 +134,16 @@ class SleepActionObj extends BaseActionObj {
             ></SleepAction>
         );
     }
-    run() {}
+    async run() {
+        let duration = this.value.duration;
+        console.log('sleeping for ' + duration + ' seconds');
+        await this.sleep(duration);
+        console.log('resuming after ' + duration + ' seconds');
+    }
+
+    sleep(duration) {
+        return new Promise(resolve => setTimeout(resolve, duration * 1000));
+    }
 }
 
 export { MoveActionObj, ToolActionObj, SleepActionObj, ActionTypes, BaseActionObj };

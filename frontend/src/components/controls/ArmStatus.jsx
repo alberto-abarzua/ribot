@@ -10,6 +10,10 @@ const ArmStatus = () => {
     const call_home = async () => {
         await api.post('/move/home/');
     };
+
+    const call_stop_movement = async () => {
+        await api.post('/settings/stop_movement/');
+    };
     const currentPose = useSelector(state => state.armPose);
 
     return (
@@ -32,7 +36,7 @@ const ArmStatus = () => {
                     <PrimaryButton className="mr-10" onClick={call_home}>
                         Home Arm
                     </PrimaryButton>
-                    <WarningButton onClick={() => {}}>STOP</WarningButton>
+                    <WarningButton onClick={call_stop_movement}>STOP</WarningButton>
                 </div>
             </div>
         </div>

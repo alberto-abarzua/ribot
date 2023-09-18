@@ -30,7 +30,7 @@ const ToolBar = () => {
     const addSleepAction = () => {
         let index = actionList.length;
         let value = {
-            duration: 5,
+            duration: 2,
         };
         let obj = new SleepActionObj(value, index);
         dispatch(actionListActions.addAction(obj.toSerializable()));
@@ -39,7 +39,7 @@ const ToolBar = () => {
     const addToolAction = () => {
         let index = actionList.length;
         let value = {
-            tool_value: currentPose.toolValue,
+            toolValue: currentPose.toolValue,
         };
         let obj = new ToolActionObj(value, index);
         dispatch(actionListActions.addAction(obj.toSerializable()));

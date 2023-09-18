@@ -107,10 +107,8 @@ export default function Home() {
                     <div className="flex h-full w-full flex-col  lg:w-1/12 ">
                         <SideNav></SideNav>
                     </div>
-                    <div className="flex h-full w-full flex-col items-center bg-white px-10 lg:w-5/12 ">
-                        <div className="m-0 flex h-full w-4/5 p-0">
-                            <ActionContainer></ActionContainer>
-                        </div>
+                    <div className="flex h-full w-full flex-col items-center bg-white lg:w-5/12 ">
+                        <ActionContainer></ActionContainer>
                     </div>
                     <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
                         <ArmSimulation></ArmSimulation>

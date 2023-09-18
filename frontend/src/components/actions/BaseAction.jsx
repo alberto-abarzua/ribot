@@ -1,5 +1,6 @@
 import { actionListActions } from '@/redux/ActionListSlice';
 import { ItemTypes } from '@/utils/ItemTypes';
+import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import PropTypes from 'prop-types';
@@ -58,7 +59,7 @@ const BaseAction = ({ icon, children, className, id, index, ...props }) => {
     if (!isDragging) {
         return (
             <div
-                className={`group flex items-center justify-center space-x-4 rounded-md px-6 py-3 text-white shadow ${className}`}
+                className={`group relative flex w-full max-w-lg shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow  ${className}`}
                 {...props}
                 ref={ref}
                 style={{ opacity: isDragging ? 0 : 1 }}
@@ -69,12 +70,18 @@ const BaseAction = ({ icon, children, className, id, index, ...props }) => {
                 <div className="flex cursor-grab items-center justify-start ">
                     <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-gray-600" />
                 </div>
+                <div
+                    className="absolute right-0 top-0 flex cursor-pointer items-center justify-center rounded-bl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
+                    onClick={() => dispatch(actionListActions.deleteAction(index))}
+                >
+                    <CloseIcon className="text-xl"></CloseIcon>
+                </div>
             </div>
         );
     } else {
         return (
             <div
-                className=" h-24 w-full rounded-md border border-dashed bg-slate-100 shadow"
+                className=" h-24 w-full max-w-lg rounded-md border border-dashed bg-slate-100 shadow"
                 {...props}
                 ref={ref}
                 data-handler-id={handlerId}

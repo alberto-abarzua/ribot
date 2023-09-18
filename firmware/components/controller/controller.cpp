@@ -76,7 +76,13 @@ Controller::Controller() {
 Controller::~Controller() {
     this->arm_client.stop();
     // delete queues
+    if (!this->stop_flag){
+        this->stop();
+    }
     for (auto const &[key, val] : this->message_queues) {
+        if (val == nullptr) {
+            continue;
+        }
         std::queue<Message *> *message_queue = val;
         while (message_queue->size() > 0) {
             Message *msg = message_queue->front();
@@ -85,7 +91,7 @@ Controller::~Controller() {
         }
         delete message_queue;
     }
-    // delete joints
+
     for (uint8_t i = 0; i < this->joints.size(); i++) {
         delete this->joints[i];
         this->joints[i] = nullptr;
@@ -313,6 +319,32 @@ void Controller::message_handler_status(Message *message) {
             delete status_message;
 
         } break;
+
+        case 5: { //stop all moves
+            std::queue<Message *> *move_queue =
+                this->message_queues[MessageOp::MOVE];
+
+            while (move_queue->size() > 0) {
+                Message *msg = move_queue->front();
+                msg->set_complete(true);
+                msg->set_called(true);
+                move_queue->pop();
+                delete msg;
+            }
+
+            
+            for (uint8_t i = 0; i < this->joints.size(); i++) {
+                float current_angle = this->joints[i]->get_current_angle();
+                this->joints[i]->set_target_angle(current_angle);
+            }
+
+            Message *status_message =
+                new Message(MessageOp::STATUS, 6, 0, nullptr);
+
+            this->arm_client.send_message(status_message);
+
+        } break;
+
         default:
             break;
     }

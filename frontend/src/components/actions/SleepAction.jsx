@@ -23,7 +23,7 @@ const SleepAction = ({ ...props }) => {
 
     return (
         <BaseAction
-            className={'bg-rose-400'}
+            className={'h-20 bg-rose-400'}
             icon={<BedtimeIcon className="text-6xl"></BedtimeIcon>}
             {...props}
         >

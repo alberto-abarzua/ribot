@@ -25,7 +25,7 @@ const ToolAction = ({ ...props }) => {
 
     return (
         <BaseAction
-            className={'bg-yellow-200'}
+            className={'h-20 bg-yellow-200'}
             icon={<BuildIcon className="text-6xl"></BuildIcon>}
             {...props}
         >
@@ -34,9 +34,9 @@ const ToolAction = ({ ...props }) => {
                     <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
                         <TextVariable
                             label="Tool Value"
-                            value={toolValue.tool_value}
+                            value={toolValue.toolValue}
                             setValue={value =>
-                                setToolValue(prev => ({ ...prev, tool_value: value }))
+                                setToolValue(prev => ({ ...prev, toolValue: value }))
                             }
                             disabled={false}
                         />

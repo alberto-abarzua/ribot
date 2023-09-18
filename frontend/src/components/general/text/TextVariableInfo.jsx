@@ -3,15 +3,20 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PropTypes from 'prop-types';
 
 const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }) => {
-    const onChangeFunc = e => {
-        if (setValue) {
-            let newValue = e.target.value;
-            if (e.target.type === 'number') {
-                newValue = newValue ? parseFloat(newValue) : null;
-            }
-            setValue(newValue);
+    const onBlur = () => {
+        if (typeof value === 'number') {
+            setValue(parseFloat(value.toFixed(2)));
         }
     };
+
+    const onChangeFunc = e => {
+        let newValue = e.target.value;
+        if (/^\d+(\.\d+)?$/.test(newValue)) {
+            newValue = Number(newValue);
+        }
+        setValue(newValue);
+    };
+
     return (
         <div className="inline-flex h-10 w-auto items-center justify-end gap-0.5 px-2 py-1.5">
             <div className="relative flex items-center justify-start">
@@ -22,7 +27,7 @@ const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }
                         {infoText}
                     </div>
 
-                    <div className="absolute -top-12 left-6  z-10 hidden h-10 w-4 rotate-[60deg] bg-gray-50 px-1 py-2 group-hover:block"></div>
+                    <div className="absolute -top-12 left-6 z-10 hidden h-10 w-4 rotate-[60deg] bg-gray-50 px-1 py-2 group-hover:block"></div>
                 </div>
                 :
             </div>
@@ -31,6 +36,7 @@ const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }
                     type="text"
                     value={value}
                     onChange={onChangeFunc}
+                    onBlur={onBlur}
                     className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
                     disabled={disabled}
                 />

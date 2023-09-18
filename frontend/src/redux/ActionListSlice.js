@@ -31,6 +31,12 @@ const actionListSlice = createSlice({
                 state.actions[i].index = i;
             }
         },
+        deleteAction(state, action) {
+            state.actions.splice(action.payload, 1);
+            for (let i = 0; i < state.actions.length; i++) {
+                state.actions[i].index = i;
+            }
+        },
     },
 });
 

@@ -29,11 +29,11 @@ int run_controller(bool loop) {
         Controller* controller = new Controller();
         global_controller = controller;
         bool exited = controller->start();
+        delete controller;
+        global_controller = nullptr;
         if (exited) {
             break;
         }
-        delete controller;
-        global_controller = nullptr;
     } while (loop);
 
     return 0;

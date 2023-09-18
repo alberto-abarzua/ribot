@@ -244,3 +244,13 @@ class TestController(unittest.TestCase):
         self.assertEqual(self.controller.move_queue_size, 5)
         self.controller.wait_done_moving()
         self.assertEqual(self.controller.move_queue_size, 0)
+        self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.1)
+        self.controller.move_to_angles([-0.7, -0.7, -0.7, -0.7, -0.7, -0.7])
+        self.controller.move_to_angles([-0.8, -0.8, -0.8, -0.8, -0.8, -0.8])
+        self.controller.move_to_angles([-0.9, -0.9, -0.9, -0.9, -0.9, -0.9])
+        # make sure the queue is size 3
+        time.sleep(0.5)
+        self.assertEqual(self.controller.move_queue_size, 3)
+        self.controller.stop_movement()
+        time.sleep(0.5)
+        self.assertEqual(self.controller.move_queue_size, 0)
