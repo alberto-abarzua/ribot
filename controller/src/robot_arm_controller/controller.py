@@ -278,14 +278,12 @@ class ArmController:
             time.sleep(0.01)
 
         return self.last_health_check > current_time
-    
 
     def stop_movement(self) -> None:
         message = Message(MessageOp.STATUS, 5)
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
             console.log("Stopping arm", style="stop")
-        
 
     """
     ----------------------------------------

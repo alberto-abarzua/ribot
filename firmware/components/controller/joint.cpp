@@ -5,13 +5,11 @@ Joint::Joint() {
     this->end_stop = nullptr;
 }
 
-
 Joint::~Joint() {
     if (this->movement_driver != nullptr) {
         delete this->movement_driver;
         this->movement_driver = nullptr;
     }
-
 }
 
 MovementDriver* Joint::get_movement_driver() { return this->movement_driver; }

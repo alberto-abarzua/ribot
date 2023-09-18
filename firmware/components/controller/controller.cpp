@@ -76,7 +76,7 @@ Controller::Controller() {
 Controller::~Controller() {
     this->arm_client.stop();
     // delete queues
-    if (!this->stop_flag){
+    if (!this->stop_flag) {
         this->stop();
     }
     for (auto const &[key, val] : this->message_queues) {
@@ -320,7 +320,7 @@ void Controller::message_handler_status(Message *message) {
 
         } break;
 
-        case 5: { //stop all moves
+        case 5: {  // stop all moves
             std::queue<Message *> *move_queue =
                 this->message_queues[MessageOp::MOVE];
 
@@ -332,7 +332,6 @@ void Controller::message_handler_status(Message *message) {
                 delete msg;
             }
 
-            
             for (uint8_t i = 0; i < this->joints.size(); i++) {
                 float current_angle = this->joints[i]->get_current_angle();
                 this->joints[i]->set_target_angle(current_angle);
