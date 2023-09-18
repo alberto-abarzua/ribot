@@ -1,16 +1,17 @@
 import { actionListActions } from '@/redux/ActionListSlice';
 import { ItemTypes } from '@/utils/ItemTypes';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import PropTypes from 'prop-types';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { useDispatch } from 'react-redux';
-
+import { useDispatch, useSelector } from 'react-redux';
 const BaseAction = ({ icon, children, className, id, index, ...props }) => {
     const dispatch = useDispatch();
-
+    const running = useSelector(state => state.actionList.actions[index].running);
+    console.log('running ss', running);
     const ref = useRef(null);
     const [{ handlerId }, drop] = useDrop({
         accept: ItemTypes.ACTION,
@@ -59,7 +60,7 @@ const BaseAction = ({ icon, children, className, id, index, ...props }) => {
     if (!isDragging) {
         return (
             <div
-                className={`group relative flex w-full max-w-lg shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow  ${className}`}
+                className={`transform transition-all duration-100  ${className} group relative flex w-full max-w-lg shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow   `}
                 {...props}
                 ref={ref}
                 style={{ opacity: isDragging ? 0 : 1 }}
@@ -68,7 +69,12 @@ const BaseAction = ({ icon, children, className, id, index, ...props }) => {
                 <div className="flex flex-1 items-center justify-start">{icon}</div>
                 {children}
                 <div className="flex cursor-grab items-center justify-start ">
-                    <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-gray-600" />
+                    {!running && (
+                        <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-gray-600" />
+                    )}
+                    {running && (
+                        <AutorenewIcon className="animate-spin text-4xl transition-all duration-300 group-hover:text-gray-600" />
+                    )}
                 </div>
                 <div
                     className="absolute right-0 top-0 flex cursor-pointer items-center justify-center rounded-bl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"

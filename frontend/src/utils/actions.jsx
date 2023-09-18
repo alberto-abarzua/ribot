@@ -25,6 +25,7 @@ class BaseActionObj {
             this.id = id;
         }
         this.index = index;
+        this.running = false;
     }
 
     static generateUniqueId() {
@@ -51,6 +52,7 @@ class BaseActionObj {
             type: this.type,
             id: this.id,
             index: this.index,
+            running: this.running,
         };
     }
 
@@ -88,6 +90,7 @@ class MoveActionObj extends BaseActionObj {
             roll: this.value.roll,
             pitch: this.value.pitch,
             yaw: this.value.yaw,
+            wait: true,
         };
         console.log(pose);
         await api.post('/move/pose/move/', pose);
@@ -113,6 +116,7 @@ class ToolActionObj extends BaseActionObj {
     async run() {
         let target = {
             toolValue: this.value.toolValue,
+            wait: true,
         };
         console.log(target);
         await api.post('/move/tool/move/', target);

@@ -37,6 +37,20 @@ const actionListSlice = createSlice({
                 state.actions[i].index = i;
             }
         },
+        setRunningStatus(state, action) {
+            state.actions[action.payload].running = true;
+            //set all other to false
+            for (let i = 0; i < state.actions.length; i++) {
+                if (i !== action.payload) {
+                    state.actions[i].running = false;
+                }
+            }
+        },
+        cleanRunningStatus(state) {
+            for (let i = 0; i < state.actions.length; i++) {
+                state.actions[i].running = false;
+            }
+        },
     },
 });
 

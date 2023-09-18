@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -18,10 +18,12 @@ class Move(BaseModel):
     roll: float
     pitch: float
     yaw: float
+    wait: Optional[bool] = False
 
 
 class Tool(BaseModel):
     toolValue: float
+    wait: Optional[bool] = False
 
 
 # --------
@@ -44,8 +46,14 @@ def home(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
 @router.post("/pose/move/")
 def move(move: Move, controller: ArmController = controller_dependency) -> JSONResponse:
     move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
     pose = ArmPose(**move_dict)
+
     move_is_possible = controller.move_to(pose)
+
+    if wait:
+        controller.wait_done_moving()
     if move_is_possible:
         return JSONResponse(content={"message": "Moved"}, status_code=200)
     else:
@@ -60,18 +68,22 @@ def currentpose(controller: ArmController = controller_dependency) -> Dict[Any, 
 
 
 @router.post("/tool/move/")
-def too_post(
+def tool_post(
     tool: Tool, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
     tool_dict = tool.dict()
     tool_value = tool_dict["toolValue"]
+    wait = tool_dict["wait"]
     controller.set_tool_value(tool_value)
+    if wait:
+        controller.wait_done_moving()
     return {"message": "Moved"}
 
 
 @router.get("/tool/current/")
 def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     tool_value = controller.tool_value
+
     return {"toolValue": tool_value}
 
 

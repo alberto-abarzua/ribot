@@ -31,7 +31,7 @@ async def startup_event() -> None:
     controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, np.pi / 4)
     controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
     controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1)
-    controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1.0)
+    controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.2)
     offsets = controller.get_setting_joints(Settings.HOMING_OFFSET_RADS)
     print(offsets)
 
