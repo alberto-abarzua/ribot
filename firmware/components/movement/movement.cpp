@@ -97,19 +97,18 @@ int8_t MovementDriver::get_homing_direction() { return this->homing_direction; }
 float MovementDriver::get_homing_offset() { return this->homing_offset; }
 
 bool MovementDriver::step() {
-    if (this->at_target()) {
-        return false;
-    }
-
     uint64_t current_time = get_current_time_microseconds();
 
     uint32_t steps_to_take = this->steps_to_take(current_time);
+    std::cout << "steps_to_take: " << steps_to_take << std::endl;
     if (steps_to_take > 0) {
         int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
         for (uint16_t i = 0; i < steps_to_take; i++) {
-            this->hardware_step(step_dir > 0 ? 1 : 0);
             this->current_steps += step_dir;
             this->current_angle = this->steps_to_angle(this->current_steps);
+            std::cout << "current_angle, target_angle: " << this->current_angle
+                      << ", " << this->target_angle << std::endl;
+            this->hardware_step(step_dir > 0 ? 1 : 0);
             this->last_step_time = get_current_time_microseconds();
             if (!this->homed && this->end_stop != nullptr) {
                 if (this->end_stop->hardware_read_state()) {

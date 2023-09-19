@@ -5,6 +5,14 @@
 
 #include "utils.h"
 
+#ifdef ESP_PLATFORM
+#include "driver/mcpwm_prelude.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#endif
+
 #define PI 3.14159265358979323846
 
 class EndStop {
@@ -91,19 +99,6 @@ class MovementDriver {
     //  virtual void set_acceleration(float acceleration) = 0;
 };
 
-class Servo : public MovementDriver {
-   private:
-    int8_t pin;
-
-   public:
-    Servo(int8_t pin);
-    ~Servo();
-
-    void hardware_setup() override;
-    void hardware_step(int8_t step_dir) override;
-    bool home();
-};
-
 class Stepper : public MovementDriver {
    private:
     int8_t step_pin;
@@ -114,6 +109,23 @@ class Stepper : public MovementDriver {
     ~Stepper();
     void hardware_setup() override;
     void hardware_step(int8_t step_dir) override;
+};
+
+class Servo : public MovementDriver {
+   private:
+    int8_t pin;
+#ifdef ESP_PLATFORM
+    mcpwm_cmpr_handle_t comparator = NULL;
+#endif
+   public:
+    Servo(int8_t pin);
+    ~Servo();
+
+    void hardware_setup();
+
+    void hardware_step(int8_t step_dir);
+    uint32_t angle_to_compare(int32_t angle);
+    bool home();
 };
 
 #endif

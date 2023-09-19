@@ -500,16 +500,16 @@ bool Controller::hardware_setup() {  // every function here should be defined
 
 void Controller::step_target_fun() {
     // Add this task to the task watchdog
-    esp_task_wdt_add(NULL);
+    task_add();
 
     while (this->stop_flag == false) {
-        esp_task_wdt_reset();
+        task_feed();
         this->step();
         // Feed the task watchdog
-        esp_task_wdt_reset();
+        task_feed();
         run_delay(10);
     }
-    esp_task_wdt_delete(NULL);
+    task_end();
 }
 // Static member function
 static void step_target_fun_adapter(void *pvParameters) {
