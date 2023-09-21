@@ -4,13 +4,14 @@ import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
 import api from '@/utils/api';
 
+import { generateUniqueId } from './idManager';
+
 const ActionTypes = {
     MOVE: 'move',
     SLEEP: 'sleep',
     TOOL: 'tool',
 };
 
-let lastId = 0;
 class BaseActionObj {
     constructor(value, type, index, id = -1) {
         if (new.target == BaseActionObj) {
@@ -26,16 +27,11 @@ class BaseActionObj {
         }
         this.index = index;
         this.running = false;
+        this.valid = true;
     }
 
     static generateUniqueId() {
-        const now = Date.now();
-        if (now !== lastId) {
-            lastId = now;
-        } else {
-            lastId += 1;
-        }
-        return lastId;
+        return generateUniqueId();
     }
 
     render() {
@@ -53,6 +49,7 @@ class BaseActionObj {
             id: this.id,
             index: this.index,
             running: this.running,
+            valid: this.valid,
         };
     }
 
@@ -92,7 +89,6 @@ class MoveActionObj extends BaseActionObj {
             yaw: this.value.yaw,
             wait: true,
         };
-        console.log(pose);
         await api.post('/move/pose/move/', pose);
     }
 }
@@ -118,7 +114,6 @@ class ToolActionObj extends BaseActionObj {
             toolValue: this.value.toolValue,
             wait: true,
         };
-        console.log(target);
         await api.post('/move/tool/move/', target);
     }
 }
@@ -140,9 +135,7 @@ class SleepActionObj extends BaseActionObj {
     }
     async run() {
         let duration = this.value.duration;
-        console.log('sleeping for ' + duration + ' seconds');
         await this.sleep(duration);
-        console.log('resuming after ' + duration + ' seconds');
     }
 
     sleep(duration) {

@@ -166,8 +166,10 @@ bool Controller::start() {
     this->run_step_task();
 
     std::cout << "Connected to the server" << std::endl;
+    task_add();
     uint64_t last_message_time = get_current_time_microseconds();
     while (true) {
+        task_feed();
         bool message_received = this->recieve_message();
         if (message_received) {
             last_message_time = get_current_time_microseconds();
@@ -177,9 +179,14 @@ bool Controller::start() {
                       << std::endl;
             break;
         }
-
+        task_feed();
         this->handle_messages();
+        // print movequeue size
+        std::cout << "move queue size: "
+                  << this->message_queues[MessageOp::MOVE]->size() << std::endl;
+        run_delay(10);
     }
+    task_end();
     return true;
 }
 
@@ -499,19 +506,16 @@ bool Controller::hardware_setup() {  // every function here should be defined
 #ifdef ESP_PLATFORM
 
 void Controller::step_target_fun() {
-    // Add this task to the task watchdog
     task_add();
-
     while (this->stop_flag == false) {
         task_feed();
         this->step();
-        // Feed the task watchdog
         task_feed();
         run_delay(10);
     }
     task_end();
 }
-// Static member function
+
 static void step_target_fun_adapter(void *pvParameters) {
     Controller *instance = static_cast<Controller *>(pvParameters);
     instance->step_target_fun();

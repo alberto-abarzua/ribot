@@ -220,11 +220,10 @@ class TestController(unittest.TestCase):
         self.controller.wait_done_moving()
         self.assertTrue(np.allclose(self.controller.current_angles, [1, 1, 1, 1, 1, 1], atol=0.1))
         end_time = time.time()
+        self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
 
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
         self.assertTrue(np.allclose(speeds, [1, 1, 1, 1, 1, 1], atol=0.1))
-
-        self.assertTrue(end_time - start_time < 1.4, msg=f"Expected 1s, got {end_time - start_time}")
 
     def test_move_queue_size(self) -> None:
         self.controller.wait_done_moving()

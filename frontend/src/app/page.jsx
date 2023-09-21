@@ -61,8 +61,9 @@ export default function Home() {
                         toolValue: 0,
                     })
                 );
-
+                // console.log(currentPoseRef.current)
                 try {
+                    console.log('moving');
                     let response = await api.post('/move/pose/move/', pose);
                     if (response.status === 400) {
                         alert(response.data.message);
@@ -75,17 +76,21 @@ export default function Home() {
                         alert('An unexpected error occurred');
                     }
                 }
-                try {
-                    let response = await api.post('/move/tool/move/', tool);
-                    if (response.status === 400) {
-                        alert(response.data.message);
-                    }
-                } catch (error) {
-                    if (error.response && error.response.status === 400) {
-                        alert(error.response.data.message); //TODO: make this a toast
-                    } else {
-                        console.error('An unexpected error occurred:', error);
-                        alert('An unexpected error occurred');
+
+                if (currentPoseRef.current.toMove.toolValue !== 0) {
+                    console.log('seding tool');
+                    try {
+                        let response = await api.post('/move/tool/move/', tool);
+                        if (response.status === 400) {
+                            alert(response.data.message);
+                        }
+                    } catch (error) {
+                        if (error.response && error.response.status === 400) {
+                            alert(error.response.data.message); //TODO: make this a toast
+                        } else {
+                            console.error('An unexpected error occurred:', error);
+                            alert('An unexpected error occurred');
+                        }
                     }
                 }
             }
@@ -94,7 +99,7 @@ export default function Home() {
         intervalIdRef.current = setInterval(() => {
             moveToPose();
             fetchCurrentPose();
-        }, 300);
+        }, 100);
 
         return () => {
             clearInterval(intervalIdRef.current);

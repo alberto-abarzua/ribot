@@ -1,4 +1,5 @@
 import { actionListActions } from '@/redux/ActionListSlice';
+import api from '@/utils/api';
 import GamesIcon from '@mui/icons-material/Games';
 
 import PropTypes from 'prop-types';
@@ -7,7 +8,6 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import TextVariable from '../general/text/TextVariable';
 import BaseAction from './BaseAction';
-
 const MoveAction = ({ ...props }) => {
     const dispatch = useDispatch();
 
@@ -15,6 +15,30 @@ const MoveAction = ({ ...props }) => {
     const action = useSelector(state => state.actionList.actions[props.index]);
 
     const [currentPose, setCurrentPose] = useState(action.value);
+
+    console.log(action);
+    useEffect(() => {
+        const checkValid = async () => {
+            let pose = {
+                x: currentPose.x,
+                y: currentPose.y,
+                z: currentPose.z,
+                roll: currentPose.roll,
+                pitch: currentPose.pitch,
+                yaw: currentPose.yaw,
+            };
+            try {
+                const res = await api.post('/move/pose/validate/', pose);
+                if (res.status === 200) {
+                    dispatch(actionListActions.setValidStatus({ index: props.index, valid: true }));
+                }
+            } catch (err) {
+                dispatch(actionListActions.setValidStatus({ index: props.index, valid: false }));
+            }
+        };
+
+        checkValid();
+    }, [currentPose, dispatch, props.index]);
 
     useEffect(() => {
         dispatch(
@@ -24,7 +48,6 @@ const MoveAction = ({ ...props }) => {
             })
         );
     }, [currentPose, dispatch, props.index]);
-
     return (
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}

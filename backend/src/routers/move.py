@@ -67,6 +67,25 @@ def currentpose(controller: ArmController = controller_dependency) -> Dict[Any, 
     return pose_dict
 
 
+@router.post("/pose/validate/")
+def valid_pose(
+    move: Move, controller: ArmController = controller_dependency
+) -> JSONResponse:
+    move_dict = move.dict()
+    move_dict.pop("wait")
+    pose = ArmPose(**move_dict)
+    move_is_possible = controller.valid_pose(pose)
+    if move_is_possible:
+        return JSONResponse(content={"message": "Pose is valid"}, status_code=200)
+    else:
+        return JSONResponse(content={"message": "Pose is not valid"}, status_code=400)
+
+
+# --------
+# Pose
+# --------
+
+
 @router.post("/tool/move/")
 def tool_post(
     tool: Tool, controller: ArmController = controller_dependency
@@ -87,12 +106,18 @@ def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any
     return {"toolValue": tool_value}
 
 
+# --------
+# Status
+# --------
+
+
 @router.get("/status/")
 def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     pose = controller.current_pose
     status_dict = pose.as_dict
     status_dict["toolValue"] = controller.tool_value
     status_dict["isHomed"] = controller.is_homed
+    print(controller)
     status_dict["moveQueueSize"] = controller.move_queue_size
     return status_dict
 

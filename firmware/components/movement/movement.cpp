@@ -18,7 +18,7 @@ float MovementDriver::get_target_angle() { return this->target_angle; }
 
 void MovementDriver::set_steps_per_revolution(uint32_t steps_per_revolution) {
     this->steps_per_revolution = steps_per_revolution;
-    this->epsilon = this->steps_to_angle(2);
+    this->epsilon = this->steps_to_angle(3);
     this->update_speed();
 }
 
@@ -68,6 +68,9 @@ int64_t MovementDriver::angle_to_steps(float angle) {
 }
 
 uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
+    if (this->at_target()) {
+        return 0;
+    }
     uint64_t dif = current_time - this->last_step_time;
     uint64_t steps = std::floor(dif / this->step_interval);
     uint64_t steps_to_target =
@@ -100,14 +103,12 @@ bool MovementDriver::step() {
     uint64_t current_time = get_current_time_microseconds();
 
     uint32_t steps_to_take = this->steps_to_take(current_time);
-    std::cout << "steps_to_take: " << steps_to_take << std::endl;
     if (steps_to_take > 0) {
         int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
         for (uint16_t i = 0; i < steps_to_take; i++) {
             this->current_steps += step_dir;
             this->current_angle = this->steps_to_angle(this->current_steps);
-            std::cout << "current_angle, target_angle: " << this->current_angle
-                      << ", " << this->target_angle << std::endl;
+
             this->hardware_step(step_dir > 0 ? 1 : 0);
             this->last_step_time = get_current_time_microseconds();
             if (!this->homed && this->end_stop != nullptr) {

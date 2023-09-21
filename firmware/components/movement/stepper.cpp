@@ -10,11 +10,23 @@
 #ifdef ESP_PLATFORM
 
 void Stepper::hardware_setup() {
-    // TODO: SETUP PWM PINS
+    gpio_config_t io_conf;
+    io_conf.pin_bit_mask = (1ULL << step_pin) | (1ULL << dir_pin);
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+
+    gpio_config(&io_conf);
 }
 
-void Stepper::hardware_step(int8_t) {
-    // TODO: use pwm to set the angle
+void Stepper::hardware_step(int8_t step_dir) {
+    int8_t dir_val = step_dir > 0 ? 1 : 0;
+    gpio_set_level((gpio_num_t)dir_pin, dir_val);
+
+    gpio_set_level((gpio_num_t)step_pin, 1);
+    run_delay(1);
+    gpio_set_level((gpio_num_t)step_pin, 0);
 }
 
 #else

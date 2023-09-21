@@ -79,15 +79,33 @@ const armPoseSlice = createSlice({
             state.toolValue = action.payload;
         },
         updateCurrent(state, action) {
-            state.x = action.payload.x;
-            state.y = action.payload.y;
-            state.z = action.payload.z;
-            state.roll = action.payload.roll;
-            state.pitch = action.payload.pitch;
-            state.yaw = action.payload.yaw;
-            state.toolValue = action.payload.toolValue;
-            state.isHomed = action.payload.isHomed;
-            state.moveQueueSize = action.payload.isHomed;
+            if (state.x !== action.payload.x) {
+                state.x = action.payload.x;
+            }
+            if (state.y !== action.payload.y) {
+                state.y = action.payload.y;
+            }
+            if (state.z !== action.payload.z) {
+                state.z = action.payload.z;
+            }
+            if (state.roll !== action.payload.roll) {
+                state.roll = action.payload.roll;
+            }
+            if (state.pitch !== action.payload.pitch) {
+                state.pitch = action.payload.pitch;
+            }
+            if (state.yaw !== action.payload.yaw) {
+                state.yaw = action.payload.yaw;
+            }
+            if (state.toolValue !== action.payload.toolValue) {
+                state.toolValue = action.payload.toolValue;
+            }
+            if (state.isHomed !== action.payload.isHomed) {
+                state.isHomed = action.payload.isHomed;
+            }
+            if (state.moveQueueSize !== action.payload.isHomed) {
+                state.moveQueueSize = action.payload.moveQueueSize;
+            }
         },
     },
 });

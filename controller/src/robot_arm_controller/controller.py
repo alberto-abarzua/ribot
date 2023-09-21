@@ -101,7 +101,7 @@ class ArmController:
         output.append(f"Is Homed: {self.is_homed}")
         output.append(f"Queue Size: {self.move_queue_size}")
 
-        return "\n".join(output)
+        return " ".join(output)
 
     def start(self, wait: bool = False, websocket_server: bool = True) -> None:
         console.log("Starting controller!", style="setup")
@@ -259,6 +259,12 @@ class ArmController:
             time.sleep(0.2)
         if self.print_status:
             console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
+
+    def valid_pose(self, pose: ArmPose) -> bool:
+        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
+        if target_angles is None:
+            return False
+        return True
 
     """
     ----------------------------------------

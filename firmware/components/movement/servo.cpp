@@ -77,8 +77,8 @@ void Servo::hardware_setup() {
 void Servo::hardware_step(int8_t step_dir) {
     float current_angle_rads = this->get_current_angle();
     int32_t current_angle_degs = current_angle_rads * 180 / PI;
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(
-        this->comparator, this->angle_to_compare(current_angle_degs)));
+    mcpwm_comparator_set_compare_value(
+        this->comparator, this->angle_to_compare(current_angle_degs));
 }
 
 #else

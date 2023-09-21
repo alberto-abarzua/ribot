@@ -1,3 +1,4 @@
+import { BaseActionObj } from '@/utils/actions';
 import { createSlice } from '@reduxjs/toolkit';
 
 import update from 'immutability-helper';
@@ -49,6 +50,21 @@ const actionListSlice = createSlice({
         cleanRunningStatus(state) {
             for (let i = 0; i < state.actions.length; i++) {
                 state.actions[i].running = false;
+            }
+        },
+        setValidStatus(state, action) {
+            state.actions[action.payload.index].valid = action.payload.valid;
+        },
+        duplicateAction(state, action) {
+            let index = action.payload;
+            let newAction = state.actions[index];
+            newAction = JSON.parse(JSON.stringify(newAction));
+            newAction.id = BaseActionObj.generateUniqueId();
+            state.actions.push(newAction);
+            newAction.index = state.actions.length;
+
+            for (let i = 0; i < state.actions.length; i++) {
+                state.actions[i].index = i;
             }
         },
     },
