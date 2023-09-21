@@ -1,54 +1,45 @@
 import PropTypes from 'prop-types';
 
-const MoveAxis = ({ label, pose, setPose, step = 10 }) => {
-    const value = pose[label]; // Extract the value for the specific axis
+const MoveAxis = ({ label, value, setValue, step_amount = 10 }) => {
+    const step_float = parseFloat(step_amount);
 
     const upValue = () => {
-        setPose(prev => ({
-            ...prev,
-            [label]: prev[label] + step,
-        }));
+        setValue(step_float);
     };
 
     const downValue = () => {
-        setPose(prev => ({
-            ...prev,
-            [label]: prev[label] - step,
-        }));
+        setValue(-step_float);
     };
+
     return (
-        <div className="flex w-40 flex-col justify-center rounded bg-slate-200 p-2">
-            <div className="w-full pb-2 text-center text-lg font-bold uppercase">{label}</div>
-            <div className=" flex flex-col space-y-3">
-                <button className="w-full rounded bg-slate-400 p-2" onClick={upValue}>
-                    +
-                </button>
-                <input
-                    className="w-full appearance-none rounded bg-white p-2 text-center"
-                    type="text"
-                    readOnly // Make the input read-only since the value is controlled by the buttons
-                    value={value.toFixed(2)}
-                ></input>
-                <button className="w-full rounded bg-slate-400 p-2" onClick={downValue}>
-                    -
-                </button>
+        <div className="inline-flex h-36 w-24 flex-col items-center justify-start gap-2 px-1">
+            <div className="text-base font-bold text-black">{label}</div>
+            <button
+                onClick={upValue}
+                className="flex h-7 w-20 flex-col items-center justify-center gap-2.5 rounded bg-slate-400 p-2.5 text-white shadow hover:bg-slate-600"
+            >
+                +
+            </button>
+            <div className="inline-flex h-6 w-16 cursor-default items-center justify-center gap-2.5 rounded-md bg-gray-200 shadow">
+                <div className="w-12 select-none text-center text-xs font-normal text-black">
+                    {value.toFixed(2)}
+                </div>
             </div>
+            <button
+                onClick={downValue}
+                className="flex h-7  w-20 flex-col items-center justify-center gap-2.5 rounded-sm bg-slate-400 p-2.5 text-white shadow hover:bg-slate-600"
+            >
+                -
+            </button>
         </div>
     );
 };
 
 MoveAxis.propTypes = {
     label: PropTypes.string.isRequired,
-    pose: PropTypes.shape({
-        x: PropTypes.number,
-        y: PropTypes.number,
-        z: PropTypes.number,
-        roll: PropTypes.number,
-        pitch: PropTypes.number,
-        yaw: PropTypes.number,
-    }).isRequired,
-    setPose: PropTypes.func.isRequired,
-    step: PropTypes.number,
+    value: PropTypes.number.isRequired,
+    setValue: PropTypes.func.isRequired,
+    step_amount: PropTypes.number,
 };
 
 export default MoveAxis;

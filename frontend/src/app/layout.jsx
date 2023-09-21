@@ -1,7 +1,5 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
+import Providers from '@/components/general/providers/Providers';
 
 export const metadata = {
     title: 'Robot Arm Controller',
@@ -11,7 +9,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
-            <body className={inter.className}>{children}</body>
+            <Providers>
+                <body>{children}</body>
+            </Providers>
         </html>
     );
 }

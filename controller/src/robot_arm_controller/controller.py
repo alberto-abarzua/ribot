@@ -42,33 +42,38 @@ class ArmController:
         websocket_port: int = 8600,
         server_port: int = 8500,
     ) -> None:
+        # Arm Status
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
-        self.num_joints: int = len(self._current_angles)
+        self.current_angles_lock: FIFOLock = FIFOLock()
+
+        self.tool_value: float = 0
         self.move_queue_size: int = 0
         self.is_homed: bool = False
         self.last_health_check: float = 0
 
-        self.current_angles_lock: FIFOLock = FIFOLock()
+        self.print_status = False
+        self.print_idx = 0
+
         self.controller_server: ControllerServer = ControllerServer(self, server_port)
         self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
 
+        self.arm_params = arm_parameters
+        self.num_joints: int = len(self._current_angles)
+        self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
+
+        self.command_cooldown: float = 0.01
+        self.connection_controller_timeout: int = 60
+
+        self.joint_settings: List[Dict[Settings, Setting]] = []
+        self.joint_settings_response_code: List[Dict[int, Setting]] = []
+
         # register new handlers here
+
         self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {
             MessageOp.MOVE: self.handle_move_message,
             MessageOp.STATUS: self.handle_status_message,
             MessageOp.CONFIG: self.handle_config_message,
         }
-
-        self.arm_params = arm_parameters
-
-        self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
-
-        self.command_cooldown: float = 0.01
-
-        self.connection_controller_timeout: int = 15
-
-        self.joint_settings: List[Dict[Settings, Setting]] = []
-        self.joint_settings_response_code: List[Dict[int, Setting]] = []
 
         for _ in range(self.num_joints):
             current_joint_settings = {
@@ -89,8 +94,17 @@ class ArmController:
     ----------------------------------------
     """
 
-    def start(self, wait: bool = True, websocket_server: bool = True) -> None:
-        console.print("Starting controller!", style="setup")
+    def __str__(self) -> str:
+        output = []
+        output.append(f"Current Angles: {self._current_angles}")
+        output.append(f"Tool Position: {self.tool_value}")
+        output.append(f"Is Homed: {self.is_homed}")
+        output.append(f"Queue Size: {self.move_queue_size}")
+
+        return " ".join(output)
+
+    def start(self, wait: bool = False, websocket_server: bool = True) -> None:
+        console.log("Starting controller!", style="setup")
         if websocket_server and self.websocket_server is not None:
             self.websocket_server.start()
         else:
@@ -102,14 +116,14 @@ class ArmController:
                 time.sleep(0.1)
                 if time.time() - start_time > self.connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
-        console.print("\nController Started!", style="setup")
+        console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
-        console.print("Stopping controller...", style="setup", end="\n")
+        console.log("Stopping controller...", style="setup", end="\n")
         if self.websocket_server is not None:
             self.websocket_server.stop()
         self.controller_server.stop()
-        console.print("Controller Stopped", style="setup")
+        console.log("Controller Stopped", style="setup")
 
     @property
     def current_pose(self) -> ArmPose:
@@ -149,10 +163,16 @@ class ArmController:
     def handle_status_message(self, message: Message) -> None:
         code = message.code
         if code == 1:
-            angles = message.args[: self.num_joints]
-            self.current_angles = angles
-            self.move_queue_size = int(message.args[self.num_joints])
-            self.is_homed = message.args[self.num_joints + 1] == 1
+            self.current_angles = message.args[: self.num_joints]
+            self.tool_value = message.args[self.num_joints]
+            self.move_queue_size = int(message.args[self.num_joints + 1])
+            self.is_homed = message.args[self.num_joints + 2] == 1
+            if self.print_status:
+                if self.print_idx == 5:
+                    console.log(self, style="status")
+                    self.print_idx = 0
+                self.print_idx += 1
+
         if code == 4:
             self.last_health_check = time.time()
 
@@ -170,27 +190,37 @@ class ArmController:
     ----------------------------------------
     """
 
-    def move_to_angles(self, angles: List[float]) -> None:
+    def move_to_angles(self, angles: List[float]) -> bool:
         if not self.is_homed:
-            console.print("Arm is not homed", style="error")
-            return
+            console.log("Arm is not homed", style="error")
+            return False
         message = Message(MessageOp.MOVE, 1, angles)
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
 
-    def move_to(self, pose: ArmPose) -> None:
+        if self.print_status:
+            console.log(f"Moving to angles: {angles}", style="move_angles")
+        return True
+
+    def move_to(
+        self,
+        pose: ArmPose,
+    ) -> bool:
         target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
-            console.print("Target pose is not reachable", style="error")
-            return
-        self.move_to_angles(target_angles)
+            console.log("Target pose is not reachable", style="error")
+            return False
+        return self.move_to_angles(target_angles)
 
     def home(self, wait: bool = True) -> None:
+        if self.print_status:
+            console.log("Homing arm...", style="homing")
         message = Message(MessageOp.MOVE, 3)
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
         start_time = time.time()
         self.is_homed = False
+        time.sleep(1)
         if wait:
             while not self.is_homed:
                 time.sleep(0.1)
@@ -203,19 +233,38 @@ class ArmController:
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
+        if self.print_status:
+            console.log("Arm homed!", style="homing")
 
     def home_joint(self, joint_idx: int) -> None:
         message = Message(MessageOp.MOVE, 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
 
+    def set_tool_value(self, angle: float) -> None:
+        message = Message(MessageOp.MOVE, 7, [angle])
+        self.controller_server.send_message(message, mutex=True)
+        self.move_queue_size += 1
+        if self.print_status:
+            console.log(f"Setting tool value to: {angle}", style="set_tool")
+
     def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
         while not np.allclose(self.current_angles, target_angles, atol=epsilon):
-            time.sleep(0.1)
+            time.sleep(0.2)
 
     def wait_done_moving(self) -> None:
+        if self.print_status:
+            console.log(f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
         while self.move_queue_size > 0:
-            time.sleep(0.1)
+            time.sleep(0.2)
+        if self.print_status:
+            console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
+
+    def valid_pose(self, pose: ArmPose) -> bool:
+        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
+        if target_angles is None:
+            return False
+        return True
 
     """
     ----------------------------------------
@@ -225,7 +274,7 @@ class ArmController:
 
     def health_check(self) -> bool:
         if not self.is_ready:
-            console.print("Not connected", style="error")
+            console.log("Not connected", style="error")
             return False
         message = Message(MessageOp.STATUS, 3)
         current_time = time.time()
@@ -235,6 +284,12 @@ class ArmController:
             time.sleep(0.01)
 
         return self.last_health_check > current_time
+
+    def stop_movement(self) -> None:
+        message = Message(MessageOp.STATUS, 5)
+        self.controller_server.send_message(message, mutex=True)
+        if self.print_status:
+            console.log("Stopping arm", style="stop")
 
     """
     ----------------------------------------
@@ -250,6 +305,9 @@ class ArmController:
         message = Message(MessageOp.CONFIG, code, [float(joint_idx), value])
         self.controller_server.send_message(message, mutex=True)
         setting.last_updated = -1
+
+        if self.print_status:
+            console.log(f"Setting {setting_key} to {value} for joint {joint_idx}", style="set_settings")
 
     def set_setting_joints(self, setting_key: Settings, value: float) -> None:
         for joint_idx in range(self.num_joints):

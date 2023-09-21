@@ -1,59 +1,127 @@
 'use client';
+import ActionContainer from '@/components/actions/ActionContainer';
 import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
-import HomeButton from '@/components/controls/HomeButton';
+import SideNav from '@/components/general/layout/SideNav';
+import { armPoseActions } from '@/redux/ArmPoseSlice';
+import store from '@/redux/store';
 import api from '@/utils/api';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Provider } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+
 export default function Home() {
-    const [currentPose, setCurrentPose] = useState({
-        x: 0,
-        y: 0,
-        z: 0,
-        roll: 0,
-        pitch: 0,
-        yaw: 0,
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const dispatch = useDispatch();
+    const currentPose = useSelector(state => state.armPose);
+    const currentPoseRef = useRef(currentPose);
+    const intervalIdRef = useRef();
 
     useEffect(() => {
-        const fetchCurrentPose = async () => {
-            const response = await api.get('/move/pose/current/');
-            setCurrentPose(response.data);
-        };
-
-        fetchCurrentPose();
-        setIsLoading(false);
-    }, []);
+        currentPoseRef.current = currentPose;
+    }, [currentPose]);
 
     useEffect(() => {
-        const updateCurrentPose = async () => {
-            await api.post('/move/pose/move/', currentPose);
-        };
-        if (isLoading) {
-            return;
+        if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
         }
-        updateCurrentPose();
-    }, [currentPose, isLoading]);
 
+        const fetchCurrentPose = async () => {
+            const response = await api.get('/move/status/');
+            dispatch(armPoseActions.updateCurrent(response.data));
+        };
+
+        const moveToPose = async () => {
+            if (Object.values(currentPoseRef.current.toMove).some(value => value !== 0)) {
+                let pose = {
+                    x: currentPoseRef.current.x + currentPoseRef.current.toMove.x,
+                    y: currentPoseRef.current.y + currentPoseRef.current.toMove.y,
+                    z: currentPoseRef.current.z + currentPoseRef.current.toMove.z,
+                    roll: currentPoseRef.current.roll + currentPoseRef.current.toMove.roll,
+                    pitch: currentPoseRef.current.pitch + currentPoseRef.current.toMove.pitch,
+                    yaw: currentPoseRef.current.yaw + currentPoseRef.current.toMove.yaw,
+                };
+
+                let tool = {
+                    toolValue:
+                        currentPoseRef.current.toolValue + currentPoseRef.current.toMove.toolValue,
+                };
+
+                dispatch(
+                    armPoseActions.update({
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        roll: 0,
+                        pitch: 0,
+                        yaw: 0,
+                        toolValue: 0,
+                    })
+                );
+                // console.log(currentPoseRef.current)
+                try {
+                    console.log('moving');
+                    let response = await api.post('/move/pose/move/', pose);
+                    if (response.status === 400) {
+                        alert(response.data.message);
+                    }
+                } catch (error) {
+                    if (error.response && error.response.status === 400) {
+                        alert(error.response.data.message); //TODO: make this a toast
+                    } else {
+                        console.error('An unexpected error occurred:', error);
+                        alert('An unexpected error occurred');
+                    }
+                }
+
+                if (currentPoseRef.current.toMove.toolValue !== 0) {
+                    console.log('seding tool');
+                    try {
+                        let response = await api.post('/move/tool/move/', tool);
+                        if (response.status === 400) {
+                            alert(response.data.message);
+                        }
+                    } catch (error) {
+                        if (error.response && error.response.status === 400) {
+                            alert(error.response.data.message); //TODO: make this a toast
+                        } else {
+                            console.error('An unexpected error occurred:', error);
+                            alert('An unexpected error occurred');
+                        }
+                    }
+                }
+            }
+        };
+
+        intervalIdRef.current = setInterval(() => {
+            moveToPose();
+            fetchCurrentPose();
+        }, 100);
+
+        return () => {
+            clearInterval(intervalIdRef.current);
+        };
+    }, [dispatch]);
     return (
-        <div className="h-full flex-col items-end justify-end">
-            <ArmSimulation></ArmSimulation>
-            <div className="flex w-full flex-col bg-gray-200 px-10 py-10 lg:w-1/2 ">
-                <div className="flex flex-row flex-wrap items-center space-x-2">
-                    <ArmStatus status={currentPose}></ArmStatus>
-                </div>
-                <AxisControls
-                    currentPose={currentPose}
-                    setCurrentPose={setCurrentPose}
-                ></AxisControls>
-                <div className="flex flex-row">
-                    <div className="w-1/3">
-                        <HomeButton className></HomeButton>
+        <Provider store={store}>
+            <DndProvider backend={HTML5Backend}>
+                <div className="box-border flex h-full">
+                    <div className="flex h-full w-full flex-col  lg:w-1/12 ">
+                        <SideNav></SideNav>
+                    </div>
+                    <div className="flex h-full w-full flex-col items-center bg-white lg:w-5/12 ">
+                        <ActionContainer></ActionContainer>
+                    </div>
+                    <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
+                        <ArmSimulation></ArmSimulation>
+                        <ArmStatus></ArmStatus>
+                        <AxisControls></AxisControls>
                     </div>
                 </div>
-            </div>
-        </div>
+            </DndProvider>
+        </Provider>
     );
 }

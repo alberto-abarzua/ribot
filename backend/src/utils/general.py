@@ -26,6 +26,7 @@ def get_controller() -> ArmController:
         arm_params.j2.set_bounds(-1.39626, 1.57)
         arm_params.j3.set_bounds(-np.pi / 2, np.pi / 2)
         arm_params.j5.set_bounds(-np.pi / 2, np.pi / 2)
+
         websocket_port = int(os.environ.get("CONTROLLER_WEBSOCKET_PORT", 8600))
         server_port = int(os.environ.get("CONTROLLER_SERVER_PORT", 8500))
         SingletonArmController.create_instance(

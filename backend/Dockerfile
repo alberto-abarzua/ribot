@@ -10,7 +10,6 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH=/app/src
 
 
-
 RUN pip install pdm==2.8.2
 
 COPY ./pyproject.toml ./pyproject.toml

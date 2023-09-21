@@ -1,10 +1,13 @@
 #include <iostream>
 
 #include "controller.h"
-
+#include "movement.h"
 Controller* global_controller = nullptr;
 
 #if defined(ESP_PLATFORM)
+
+#include "esp_system.h"
+
 #pragma message("Current platform: ESP32")
 #else
 #pragma message("Current platform: Linux")
@@ -21,25 +24,31 @@ void handleSIGINT(int) {
 }
 #endif
 
-int run_controller() {
-    // Register the signal handler
-    while (true) {
-        Controller controller = Controller();
-        global_controller = &controller;
-        controller.start();  // if controller is stopped, start it
-        controller.stop();   // if controller is running, stop it
+int run_controller(bool loop) {
+    do {
+        Controller* controller = new Controller();
+        global_controller = controller;
+        bool exited = controller->start();
+        delete controller;
         global_controller = nullptr;
-    }
+        if (exited) {
+            break;
+        }
+    } while (loop);
+
     return 0;
 }
 
 #ifdef ESP_PLATFORM
-extern "C" void app_main() { run_controller(); }
+extern "C" void app_main() {
+    run_controller(false);
+    esp_restart();
+}
 #else
 
 int main() {
     signal(SIGINT, handleSIGINT);
 
-    run_controller();
+    run_controller(true);
 }
 #endif
