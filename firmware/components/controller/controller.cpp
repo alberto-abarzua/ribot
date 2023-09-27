@@ -182,8 +182,6 @@ bool Controller::start() {
         task_feed();
         this->handle_messages();
         // print movequeue size
-        std::cout << "move queue size: "
-                  << this->message_queues[MessageOp::MOVE]->size() << std::endl;
         run_delay(10);
     }
     task_end();
