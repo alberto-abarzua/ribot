@@ -181,7 +181,6 @@ bool Controller::start() {
         }
         task_feed();
         this->handle_messages();
-        // print movequeue size
         run_delay(10);
     }
     task_end();
