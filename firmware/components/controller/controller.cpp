@@ -279,6 +279,49 @@ void Controller::message_handler_move(Message *message) {
                 }
             }
         } break;
+        case 9: { // Move Joint
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            if (!called) {
+                this->joints[joint_idx]->set_target_angle(args[1]);
+                message->set_called(true);
+            } else {
+                if (this->joints[joint_idx]->at_target()) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
+        case 11: { // Move Joint Relative to target
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            if (!called) {
+                float target_angle = this->joints[joint_idx]->get_target_angle();
+                this->joints[joint_idx]->set_target_angle(target_angle + args[1]);
+                message->set_called(true);
+            } else {
+                if (this->joints[joint_idx]->at_target()) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
+        case 13: { // Move Joints Relative to target
+            if (!called) {
+                for (int i = 0; i < num_args; i++) {
+                    this->joints[i]->set_target_angle(args[i] + this->joints[i]->get_target_angle());
+                }
+                message->set_called(true);
+            } else {
+                bool all_at_target = true;
+                for (int i = 0; i < num_args; i++) {
+                    all_at_target &= this->joints[i]->at_target();
+                    if (!all_at_target) {
+                        break;
+                    }
+                }
+
+                if (all_at_target) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
         default:
             break;
     }

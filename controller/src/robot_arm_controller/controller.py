@@ -236,6 +236,14 @@ class ArmController:
         if self.print_status:
             console.log("Arm homed!", style="homing")
 
+    def move_joint_to(self, joint_idx: int, angle: float) -> bool:
+        message = Message(MessageOp.MOVE, 9, [joint_idx, angle])
+        self.controller_server.send_message(message, mutex=True)
+        self.move_queue_size += 1
+        if self.print_status:
+            console.log(f"Moving joint {joint_idx} to angle: {angle}", style="move_joint")
+        return True
+
     def home_joint(self, joint_idx: int) -> None:
         message = Message(MessageOp.MOVE, 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)

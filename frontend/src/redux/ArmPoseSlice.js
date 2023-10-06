@@ -10,6 +10,7 @@ const initialState = {
     toolValue: 0,
     isHomed: false,
     moveQueueSize: 0,
+    currentAngles : [0,0,0,0,0,0],
     toMove: {
         x: 0,
         y: 0,
@@ -103,8 +104,11 @@ const armPoseSlice = createSlice({
             if (state.isHomed !== action.payload.isHomed) {
                 state.isHomed = action.payload.isHomed;
             }
-            if (state.moveQueueSize !== action.payload.isHomed) {
+            if (state.moveQueueSize !== action.payload.moveQueueSize) {
                 state.moveQueueSize = action.payload.moveQueueSize;
+            }
+            if (state.currentAngles !== action.payload.currentAngles) {
+                state.currentAngles = action.payload.currentAngles;
             }
         },
     },
