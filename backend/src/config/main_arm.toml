@@ -19,55 +19,74 @@ title = "Robot arm configuration"
     # [joints.driver]
     #     type = "servo"
     #     pin = 20
-
+    [joints.endstop]
+        type = "hall"
+        pin = 20
+    # [joints.endstop]
+    #     type = "dummy"
 
 [[joints]]
     name = "joint_2"
-    homing_direction = 1 # 1 or -1
-    convertion_rate_axis_joint = 1.0 # Gear ratio
-    home_offset_rad = 0.0 # Offset from home position
+    homing_direction = 1 
+    convertion_rate_axis_joint = 1.0 
+    home_offset_rad = 0.0 
     [joints.driver]
         type = "stepper"
         dir_pin = 20
         step_pin = 21
+    [joints.endstop]
+        type = "hall"
+        pin = 20
         
 [[joints]]
     name = "joint_3"
-    homing_direction = 1 # 1 or -1
-    convertion_rate_axis_joint = 1.0 # Gear ratio
-    home_offset_rad = 0.0 # Offset from home position
+    homing_direction = 1 
+    convertion_rate_axis_joint = 1.0 
+    home_offset_rad = 0.0
     [joints.driver]
         type = "stepper"
         dir_pin = 20
         step_pin = 21
+    [joints.endstop]
+        type = "hall"
+        pin = 20
 
 [[joints]]
     name = "joint_4"
-    homing_direction = 1 # 1 or -1
-    convertion_rate_axis_joint = 1.0 # Gear ratio
-    home_offset_rad = 0.0 # Offset from home position
+    homing_direction = 1
+    convertion_rate_axis_joint = 1.0
+    home_offset_rad = 0.0 
     [joints.driver]
         type = "stepper"
         dir_pin = 20
         step_pin = 21
+    [joints.endstop]
+        type = "hall"
+        pin = 20
 
 [[joints]]
     name = "joint_5"
-    homing_direction = 1 # 1 or -1
-    convertion_rate_axis_joint = 1.0 # Gear ratio
-    home_offset_rad = 0.0 # Offset from home position
+    homing_direction = 1 
+    convertion_rate_axis_joint = 1.0
+    home_offset_rad = 0.0
     [joints.driver]
         type = "stepper"
         dir_pin = 20
         step_pin = 21
+    [joints.endstop]
+        type = "hall"
+        pin = 20
 
 [[joints]]
     name = "joint_6"
-    homing_direction = 1 # 1 or -1
-    convertion_rate_axis_joint = 1.0 # Gear ratio
-    home_offset_rad = 0.0 # Offset from home position
+    homing_direction = 1
+    convertion_rate_axis_joint = 1.0
+    home_offset_rad = 0.0
     [joints.driver]
         type = "stepper"
         dir_pin = 20
         step_pin = 21
+    [joints.endstop]
+        type = "hall"
+        pin = 20
 
