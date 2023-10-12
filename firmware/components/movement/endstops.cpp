@@ -31,16 +31,31 @@ HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin) {}
 
 HallEffectSensor::~HallEffectSensor() {}
 
+
+
+#ifdef ESP_PLATFORM
+
 void HallEffectSensor::hardware_setup() {
-    // pinMode(this->pin, INPUT_PULLUP);
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = 1ULL << this->pin;  // Assuming GPIO23
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
 }
 
 bool HallEffectSensor::hardware_read_state() {
-    // int8_t state = digitalRead(this->pin);
-    // if (state != this->last_state) {
-    //     this->last_state = state;
-    //     return true;
-    // }
-    // return false;
+    int state = gpio_get_level((gpio_num_t)this->pin);  // Assuming GPIO23
+    return state == 0;
+}
+
+#else
+
+void HallEffectSensor::hardware_setup() {
+}
+
+bool HallEffectSensor::hardware_read_state() {
     return true;
 }
+#endif

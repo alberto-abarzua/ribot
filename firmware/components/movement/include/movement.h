@@ -16,7 +16,7 @@
 #define PI 3.14159265358979323846
 
 class EndStop {
-   private:
+   protected:
     int8_t pin;
 
    public:
