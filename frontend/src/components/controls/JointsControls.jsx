@@ -2,20 +2,18 @@ import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import api from '@/utils/api';
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const JointsControls = () => {
     const currentAngles = useSelector(state => state.armPose.currentAngles);
-    console.log(currentAngles);
-    const [angles, setAngles] = useState(currentAngles);
     const [angleStep, setAngleStep] = useState(0.1);
 
     const callSetAngle = (index, value) => {
-        api.post('/move/joint/',{joint_idx: index, joint_value: value});
+        api.post('/move/joint/relative', { joint_idx: index, joint_value: value });
     };
 
-    const callHomeJoint = (index) => {
-        api.post('/move/home_joint/',{joint_idx: index});
+    const callHomeJoint = index => {
+        api.post('/move/home_joint/', { joint_idx: index });
     };
 
     return (
@@ -31,22 +29,22 @@ const JointsControls = () => {
                         setValue={setAngleStep}
                         infoText={'The amount the arm moves for coordinate changes'}
                     ></TextVariableInfo>
-                </div>
-                <div className="flex flex-row justify-center">
-                    {angles.map((angle, index) => (
-                        <div key={index}>
+                </div> <div className="flex flex-row justify-center gap-2"> {currentAngles.map((_, index) => (
+                        <div className="flex flex-col items-center justify-center " key={index}>
                             <MoveAxis
                                 label={`Joint ${index + 1}`}
                                 value={currentAngles[index]}
                                 setValue={value => {
-                                    const newAngles = [...angles];
-                                    newAngles[index] = value;
-                                    setAngles(newAngles);
                                     callSetAngle(index, value);
                                 }}
                                 step_amount={angleStep}
                             ></MoveAxis>
-                            <button onClick={() => callHomeJoint(index)}>Home</button>
+                            <button
+                                className="w-fit rounded-md bg-green-500 px-3 py-2 text-white hover:bg-green-700"
+                                onClick={() => callHomeJoint(index)}
+                            >
+                                Home
+                            </button>
                         </div>
                     ))}
                 </div>

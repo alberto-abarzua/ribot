@@ -14,6 +14,7 @@ router = APIRouter()
 # Post Models
 # --------
 
+
 class Move(BaseModel):
     x: float
     y: float
@@ -28,14 +29,22 @@ class Tool(BaseModel):
     toolValue: float
     wait: Optional[bool] = False
 
+
 class MoveJoint(BaseModel):
     joint_idx: int
     joint_value: float
     wait: Optional[bool] = False
 
+
 class HomeJoint(BaseModel):
     joint_idx: int
     wait: Optional[bool] = False
+
+
+class MoveJoints(BaseModel):
+    joint_values: list
+    wait: Optional[bool] = False
+
 # --------
 # General
 # --------
@@ -47,11 +56,15 @@ def home(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     controller.home()
     return {"message": "Homed"}
 
+
 @router.post("/home_joint/")
-def home_joint(home_joint : HomeJoint,controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+def home_joint(
+    home_joint: HomeJoint, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
     joint_idx = home_joint.dict().pop("joint_idx")
     controller.home_joint(joint_idx)
     return {"message": "Homed"}
+
 
 # --------
 # Pose
@@ -95,14 +108,44 @@ def valid_pose(
     else:
         return JSONResponse(content={"message": "Pose is not valid"}, status_code=400)
 
+
 @router.post("/joint/")
-def move_joint(move: MoveJoint, controller: ArmController = controller_dependency) -> JSONResponse:
+def move_joint(
+    move: MoveJoint, controller: ArmController = controller_dependency
+) -> JSONResponse:
     move_dict = move.dict()
     wait = move_dict.pop("wait")
 
     joint_idx = move_dict.pop("joint_idx")
     joint_value = move_dict.pop("joint_value")
     controller.move_joint_to(joint_idx, joint_value)
+    if wait:
+        controller.wait_done_moving()
+
+
+@router.post("/joint/relative/")
+def move_joint_to_relative(
+    move: MoveJoint, controller: ArmController = controller_dependency
+) -> JSONResponse:
+    move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
+    joint_idx = move_dict.pop("joint_idx")
+    joint_value = move_dict.pop("joint_value")
+    controller.move_joint_relative(joint_idx, joint_value)
+    if wait:
+        controller.wait_done_moving()
+
+
+@router.post("/joints/relative/")
+def move_joints_to_relative(
+    move: MoveJoints, controller: ArmController = controller_dependency
+) -> JSONResponse:
+    move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
+    joint_values = move_dict.pop("joint_values")
+    controller.move_joints_to_relative(joint_values)
     if wait:
         controller.wait_done_moving()
 

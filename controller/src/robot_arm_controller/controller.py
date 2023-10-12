@@ -54,8 +54,10 @@ class ArmController:
         self.print_status = False
         self.print_idx = 0
 
-        self.controller_server: ControllerServer = ControllerServer(self, server_port)
-        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
+        self.controller_server: ControllerServer = ControllerServer(
+            self, server_port)
+        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(
+            self, websocket_port)
 
         self.arm_params = arm_parameters
         self.num_joints: int = len(self._current_angles)
@@ -85,7 +87,8 @@ class ArmController:
             }
             self.joint_settings.append(current_joint_settings)
             self.joint_settings_response_code.append(
-                {setting.code_get + 1: setting for setting in current_joint_settings.values()}
+                {setting.code_get +
+                    1: setting for setting in current_joint_settings.values()}
             )
 
     """
@@ -115,7 +118,8 @@ class ArmController:
             while not self.is_ready:
                 time.sleep(0.1)
                 if time.time() - start_time > self.connection_controller_timeout:
-                    raise TimeoutError("Controller took too long to start, check arm client")
+                    raise TimeoutError(
+                        "Controller took too long to start, check arm client")
         console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
@@ -137,7 +141,8 @@ class ArmController:
     @current_angles.setter
     def current_angles(self, angles: List[float]) -> None:
         if len(angles) != self.num_joints:
-            raise ValueError(f"Angles must be a list of length {self.num_joints}")
+            raise ValueError(
+                f"Angles must be a list of length {self.num_joints}")
         with self.current_angles_lock:
             self._current_angles = angles
 
@@ -206,7 +211,8 @@ class ArmController:
         self,
         pose: ArmPose,
     ) -> bool:
-        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
+        target_angles = self.kinematics.pose_to_angles(
+            pose, self.current_angles)
         if target_angles is None:
             console.log("Target pose is not reachable", style="error")
             return False
@@ -241,13 +247,32 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
-            console.log(f"Moving joint {joint_idx} to angle: {angle}", style="move_joint")
+            console.log(
+                f"Moving joint {joint_idx} to angle: {angle}", style="move_joint")
         return True
 
     def home_joint(self, joint_idx: int) -> None:
         message = Message(MessageOp.MOVE, 5, [joint_idx])
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
+
+    def move_joint_relative(self, joint_idx: int, angle: float) -> bool:
+        message = Message(MessageOp.MOVE, 11, [joint_idx, angle])
+        self.controller_server.send_message(message, mutex=True)
+        self.move_queue_size += 1
+        if self.print_status:
+            console.log(
+                f"Moving joint {joint_idx} relative angle: {angle}", style="move_joint_relative")
+        return True
+
+    def move_joints_relative(self, angles: List[float]) -> bool:
+        message = Message(MessageOp.MOVE, 13, angles)
+        self.controller_server.send_message(message, mutex=True)
+        self.move_queue_size += 1
+        if self.print_status:
+            console.log(
+                f"Moving joints relative angles: {angles}", style="move_joints_relative")
+        return True
 
     def set_tool_value(self, angle: float) -> None:
         message = Message(MessageOp.MOVE, 7, [angle])
@@ -262,14 +287,17 @@ class ArmController:
 
     def wait_done_moving(self) -> None:
         if self.print_status:
-            console.log(f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
+            console.log(
+                f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
         while self.move_queue_size > 0:
             time.sleep(0.2)
         if self.print_status:
-            console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
+            console.log(
+                f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
 
     def valid_pose(self, pose: ArmPose) -> bool:
-        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
+        target_angles = self.kinematics.pose_to_angles(
+            pose, self.current_angles)
         if target_angles is None:
             return False
         return True
@@ -307,7 +335,8 @@ class ArmController:
 
     def set_setting_joint(self, setting_key: Settings, value: float, joint_idx: int) -> None:
         if setting_key not in self.joint_settings[joint_idx].keys():
-            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
+            raise ValueError(
+                f"Invalid setting key for joint setting: {setting_key}")
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_set
         message = Message(MessageOp.CONFIG, code, [float(joint_idx), value])
@@ -315,7 +344,8 @@ class ArmController:
         setting.last_updated = -1
 
         if self.print_status:
-            console.log(f"Setting {setting_key} to {value} for joint {joint_idx}", style="set_settings")
+            console.log(
+                f"Setting {setting_key} to {value} for joint {joint_idx}", style="set_settings")
 
     def set_setting_joints(self, setting_key: Settings, value: float) -> None:
         for joint_idx in range(self.num_joints):
@@ -323,7 +353,8 @@ class ArmController:
 
     def get_setting_joint(self, setting_key: Settings, joint_idx: int) -> float:
         if setting_key not in self.joint_settings[joint_idx].keys():
-            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
+            raise ValueError(
+                f"Invalid setting key for joint setting: {setting_key}")
 
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_get

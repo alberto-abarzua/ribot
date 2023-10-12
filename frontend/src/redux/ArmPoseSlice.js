@@ -10,7 +10,7 @@ const initialState = {
     toolValue: 0,
     isHomed: false,
     moveQueueSize: 0,
-    currentAngles : [0,0,0,0,0,0],
+    currentAngles: [0, 0, 0, 0, 0, 0],
     toMove: {
         x: 0,
         y: 0,
