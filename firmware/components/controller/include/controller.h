@@ -3,9 +3,9 @@
 #define CONTROLLER_H
 
 #include <algorithm>
+#include <iostream>
 #include <map>
 #include <queue>
-
 #include "arm_client.h"
 #include "joint.h"
 #include "messages.h"
@@ -32,7 +32,6 @@ class Controller {
     std::vector<Joint *> joints;
     Tool *tool = nullptr;
     std::queue<Message *> message_queue;
-
     typedef void (Controller::*message_op_handler_t)(Message *);
 
     std::map<MessageOp, std::queue<Message *> *> message_queues;

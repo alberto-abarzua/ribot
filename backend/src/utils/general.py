@@ -3,7 +3,13 @@ import os
 import numpy as np
 from fastapi import Depends
 from robot_arm_controller.control.arm_kinematics import ArmParameters
-from robot_arm_controller.controller import ArmController, SingletonArmController
+from robot_arm_controller.controller import (
+    ArmController,
+    Settings,
+    SingletonArmController,
+)
+
+PRINT_DEBUG = False
 
 
 def get_controller() -> ArmController:
@@ -36,6 +42,22 @@ def get_controller() -> ArmController:
         )
 
     return SingletonArmController.get_instance()
+
+
+def start_controller() -> None:
+    controller = get_controller()
+    controller.start(wait=True)
+    controller.print_status = PRINT_DEBUG
+
+    controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, np.pi / 4)
+    controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
+    controller.set_setting_joints(Settings.CONVERSION_RATE_AXIS_JOINTS, 1.5)
+    controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.4)
+
+
+def stop_controller() -> None:
+    controller = get_controller()
+    controller.stop()
 
 
 controller_dependency = Depends(get_controller)

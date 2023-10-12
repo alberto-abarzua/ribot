@@ -35,7 +35,7 @@ license = {text = "MIT"}
 profile = "black"
 
 [tool.black]
-line-length = 110
+line-length = 130
 
 [project.urls]
 "Source Code" = "https://github.com/alberto-abarzua/Robot-Arm-Control"

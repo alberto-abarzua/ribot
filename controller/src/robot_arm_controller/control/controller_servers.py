@@ -180,9 +180,7 @@ class ControllerServer(ControllerDependencies):
         ERROR = 2
         NOT_READY = 3
 
-    def _receive_message(
-        self, timeout: Optional[int] = None
-    ) -> Union[ControllerServer.ReceiveStatusCode, Message]:
+    def _receive_message(self, timeout: Optional[int] = None) -> Union[ControllerServer.ReceiveStatusCode, Message]:
         if not self.is_ready or self.connection_socket is None:
             return self.ReceiveStatusCode.NOT_READY
         try:

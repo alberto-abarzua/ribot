@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
@@ -44,6 +45,7 @@ class HomeJoint(BaseModel):
 class MoveJoints(BaseModel):
     joint_values: list
     wait: Optional[bool] = False
+
 
 # --------
 # General
@@ -112,7 +114,7 @@ def valid_pose(
 @router.post("/joint/")
 def move_joint(
     move: MoveJoint, controller: ArmController = controller_dependency
-) -> JSONResponse:
+) -> Dict[Any, Any]:
     move_dict = move.dict()
     wait = move_dict.pop("wait")
 
@@ -121,26 +123,28 @@ def move_joint(
     controller.move_joint_to(joint_idx, joint_value)
     if wait:
         controller.wait_done_moving()
+    return {"message": "Moved"}
 
 
 @router.post("/joint/relative/")
 def move_joint_to_relative(
     move: MoveJoint, controller: ArmController = controller_dependency
-) -> JSONResponse:
+) -> Dict[Any, Any]:
     move_dict = move.dict()
     wait = move_dict.pop("wait")
 
     joint_idx = move_dict.pop("joint_idx")
     joint_value = move_dict.pop("joint_value")
-    controller.move_joint_relative(joint_idx, joint_value)
+    controller.move_joint_to_relative(joint_idx, joint_value)
     if wait:
         controller.wait_done_moving()
+    return {"message": "Moved"}
 
 
 @router.post("/joints/relative/")
 def move_joints_to_relative(
     move: MoveJoints, controller: ArmController = controller_dependency
-) -> JSONResponse:
+) -> Dict[Any, Any]:
     move_dict = move.dict()
     wait = move_dict.pop("wait")
 
@@ -148,6 +152,8 @@ def move_joints_to_relative(
     controller.move_joints_to_relative(joint_values)
     if wait:
         controller.wait_done_moving()
+    return {"message": "Moved"}
+
 
 # --------
 # Pose
@@ -182,13 +188,18 @@ def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any
 @router.get("/status/")
 def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     pose = controller.current_pose
-    status_dict = pose.as_dict
+    status_dict: Dict[str, Any] = deepcopy(pose.as_dict)
     status_dict["toolValue"] = controller.tool_value
     status_dict["isHomed"] = controller.is_homed
-    print(controller)
     status_dict["moveQueueSize"] = controller.move_queue_size
     status_dict["currentAngles"] = controller.current_angles
     return status_dict
+
+
+@router.post("/stop/")
+def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+    controller.stop_movement()
+    return {"message": "Movement stopped"}
 
 
 # --------

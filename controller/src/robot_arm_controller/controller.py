@@ -195,7 +195,7 @@ class ArmController:
     ----------------------------------------
     """
 
-    def move_to_angles(self, angles: List[float]) -> bool:
+    def move_joints_to(self, angles: List[float]) -> bool:
         if not self.is_homed:
             console.log("Arm is not homed", style="error")
             return False
@@ -216,7 +216,7 @@ class ArmController:
         if target_angles is None:
             console.log("Target pose is not reachable", style="error")
             return False
-        return self.move_to_angles(target_angles)
+        return self.move_joints_to(target_angles)
 
     def home(self, wait: bool = True) -> None:
         if self.print_status:
@@ -248,7 +248,7 @@ class ArmController:
         self.move_queue_size += 1
         if self.print_status:
             console.log(
-                f"Moving joint {joint_idx} to angle: {angle}", style="move_joint")
+                f"Moving joint {joint_idx} to angle: {angle}", style="move_joints")
         return True
 
     def home_joint(self, joint_idx: int) -> None:
@@ -256,22 +256,22 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         time.sleep(self.command_cooldown)
 
-    def move_joint_relative(self, joint_idx: int, angle: float) -> bool:
+    def move_joint_to_relative(self, joint_idx: int, angle: float) -> bool:
         message = Message(MessageOp.MOVE, 11, [joint_idx, angle])
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
             console.log(
-                f"Moving joint {joint_idx} relative angle: {angle}", style="move_joint_relative")
+                f"Moving joint {joint_idx} relative angle: {angle}", style="move_joints")
         return True
 
-    def move_joints_relative(self, angles: List[float]) -> bool:
+    def move_joints_to_relative(self, angles: List[float]) -> bool:
         message = Message(MessageOp.MOVE, 13, angles)
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
             console.log(
-                f"Moving joints relative angles: {angles}", style="move_joints_relative")
+                f"Moving joints relative angles: {angles}", style="move_joints")
         return True
 
     def set_tool_value(self, angle: float) -> None:
@@ -381,8 +381,7 @@ class SingletonArmController:
         server_port: int = 8500,
     ) -> None:
         cls._instance = ArmController(
-            arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port
-        )
+            arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
 
     @classmethod
     def get_instance(cls) -> ArmController:

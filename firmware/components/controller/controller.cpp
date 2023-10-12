@@ -519,6 +519,36 @@ void Controller::message_handler_config(Message *message) {
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
+        case 21: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t dir_pin = static_cast<uint8_t>(args[1]);
+            uint8_t step_pin = static_cast<uint8_t>(args[2]);
+
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            delete movement_driver;
+
+            movement_driver = new Stepper(dir_pin, step_pin);
+
+            this->joints[joint_idx]->set_movement_driver(movement_driver);
+
+        } break;
+        case 23: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t pin = static_cast<uint8_t>(args[1]);
+
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            delete movement_driver;
+
+            movement_driver = new Servo(pin);
+
+            this->joints[joint_idx]->set_movement_driver(movement_driver);
+
+        } break;
+
         default:
             break;
     }

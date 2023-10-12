@@ -220,9 +220,7 @@ class ArmKinematics:
             console.log(f"NotReachableError in pose_to_angles: {exception}", style="error")
             return None
 
-    def _pose_to_angles(
-        self, target_pose: ArmPose, current_angles: Optional[List[float]] = None
-    ) -> List[float]:
+    def _pose_to_angles(self, target_pose: ArmPose, current_angles: Optional[List[float]] = None) -> List[float]:
         if current_angles is None:
             current_angles = [0 for _ in range(len(self.arm_params.joints))]
 

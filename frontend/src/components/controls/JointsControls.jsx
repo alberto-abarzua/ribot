@@ -1,6 +1,7 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import api from '@/utils/api';
+
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -29,7 +30,10 @@ const JointsControls = () => {
                         setValue={setAngleStep}
                         infoText={'The amount the arm moves for coordinate changes'}
                     ></TextVariableInfo>
-                </div> <div className="flex flex-row justify-center gap-2"> {currentAngles.map((_, index) => (
+                </div>{' '}
+                <div className="flex flex-row justify-center gap-2">
+                    {' '}
+                    {currentAngles.map((_, index) => (
                         <div className="flex flex-col items-center justify-center " key={index}>
                             <MoveAxis
                                 label={`Joint ${index + 1}`}

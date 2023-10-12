@@ -28,7 +28,7 @@ def get_file_list(files: List[str]):
     return file_list
 
 
-def dcr(file_str: str, command: str, env={},service_ports_and_aliases=False):
+def dcr(file_str: str, command: str, env={}, service_ports_and_aliases=False):
     command_list = command.split(' ')
     file_path = DOCKER_SERVICES/file_str
     if not service_ports_and_aliases:
@@ -66,11 +66,11 @@ def dcb(files: List[str], no_cache=False):
             ['docker', 'compose', *file_list, 'build'], env={**os.environ})
 
 
-
 def dcl(files: List[str]):
     file_list = get_file_list(files)
     subprocess.check_call(
         ['docker', 'compose', *file_list, 'logs', '--follow'])
+
 
 def get_ip(**kwargs):
     return subprocess.getoutput("hostname -I | awk '{print $1}'").strip()
@@ -92,6 +92,27 @@ def source_env(file_path):
 
 def build_firmware(**kwargs):
     dcr('firmware.yaml', 'firmware build')
+# build() {
+#     echo "Building twin"
+#     cd /app || exit 1
+#     rm -f ./app
+#     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
+#     cmake --build . --clean-first
+#     if ! make; then
+#         echo "Failed to build twin"
+#         exit 1
+#     fi
+#     # move /app/compile_commands.json to /app/output
+# }
+
+
+def build_firmware_locally(**kwargs):
+    subprocess.check_call(['rm', '-rf', 'build'], cwd='firmware')
+    subprocess.check_call(['cmake', '-DCMAKE_EXPORT_COMPILE_COMMANDS=1', '.'],
+                          cwd='firmware')
+    subprocess.check_call(['cmake', '--build', '.', '--clean-first'],
+                          cwd='firmware')
+    subprocess.check_call(['make'], cwd='firmware')
 
 
 def down(**kwargs):
@@ -142,8 +163,8 @@ def test_no_debug(**kwargs):
     dcu(['firmware.yaml'], env={
         "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
 
-
-    exit_code = dcr('controller.yaml', 'controller pdm run test', service_ports_and_aliases=True)
+    exit_code = dcr('controller.yaml', 'controller pdm run test',
+                    service_ports_and_aliases=True)
 
     if exit_code == 0:
         print("Tests passed")
@@ -153,6 +174,7 @@ def test_no_debug(**kwargs):
 
     dcd(['controller.yaml', 'firmware.yaml'])
     exit(exit_code)
+
 
 def test(**kwargs):
     debug = kwargs['debug']
@@ -259,10 +281,9 @@ def main(**kwargs):
 
     parser_test = subparsers.add_parser('test', help='Run all tests')
     parser_test.set_defaults(func=test)
-    
+
     parser_test.add_argument(
         '--debug', action='store_true', help='Run tests in debug mode')
-    
 
     parser_test_esp = subparsers.add_parser(
         'test-esp', help='Run all tests on esp32')
@@ -293,9 +314,15 @@ def main(**kwargs):
     parser_shell.add_argument(
         'container', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to run shell in')
 
+    parser_buildf_locally = subparsers.add_parser(
+        'buildf-locally', help='Build the firmware for linux platform')
+
+    parser_buildf_locally.set_defaults(func=build_firmware_locally)
+
     parsed_args, remaining_args = parser.parse_known_args()
     command_map = {
         'buildf': build_firmware,
+        'buildf-locally': build_firmware_locally,
         'build': build,
         'build-esp': build_esp,
         'format': format_code,
