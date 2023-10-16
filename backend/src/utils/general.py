@@ -1,15 +1,9 @@
 import os
 from pathlib import Path
 
-import numpy as np
-import toml
 from fastapi import Depends
 from robot_arm_controller.control.arm_kinematics import ArmParameters
-from robot_arm_controller.controller import (
-    ArmController,
-    Settings,
-    SingletonArmController,
-)
+from robot_arm_controller.controller import ArmController, SingletonArmController
 
 PARENT_DIR = Path(__file__).parent.parent
 CONFIG_FILE = PARENT_DIR / "config" / "main_arm.toml"

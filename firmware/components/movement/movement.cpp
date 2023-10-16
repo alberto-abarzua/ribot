@@ -123,9 +123,9 @@ bool MovementDriver::step() {
                     this->last_step_time = get_current_time_microseconds();
                     return false;
                 }
-                run_delay_microseconds(50);
+                run_delay_microseconds(10);
             } else {
-                run_delay_microseconds(100);
+                run_delay_microseconds(30);
             }
         }
 

@@ -1,12 +1,11 @@
 import dataclasses
 import time
 from enum import Enum
-from os import walk
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 import numpy as np
-import toml
+import toml  # type: ignore
 
 from robot_arm_controller.control.arm_kinematics import (
     ArmKinematics,
