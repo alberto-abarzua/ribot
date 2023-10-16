@@ -11,8 +11,7 @@ build() {
     echo "Building twin"
     cd /app || exit 1
     rm -f ./app
-    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
-    cmake --build . --clean-first
+    cmake .
     if ! make; then
         echo "Failed to build twin"
         exit 1

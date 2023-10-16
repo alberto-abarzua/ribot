@@ -17,6 +17,8 @@ COPY . .
 
 RUN chmod +x /app/entrypoint.sh
 
+RUN rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
+
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 CMD ["run"]

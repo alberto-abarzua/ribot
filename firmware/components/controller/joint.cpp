@@ -60,8 +60,7 @@ void Joint::set_steps_per_revolution_motor_axis(
     this->update_steps_per_revolution_driver();
 }
 
-void Joint::set_conversion_rate_axis_joint(
-    uint32_t conversion_rate_axis_joint) {
+void Joint::set_conversion_rate_axis_joint(float conversion_rate_axis_joint) {
     this->conversion_rate_axis_joint = conversion_rate_axis_joint;
     this->update_steps_per_revolution_driver();
 }
@@ -76,6 +75,6 @@ uint32_t Joint::get_steps_per_revolution_motor_axis() {
     return this->steps_per_revolution_motor_axis;
 }
 
-uint32_t Joint::get_conversion_rate_axis_joint() {
+float Joint::get_conversion_rate_axis_joint() {
     return this->conversion_rate_axis_joint;
 }

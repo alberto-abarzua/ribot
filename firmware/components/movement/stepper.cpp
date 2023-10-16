@@ -1,4 +1,5 @@
 #include "movement.h"
+#include "utils.h"
 
 #ifdef ESP_PLATFORM
 
@@ -23,9 +24,10 @@ void Stepper::hardware_setup() {
 void Stepper::hardware_step(int8_t step_dir) {
     int8_t dir_val = step_dir > 0 ? 1 : 0;
     gpio_set_level((gpio_num_t)dir_pin, dir_val);
+    run_delay_microseconds(10);
 
     gpio_set_level((gpio_num_t)step_pin, 1);
-    run_delay(1);
+    run_delay_microseconds(5);
     gpio_set_level((gpio_num_t)step_pin, 0);
 }
 

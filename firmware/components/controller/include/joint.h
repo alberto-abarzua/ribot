@@ -11,7 +11,7 @@ class Joint {
     MovementDriver* movement_driver = nullptr;
     EndStop* end_stop = nullptr;
     uint32_t steps_per_revolution_motor_axis = 200;
-    uint32_t conversion_rate_axis_joint = 1;
+    float conversion_rate_axis_joint = 1;
 
    public:
     Joint();
@@ -31,10 +31,10 @@ class Joint {
     void set_steps_per_revolution_motor_axis(
         uint32_t steps_per_revolution_motor_axis);
 
-    void set_conversion_rate_axis_joint(uint32_t conversion_rate_axis_joint);
+    void set_conversion_rate_axis_joint(float conversion_rate_axis_joint);
 
     uint32_t get_steps_per_revolution_motor_axis();
-    uint32_t get_conversion_rate_axis_joint();
+    float get_conversion_rate_axis_joint();
 
     void update_steps_per_revolution_driver();
 

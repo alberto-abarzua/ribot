@@ -10,7 +10,7 @@ const JointsControls = () => {
     const [angleStep, setAngleStep] = useState(0.1);
 
     const callSetAngle = (index, value) => {
-        api.post('/move/joint/relative', { joint_idx: index, joint_value: value });
+        api.post('/move/joint/relative/', { joint_idx: index, joint_value: value });
     };
 
     const callHomeJoint = index => {

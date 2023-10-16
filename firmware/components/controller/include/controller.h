@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <queue>
+
 #include "arm_client.h"
 #include "joint.h"
 #include "messages.h"

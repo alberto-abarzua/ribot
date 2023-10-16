@@ -33,8 +33,6 @@ HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin) {}
 
 HallEffectSensor::~HallEffectSensor() {}
 
-
-
 #ifdef ESP_PLATFORM
 
 void HallEffectSensor::hardware_setup() {
@@ -54,10 +52,7 @@ bool HallEffectSensor::hardware_read_state() {
 
 #else
 
-void HallEffectSensor::hardware_setup() {
-}
+void HallEffectSensor::hardware_setup() {}
 
-bool HallEffectSensor::hardware_read_state() {
-    return true;
-}
+bool HallEffectSensor::hardware_read_state() { return true; }
 #endif

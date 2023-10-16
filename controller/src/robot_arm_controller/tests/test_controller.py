@@ -130,7 +130,7 @@ class TestController(unittest.TestCase):
         correct, msg = self.get_and_set_joint_settings(Settings.STEPS_PER_REV_MOTOR_AXIS, 5000, False)
 
         self.assertTrue(correct, msg)
-        correct, msg = self.get_and_set_joint_settings(Settings.CONVERSION_RATE_AXIS_JOINTS, 1.128)
+        correct, msg = self.get_and_set_joint_settings(Settings.CONVERSION_RATE_AXIS_JOINTS, 1.7)
         correct, msg = self.get_and_set_joint_settings(Settings.CONVERSION_RATE_AXIS_JOINTS, 1, False)
 
         self.assertTrue(correct, msg)
@@ -204,7 +204,7 @@ class TestController(unittest.TestCase):
 
         self.controller.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, 4, 2)
         self.controller.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, 1, 1)
-        self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 8000)
+        self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 3434, 0)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 6457, 3)
 
@@ -231,7 +231,7 @@ class TestController(unittest.TestCase):
         time.sleep(1)
         self.controller.wait_done_moving()
         self.assertTrue(np.allclose(self.controller.current_angles, [0, 0, 0, 0, 0, 0], atol=0.1))
-        self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.4)
+        self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 0.2)
         self.controller.move_joints_to([-1, -1, -1, -1, -1, -1])
         time.sleep(1)
         self.assertEqual(self.controller.move_queue_size, 1)

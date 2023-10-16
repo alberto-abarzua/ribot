@@ -345,8 +345,6 @@ void Controller::message_handler_status(Message *message) {
                 this->message_queues[MessageOp::MOVE]->size();
             for (uint8_t i = 0; i < this->joints.size(); i++) {
                 status->joint_angles[i] = this->joints[i]->get_current_angle();
-                // print driver read
-                this->joints[i]->get_end_stop()->hardware_read_state();
             }
             int32_t num_args = sizeof(arm_status_t) / sizeof(float);
 
@@ -501,6 +499,10 @@ void Controller::message_handler_config(Message *message) {
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
             movement_driver->set_homing_offset(homing_offset);
+            std::cout << "\n\n State of joint " << static_cast<int>(joint_idx)
+                      << "\n";
+            movement_driver->print_state();
+            std::cout << "\n\n";
 
         } break;
 
@@ -521,17 +523,28 @@ void Controller::message_handler_config(Message *message) {
         } break;
         case 21: {
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
-            uint8_t dir_pin = static_cast<uint8_t>(args[1]);
-            uint8_t step_pin = static_cast<uint8_t>(args[2]);
+            uint8_t step_pin = static_cast<uint8_t>(args[1]);
+            uint8_t dir_pin = static_cast<uint8_t>(args[2]);
 
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
 
+            MovementDriver *new_movement_driver =
+                new Stepper(step_pin, dir_pin);
+
+            EndStop *end_stop = new DummyEndStop(
+                0, new_movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->set_movement_driver(new_movement_driver);
+            this->joints[joint_idx]->register_end_stop(end_stop);
+            new_movement_driver->hardware_setup();
+            std::cout << "Stepper driver created" << std::endl;
+            std::cout << "step pin: " << static_cast<int>(step_pin)
+                      << std::endl;
+            std::cout << "dir pin: " << static_cast<int>(dir_pin) << std::endl;
+            std::cout << "joint idx: " << static_cast<int>(joint_idx)
+                      << std::endl;
+
             delete movement_driver;
-
-            movement_driver = new Stepper(dir_pin, step_pin);
-
-            this->joints[joint_idx]->set_movement_driver(movement_driver);
 
         } break;
         case 23: {
@@ -541,11 +554,42 @@ void Controller::message_handler_config(Message *message) {
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
 
+            MovementDriver *new_movement_driver = new Servo(pin);
+
+            // generate dummt end_stop
+
+            EndStop *end_stop = new DummyEndStop(
+                0, new_movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->set_movement_driver(new_movement_driver);
+            this->joints[joint_idx]->register_end_stop(end_stop);
+            new_movement_driver->hardware_setup();
+
             delete movement_driver;
 
-            movement_driver = new Servo(pin);
+        } break;
+        case 25: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t pin = static_cast<uint8_t>(args[1]);
 
-            this->joints[joint_idx]->set_movement_driver(movement_driver);
+            // Sets the joints end stop as a hall effect HallEffectSensor
+            EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
+            EndStop *new_end_stop = new HallEffectSensor(pin);
+            this->joints[joint_idx]->register_end_stop(new_end_stop);
+            std::cout << "Hall effect sensor created" << std::endl;
+            std::cout << "pin: " << static_cast<int>(pin) << std::endl;
+            new_end_stop->hardware_setup();
+            delete end_stop;
+
+        } break;
+        case 27: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+            EndStop *new_end_stop =
+                new DummyEndStop(0, movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->register_end_stop(new_end_stop);
+            delete end_stop;
 
         } break;
 
@@ -583,7 +627,6 @@ void Controller::step_target_fun() {
     while (this->stop_flag == false) {
         task_feed();
         this->step();
-        task_feed();
         run_delay(10);
     }
     task_end();
@@ -596,7 +639,7 @@ static void step_target_fun_adapter(void *pvParameters) {
 
 void Controller::run_step_task() {
     xTaskCreate(&step_target_fun_adapter, "step_task", 2048, this,
-                configMAX_PRIORITIES - 1, NULL);
+                configMAX_PRIORITIES - 2, NULL);
 }
 
 void Controller::stop_step_task() {}
