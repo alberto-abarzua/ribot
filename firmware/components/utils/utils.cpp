@@ -144,10 +144,8 @@ void exit_panic() {
 
 void nvs_init() {}
 
-void exit_panic() {
-    std::cout << "PANIC" << std::endl;
-    exit(1);
-}
+void exit_panic() { std::cout << "PANIC" << std::endl; }
+
 void wifi_init_sta() {}
 
 void task_add() {}
