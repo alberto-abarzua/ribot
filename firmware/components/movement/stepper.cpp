@@ -29,6 +29,7 @@ void Stepper::hardware_step(int8_t step_dir) {
     gpio_set_level((gpio_num_t)step_pin, 1);
     run_delay_microseconds(5);
     gpio_set_level((gpio_num_t)step_pin, 0);
+    run_delay_microseconds(5);
 }
 
 #else

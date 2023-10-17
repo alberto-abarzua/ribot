@@ -21,6 +21,8 @@ void task_end();
 void wifi_init_sta();
 void nvs_init();
 
+void exit_panic();
+
 void global_setup_hardware();
 
 #endif

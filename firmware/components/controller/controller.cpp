@@ -1,5 +1,7 @@
 #include "controller.h"
 
+#include <cstdint>
+
 #include "movement.h"
 #include "utils.h"
 
@@ -174,7 +176,8 @@ bool Controller::start() {
         if (message_received) {
             last_message_time = get_current_time_microseconds();
         }
-        if (get_current_time_microseconds() - last_message_time > 2 * 1000000) {
+        if (get_current_time_microseconds() - last_message_time >
+            5 * 1000 * 1000) {
             std::cout << "No message in 5 seconds, stopping controller"
                       << std::endl;
             break;
@@ -619,15 +622,23 @@ bool Controller::hardware_setup() {  // every function here should be defined
 }
 
 // Hardware related methods
-
 #ifdef ESP_PLATFORM
 
 void Controller::step_target_fun() {
     task_add();
+
+    uint64_t iter = 0;
+    uint64_t iter_delay = 500;
+
     while (this->stop_flag == false) {
-        task_feed();
+        if (iter > iter_delay) {
+            task_feed();
+            run_delay(10);
+            iter = 0;
+        }
+
         this->step();
-        run_delay(10);
+        iter++;
     }
     task_end();
 }

@@ -1,5 +1,7 @@
 #include "movement.h"
 
+#include <cstdint>
+
 #include "utils.h"
 
 void MovementDriver::set_target_angle(float angle) {
@@ -103,36 +105,72 @@ uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
                  this->angle_to_steps(this->current_angle));
     return std::min(steps, steps_to_target);
 }
+// bool MovementDriver::step() {
+//     uint64_t current_time = get_current_time_microseconds();
+//     uint32_t steps_to_take = this->steps_to_take(current_time);
+
+//     if (steps_to_take > 0) {
+
+//         int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
+
+//         for (uint16_t i = 0; i < steps_to_take; i++) {
+//             this->current_steps += step_dir;
+
+//             this->hardware_step(step_dir > 0 ? 1 : 0);
+
+//             if (!this->homed && this->end_stop != nullptr) {
+//                 this->current_angle =
+//                 this->steps_to_angle(this->current_steps); if
+//                 (this->end_stop->hardware_read_state()) {
+//                     this->set_home();
+//                     this->last_step_time = get_current_time_microseconds();
+//                     return false;
+//                 }
+//                 run_delay_microseconds(10);
+//             } else {
+//                 run_delay_microseconds(30);
+//             }
+//         }
+
+//         this->last_step_time = get_current_time_microseconds();
+//         this->current_angle = this->steps_to_angle(this->current_steps);
+//         return true;
+//     }
+//     return false;
+// }
 bool MovementDriver::step() {
     uint64_t current_time = get_current_time_microseconds();
     uint32_t steps_to_take = this->steps_to_take(current_time);
 
-    if (steps_to_take > 0) {
-        std::cout << "steps_to_take: " << steps_to_take << std::endl;
-        int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
+    if (steps_to_take == 0) {
+        return false;
+    }
 
-        for (uint16_t i = 0; i < steps_to_take; i++) {
-            this->current_steps += step_dir;
+    if (steps_to_take > 20) {
+        exit_panic();
+    }
 
-            this->hardware_step(step_dir > 0 ? 1 : 0);
+    int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
 
-            if (!this->homed && this->end_stop != nullptr) {
-                this->current_angle = this->steps_to_angle(this->current_steps);
-                if (this->end_stop->hardware_read_state()) {
-                    this->set_home();
-                    this->last_step_time = get_current_time_microseconds();
-                    return false;
-                }
-                run_delay_microseconds(10);
-            } else {
-                run_delay_microseconds(30);
+    for (uint16_t i = 0; i < steps_to_take; i++) {
+        this->current_steps += step_dir;
+
+        this->hardware_step(step_dir > 0 ? 1 : 0);
+
+        if (!this->homed && this->end_stop != nullptr) {
+            this->current_angle = this->steps_to_angle(this->current_steps);
+            if (this->end_stop->hardware_read_state()) {
+                this->set_home();
+                this->last_step_time = get_current_time_microseconds();
+                return false;
             }
         }
-
-        this->last_step_time = get_current_time_microseconds();
-        this->current_angle = this->steps_to_angle(this->current_steps);
-        return true;
     }
+
+    this->last_step_time = get_current_time_microseconds();
+    this->current_angle = this->steps_to_angle(this->current_steps);
+    return true;
+
     return false;
 }
 

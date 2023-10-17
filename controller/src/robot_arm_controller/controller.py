@@ -53,6 +53,8 @@ class ArmController:
         self.is_homed: bool = False
         self.last_health_check: float = 0
 
+        self.stopped = False
+
         self.print_status = False
         self.print_idx = 0
 
@@ -107,10 +109,12 @@ class ArmController:
 
     def start(self, wait: bool = False, websocket_server: bool = True) -> None:
         console.log("Starting controller!", style="setup")
+
         if websocket_server and self.websocket_server is not None:
             self.websocket_server.start()
         else:
             self.websocket_server = None
+
         self.controller_server.start()
         start_time = time.time()
         if wait:
@@ -122,6 +126,7 @@ class ArmController:
 
     def stop(self) -> None:
         console.log("Stopping controller...", style="setup", end="\n")
+        self.stopped = True
         if self.websocket_server is not None:
             self.websocket_server.stop()
         self.controller_server.stop()
@@ -453,8 +458,18 @@ class ArmController:
             console.log(f"Setting endstop dummy for joint {joint_idx}", style="set_settings")
 
 
+class ControllerManager:
+    """
+    Handles instances of the controller
+
+    """
+
+
 class SingletonArmController:
     _instance: Optional[ArmController] = None
+    arm_parameters: Optional[ArmParameters] = None
+    websocket_port: int = 8600
+    server_port: int = 8500
 
     @classmethod
     def create_instance(
@@ -463,13 +478,25 @@ class SingletonArmController:
         websocket_port: int = 8600,
         server_port: int = 8500,
     ) -> None:
+        cls.arm_parameters = arm_parameters
+        cls.websocket_port = websocket_port
+        cls.server_port = server_port
+
         cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
 
     @classmethod
     def get_instance(cls) -> ArmController:
-        if cls._instance is None:
-            raise ValueError("ArmController has not been initialized")
-        return cls._instance
+        if cls._instance is not None:
+            if cls._instance.stopped:
+                cls._instance = None
+
+                if cls.arm_parameters is not None:
+                    cls.create_instance(cls.arm_parameters, cls.websocket_port, cls.server_port)
+
+                return cls.get_instance()
+            else:
+                return cls._instance
+        raise ValueError("Arm Controller not initialized")
 
     @classmethod
     def was_initialized(cls) -> bool:

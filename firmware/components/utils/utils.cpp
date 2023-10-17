@@ -124,10 +124,7 @@ void run_delay(uint32_t delay_ms) { vTaskDelay(pdMS_TO_TICKS(delay_ms)); }
 
 void run_delay_microseconds(uint32_t delay_us) { ets_delay_us(delay_us); }
 
-uint64_t get_current_time_microseconds() {
-    TickType_t ticks = xTaskGetTickCount();
-    return static_cast<uint64_t>(ticks) * (1000000 / configTICK_RATE_HZ);
-}
+uint64_t get_current_time_microseconds() { return esp_timer_get_time(); }
 
 void task_add() { esp_task_wdt_add(NULL); }
 
@@ -138,10 +135,19 @@ void task_feed() {
 
 void task_end() { esp_task_wdt_delete(NULL); }
 
+void exit_panic() {
+    std::cout << "PANIC" << std::endl;
+    esp_restart();
+}
+
 #else
 
 void nvs_init() {}
 
+void exit_panic() {
+    std::cout << "PANIC" << std::endl;
+    exit(1);
+}
 void wifi_init_sta() {}
 
 void task_add() {}

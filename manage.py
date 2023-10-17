@@ -116,8 +116,25 @@ def build_firmware_locally(**kwargs):
 
 
 def down(**kwargs):
-    dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml',
-        'frontend.yaml', 'unity_webgl_server.yaml'])
+    container_name = kwargs['container']
+
+    if container_name:
+        if container_name == 'firmware':
+            dcd(['firmware.yaml'])
+        elif container_name == 'controller':
+            dcd(['controller.yaml'])
+        elif container_name == 'backend':
+            dcd(['backend.yaml'])
+        elif container_name == 'frontend':
+            dcd(['frontend.yaml'])
+        elif container_name == 'unity_webgl_server':
+            dcd(['unity_webgl_server.yaml'])
+        else:
+            print(f"Unknown container: {container_name}")
+            exit(1)
+    else:
+        dcd(['firmware.yaml', 'controller.yaml', 'backend.yaml',
+            'frontend.yaml', 'unity_webgl_server.yaml'])
 
 
 def build(**kwargs):
@@ -301,7 +318,11 @@ def main(**kwargs):
 
     parser_down = subparsers.add_parser(
         'down', help='Stop all containers')
+
     parser_down.set_defaults(func=down)
+
+    parser_down.add_argument(
+        '--container', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to stop')
 
     parser_build_flash_esp = subparsers.add_parser(
         'build-flash-esp', help='Build and flash firmware to esp32')

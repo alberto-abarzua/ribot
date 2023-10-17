@@ -5,7 +5,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install pdm==2.8.2
+RUN pip install pdm==2.9.3
 
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 

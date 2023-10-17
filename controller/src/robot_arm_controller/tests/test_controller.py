@@ -204,9 +204,14 @@ class TestController(unittest.TestCase):
 
         self.controller.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, 4, 2)
         self.controller.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, 1, 1)
+
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
-        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 3434, 0)
-        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 6457, 3)
+
+        self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
+        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 1600, 0)
+        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 200, 3)
+
+        self.controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, 0)
 
         self.controller.set_setting_joints(Settings.SPEED_RAD_PER_S, 1)
         speeds = self.controller.get_setting_joints(Settings.SPEED_RAD_PER_S)
