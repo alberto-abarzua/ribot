@@ -1,5 +1,7 @@
 #include "movement.h"
 
+#include <cstdint>
+
 #include "utils.h"
 
 void MovementDriver::set_target_angle(float angle) {
@@ -36,6 +38,7 @@ void MovementDriver::set_speed(float speed) {
         std::max((int64_t)1, this->angle_to_steps(speed));
     this->speed = speed;
     this->step_interval = std::abs(1000000.0 / (float)steps_per_second);
+    this->homing_speed = speed * 0.6;
 }
 
 void MovementDriver::update_speed() {
@@ -56,7 +59,8 @@ void MovementDriver::print_state() {
     std::cout << "steps_per_revolution: " << this->steps_per_revolution
               << std::endl;
     std::cout << "homed: " << this->homed << std::endl;
-    std::cout << "homing_direction: " << this->homing_direction << std::endl;
+    std::cout << "homing_direction: "
+              << static_cast<int>(this->homing_direction) << std::endl;
     std::cout << "homing_offset: " << this->homing_offset << std::endl;
     std::cout << "end_stop: " << this->end_stop << std::endl;
 }
@@ -67,23 +71,14 @@ int64_t MovementDriver::angle_to_steps(float angle) {
     return static_cast<int64_t>(angle / (2 * PI) * this->steps_per_revolution);
 }
 
-uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
-    if (this->at_target()) {
-        return 0;
-    }
-    uint64_t dif = current_time - this->last_step_time;
-    uint64_t steps = std::floor(dif / this->step_interval);
-    uint64_t steps_to_target =
-        std::abs(this->angle_to_steps(this->target_angle) -
-                 this->angle_to_steps(this->current_angle));
-    return std::min(steps, steps_to_target);
-}
-
 bool MovementDriver::is_homed() { return this->homed; }
 
 bool MovementDriver::home() {
+    this->prev_speed = this->speed;
+    this->set_speed(this->homing_speed);
     int8_t homing_dir = this->homing_direction;
-    this->set_target_angle(homing_dir * 2 * PI);
+    float target_angle = homing_dir * 2 * PI;
+    this->set_target_angle(target_angle);
     this->homed = false;
     return this->is_homed();
 }
@@ -99,27 +94,83 @@ int8_t MovementDriver::get_homing_direction() { return this->homing_direction; }
 
 float MovementDriver::get_homing_offset() { return this->homing_offset; }
 
+uint32_t MovementDriver::steps_to_take(uint64_t current_time) {
+    if (this->at_target()) {
+        return 0;
+    }
+    uint64_t dif = current_time - this->last_step_time;
+    uint64_t steps = std::floor(dif / this->step_interval);
+    uint64_t steps_to_target =
+        std::abs(this->angle_to_steps(this->target_angle) -
+                 this->angle_to_steps(this->current_angle));
+    return std::min(steps, steps_to_target);
+}
+// bool MovementDriver::step() {
+//     uint64_t current_time = get_current_time_microseconds();
+//     uint32_t steps_to_take = this->steps_to_take(current_time);
+
+//     if (steps_to_take > 0) {
+
+//         int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
+
+//         for (uint16_t i = 0; i < steps_to_take; i++) {
+//             this->current_steps += step_dir;
+
+//             this->hardware_step(step_dir > 0 ? 1 : 0);
+
+//             if (!this->homed && this->end_stop != nullptr) {
+//                 this->current_angle =
+//                 this->steps_to_angle(this->current_steps); if
+//                 (this->end_stop->hardware_read_state()) {
+//                     this->set_home();
+//                     this->last_step_time = get_current_time_microseconds();
+//                     return false;
+//                 }
+//                 run_delay_microseconds(10);
+//             } else {
+//                 run_delay_microseconds(30);
+//             }
+//         }
+
+//         this->last_step_time = get_current_time_microseconds();
+//         this->current_angle = this->steps_to_angle(this->current_steps);
+//         return true;
+//     }
+//     return false;
+// }
 bool MovementDriver::step() {
     uint64_t current_time = get_current_time_microseconds();
-
     uint32_t steps_to_take = this->steps_to_take(current_time);
-    if (steps_to_take > 0) {
-        int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
-        for (uint16_t i = 0; i < steps_to_take; i++) {
-            this->current_steps += step_dir;
-            this->current_angle = this->steps_to_angle(this->current_steps);
 
-            this->hardware_step(step_dir > 0 ? 1 : 0);
-            this->last_step_time = get_current_time_microseconds();
-            if (!this->homed && this->end_stop != nullptr) {
-                if (this->end_stop->hardware_read_state()) {
-                    this->set_home();
-                    return false;
-                }
+    if (steps_to_take == 0) {
+        return false;
+    }
+
+    if (steps_to_take > 20) {
+        exit_panic();
+    }
+
+    int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
+
+    for (uint16_t i = 0; i < steps_to_take; i++) {
+        this->current_steps += step_dir;
+
+        this->hardware_step(step_dir > 0 ? 1 : 0);
+
+        if (!this->homed && this->end_stop != nullptr) {
+            this->current_angle = this->steps_to_angle(this->current_steps);
+            if (this->end_stop->hardware_read_state()) {
+                this->set_home();
+                this->last_step_time = get_current_time_microseconds();
+                return false;
             }
         }
-        return true;
     }
+
+    this->last_step_time = get_current_time_microseconds();
+    this->current_angle = this->steps_to_angle(this->current_steps);
+    return true;
+
     return false;
 }
 
@@ -131,39 +182,12 @@ void MovementDriver::set_home() {
     this->homed = true;
     this->set_current_angle(this->homing_offset);
     this->set_target_angle(0.0);
+    this->set_speed(this->prev_speed);
 }
 
 float MovementDriver::steps_to_angle(int64_t steps) {
     return static_cast<float>(steps) /
            static_cast<float>(this->steps_per_revolution) * 2.0 * PI;
-}
-
-bool MovementDriver::verify_step_interval() {
-    uint32_t step_interval_microseconds = this->step_interval;
-    uint32_t steps_per_revolution = this->steps_per_revolution;
-    float speed = this->speed;  // speed is in rad/s
-    float epsilon = this->epsilon;
-
-    // Calculate the angular velocity per step (in rad)
-    float rad_per_step = 2 * PI / steps_per_revolution;
-
-    // Calculate the desired step interval based on the speed (in microseconds)
-    float desired_step_interval_microseconds =
-        (1.0 / speed) * (1.0 / rad_per_step) * 1000000;
-
-    // Calculate the difference between the desired and actual step intervals
-    float interval_difference = std::abs(desired_step_interval_microseconds -
-                                         step_interval_microseconds);
-    bool valid_step_interval = interval_difference <= epsilon;
-    if (!valid_step_interval) {
-        std::cout << "invalid step interval" << std::endl;
-        std::cout << "desired step interval: "
-                  << desired_step_interval_microseconds << std::endl;
-        std::cout << "actual step interval: " << step_interval_microseconds
-                  << std::endl;
-    }
-    // Verify if the difference is within the acceptable margin (epsilon)
-    return interval_difference <= epsilon;
 }
 
 float* MovementDriver::get_current_angle_ptr() { return &this->current_angle; }

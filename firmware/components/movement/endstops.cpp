@@ -21,17 +21,17 @@ bool DummyEndStop::hardware_read_state() {
     }
 
     float current_angle_value = *this->current_angle;
+    // pinMode(this->pin, INPUT_PULLUP);
     if (current_angle_value >= (float)(PI / 4.0)) {
         return true;
     }
     return false;
+    // pinMode(this->pin, INPUT_PULLUP);
 }
 
 HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin) {}
 
 HallEffectSensor::~HallEffectSensor() {}
-
-
 
 #ifdef ESP_PLATFORM
 
@@ -52,10 +52,7 @@ bool HallEffectSensor::hardware_read_state() {
 
 #else
 
-void HallEffectSensor::hardware_setup() {
-}
+void HallEffectSensor::hardware_setup() {}
 
-bool HallEffectSensor::hardware_read_state() {
-    return true;
-}
+bool HallEffectSensor::hardware_read_state() { return true; }
 #endif

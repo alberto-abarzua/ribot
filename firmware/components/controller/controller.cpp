@@ -1,5 +1,7 @@
 #include "controller.h"
 
+#include <cstdint>
+
 #include "movement.h"
 #include "utils.h"
 
@@ -174,7 +176,8 @@ bool Controller::start() {
         if (message_received) {
             last_message_time = get_current_time_microseconds();
         }
-        if (get_current_time_microseconds() - last_message_time > 2 * 1000000) {
+        if (get_current_time_microseconds() - last_message_time >
+            5 * 1000 * 1000) {
             std::cout << "No message in 5 seconds, stopping controller"
                       << std::endl;
             break;
@@ -279,6 +282,52 @@ void Controller::message_handler_move(Message *message) {
                 }
             }
         } break;
+        case 9: {  // Move Joint
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            if (!called) {
+                this->joints[joint_idx]->set_target_angle(args[1]);
+                message->set_called(true);
+            } else {
+                if (this->joints[joint_idx]->at_target()) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
+        case 11: {  // Move Joint Relative to target
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            if (!called) {
+                float target_angle =
+                    this->joints[joint_idx]->get_target_angle();
+                this->joints[joint_idx]->set_target_angle(target_angle +
+                                                          args[1]);
+                message->set_called(true);
+            } else {
+                if (this->joints[joint_idx]->at_target()) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
+        case 13: {  // Move Joints Relative to target
+            if (!called) {
+                for (int i = 0; i < num_args; i++) {
+                    this->joints[i]->set_target_angle(
+                        args[i] + this->joints[i]->get_target_angle());
+                }
+                message->set_called(true);
+            } else {
+                bool all_at_target = true;
+                for (int i = 0; i < num_args; i++) {
+                    all_at_target &= this->joints[i]->at_target();
+                    if (!all_at_target) {
+                        break;
+                    }
+                }
+
+                if (all_at_target) {
+                    message->set_complete(true);
+                }
+            }
+        } break;
         default:
             break;
     }
@@ -299,8 +348,6 @@ void Controller::message_handler_status(Message *message) {
                 this->message_queues[MessageOp::MOVE]->size();
             for (uint8_t i = 0; i < this->joints.size(); i++) {
                 status->joint_angles[i] = this->joints[i]->get_current_angle();
-                // print driver read
-                this->joints[i]->get_end_stop()->hardware_read_state();
             }
             int32_t num_args = sizeof(arm_status_t) / sizeof(float);
 
@@ -455,6 +502,10 @@ void Controller::message_handler_config(Message *message) {
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
             movement_driver->set_homing_offset(homing_offset);
+            std::cout << "\n\n State of joint " << static_cast<int>(joint_idx)
+                      << "\n";
+            movement_driver->print_state();
+            std::cout << "\n\n";
 
         } break;
 
@@ -473,6 +524,78 @@ void Controller::message_handler_config(Message *message) {
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
+        case 21: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t step_pin = static_cast<uint8_t>(args[1]);
+            uint8_t dir_pin = static_cast<uint8_t>(args[2]);
+
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            MovementDriver *new_movement_driver =
+                new Stepper(step_pin, dir_pin);
+
+            EndStop *end_stop = new DummyEndStop(
+                0, new_movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->set_movement_driver(new_movement_driver);
+            this->joints[joint_idx]->register_end_stop(end_stop);
+            new_movement_driver->hardware_setup();
+            std::cout << "Stepper driver created" << std::endl;
+            std::cout << "step pin: " << static_cast<int>(step_pin)
+                      << std::endl;
+            std::cout << "dir pin: " << static_cast<int>(dir_pin) << std::endl;
+            std::cout << "joint idx: " << static_cast<int>(joint_idx)
+                      << std::endl;
+
+            delete movement_driver;
+
+        } break;
+        case 23: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t pin = static_cast<uint8_t>(args[1]);
+
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            MovementDriver *new_movement_driver = new Servo(pin);
+
+            // generate dummt end_stop
+
+            EndStop *end_stop = new DummyEndStop(
+                0, new_movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->set_movement_driver(new_movement_driver);
+            this->joints[joint_idx]->register_end_stop(end_stop);
+            new_movement_driver->hardware_setup();
+
+            delete movement_driver;
+
+        } break;
+        case 25: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            uint8_t pin = static_cast<uint8_t>(args[1]);
+
+            // Sets the joints end stop as a hall effect HallEffectSensor
+            EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
+            EndStop *new_end_stop = new HallEffectSensor(pin);
+            this->joints[joint_idx]->register_end_stop(new_end_stop);
+            std::cout << "Hall effect sensor created" << std::endl;
+            std::cout << "pin: " << static_cast<int>(pin) << std::endl;
+            new_end_stop->hardware_setup();
+            delete end_stop;
+
+        } break;
+        case 27: {
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+            EndStop *new_end_stop =
+                new DummyEndStop(0, movement_driver->get_current_angle_ptr());
+            this->joints[joint_idx]->register_end_stop(new_end_stop);
+            delete end_stop;
+
+        } break;
+
         default:
             break;
     }
@@ -499,16 +622,23 @@ bool Controller::hardware_setup() {  // every function here should be defined
 }
 
 // Hardware related methods
-
 #ifdef ESP_PLATFORM
 
 void Controller::step_target_fun() {
     task_add();
+
+    uint64_t iter = 0;
+    uint64_t iter_delay = 500;
+
     while (this->stop_flag == false) {
-        task_feed();
+        if (iter > iter_delay) {
+            task_feed();
+            run_delay(10);
+            iter = 0;
+        }
+
         this->step();
-        task_feed();
-        run_delay(10);
+        iter++;
     }
     task_end();
 }
@@ -520,7 +650,7 @@ static void step_target_fun_adapter(void *pvParameters) {
 
 void Controller::run_step_task() {
     xTaskCreate(&step_target_fun_adapter, "step_task", 2048, this,
-                configMAX_PRIORITIES - 1, NULL);
+                configMAX_PRIORITIES - 2, NULL);
 }
 
 void Controller::stop_step_task() {}

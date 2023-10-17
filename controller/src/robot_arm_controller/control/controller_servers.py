@@ -70,7 +70,8 @@ class WebsocketServer(ControllerDependencies):
         self.kill: bool = False
         self.stop_event: threading.Event = threading.Event()
 
-        self.loop: Optional[asyncio.AbstractEventLoop] = None  # asyncio event loop
+        # asyncio event loop
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
 
     async def handler(self, websocket: Any, _: str) -> None:
         async for message in websocket:
@@ -139,7 +140,7 @@ class ControllerServer(ControllerDependencies):
 
             console.log(f"Connected to {addr}", style="setup")
             self.connection_socket = conn
-            # Make the socket non-blocking
+
             self.connection_socket.setblocking(False)
             self.connection_socket.settimeout(0)
 
@@ -155,6 +156,7 @@ class ControllerServer(ControllerDependencies):
         self.status_thread.start()
 
     def stop(self) -> None:
+        console.log("Stopping controller server", style="error")
         self.stop_event.set()
         if self.status_thread:
             self.status_thread.join()
@@ -167,6 +169,7 @@ class ControllerServer(ControllerDependencies):
                 self.connection_socket.send(message.encode())
             except OSError as e:
                 console.log(f"Connection failed with error: {str(e)}", style="error")
+                self.stop()
 
     def send_message(self, message: Message, mutex: bool = False) -> None:
         if mutex:
@@ -180,9 +183,7 @@ class ControllerServer(ControllerDependencies):
         ERROR = 2
         NOT_READY = 3
 
-    def _receive_message(
-        self, timeout: Optional[int] = None
-    ) -> Union[ControllerServer.ReceiveStatusCode, Message]:
+    def _receive_message(self, timeout: Optional[int] = None) -> Union[ControllerServer.ReceiveStatusCode, Message]:
         if not self.is_ready or self.connection_socket is None:
             return self.ReceiveStatusCode.NOT_READY
         try:

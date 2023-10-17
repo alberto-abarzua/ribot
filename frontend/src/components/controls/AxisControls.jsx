@@ -57,7 +57,7 @@ const AxisControls = () => {
                         label="Step Size"
                         value={anglesStep}
                         setValue={setAnglesStep}
-                        infoText={'The amount the arm moves for coordinate changes'}
+                        infoText={'The amount the arm moves for tool angle changes'}
                     ></TextVariableInfo>
                 </div>
 

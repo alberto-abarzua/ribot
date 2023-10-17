@@ -1,0 +1,121 @@
+title = "Robot arm configuration"
+[joint_configuration]
+    speed_rad_per_s = 0.35
+    steps_per_rev_motor_axis = 800 # Microstepping
+    homing_direction = 1 # 1 or -1
+    max_angle_rad = 7.0
+    min_angle_rad = -7.0
+    conversion_rate_axis_joint = 1.0 
+    homing_offset_rad = 0.0 # Offset from homing position
+    # Settings can be overwritten for each joint
+
+[arm_parameters]
+# J1 
+    a1x= 0
+    a1y= 0
+    a1z= 0
+# J2
+    a2x= 0
+    a2y= 0
+    a2z= 172.48
+# J3
+    a3x= 0
+    a3y= 0
+    a3z= 173.5
+# J4
+    a4x= 126.2
+    a4y= 0
+    a4z= 0
+# J5
+    a5x= 64.1
+    a5y= 0
+    a5z= 0
+# J6
+    a6x= 169.0
+    a6z= 0
+    a6y= 0
+
+[[joints]]
+    name = "joint_1"
+    homing_direction = -1 # 1 or -1
+    conversion_rate_axis_joint = 9.3 # Gear ratio
+    homing_offset_rad = 0 # Offset from home position
+    speed_rad_per_s = 0.5
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 5
+        step_pin = 4
+    # [joints.driver]
+    #     type = "servo"
+    #     pin = 20
+    [joints.endstop]
+        type = "hall"
+        pin = 26
+    # [joints.endstop]
+    #     type = "dummy"
+
+[[joints]]
+    name = "joint_2"
+    homing_direction = 1 
+    conversion_rate_axis_joint = 1.0 
+    homing_offset_rad = 0.0 
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 14
+        step_pin = 13
+    [joints.endstop]
+        type = "dummy"
+        pin = 25
+        
+[[joints]]
+    name = "joint_3"
+    homing_direction = 1 
+    conversion_rate_axis_joint = 1.0 
+    homing_offset_rad = 0.0
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 16
+        step_pin = 15
+    [joints.endstop]
+        type = "hall"
+        pin = 33
+
+[[joints]]
+    name = "joint_4"
+    homing_direction = 1
+    conversion_rate_axis_joint = 1.0
+    homing_offset_rad = 0.0 
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 18
+        step_pin = 17
+    [joints.endstop]
+        type = "hall"
+        pin = 32
+
+[[joints]]
+    name = "joint_5"
+    homing_direction = 1 
+    conversion_rate_axis_joint = 1.0
+    homing_offset_rad = 0.0
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 21
+        step_pin = 19
+    [joints.endstop]
+        type = "hall"
+        pin = 35
+
+[[joints]]
+    name = "joint_6"
+    homing_direction = 1
+    conversion_rate_axis_joint = 1.0
+    homing_offset_rad = 0.0
+    [joints.driver]
+        type = "stepper"
+        dir_pin = 23
+        step_pin = 22 
+    [joints.endstop]
+        type = "hall"
+        pin = 34
+

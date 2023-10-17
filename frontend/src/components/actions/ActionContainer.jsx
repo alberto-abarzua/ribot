@@ -84,7 +84,7 @@ const ActionContainer = () => {
                 }
             >
                 <ErrorIcon className="text-3xl text-white" />
-                <div className="text-lg text-white"> Erorrs</div>
+                <div className="text-lg text-white"> Errors</div>
             </div>
         );
     }

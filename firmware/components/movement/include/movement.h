@@ -53,6 +53,7 @@ class MovementDriver {
     float current_angle = 0;
     float target_angle = 0;
     float speed = 0.1;  // rad per second
+    float prev_speed = 0.1;
 
     uint64_t last_step_time = 0;
     uint32_t step_interval = 0;
@@ -61,6 +62,7 @@ class MovementDriver {
     bool homed = false;
     int8_t homing_direction = 1;
     float homing_offset = 0;
+    float homing_speed = 0.25;
 
     EndStop* end_stop = nullptr;
 
@@ -94,9 +96,6 @@ class MovementDriver {
     virtual ~MovementDriver() = default;
     virtual void hardware_setup() = 0;
     virtual void hardware_step(int8_t step_dir) = 0;
-    bool verify_step_interval();
-    // TODO: add acceleration
-    //  virtual void set_acceleration(float acceleration) = 0;
 };
 
 class Stepper : public MovementDriver {

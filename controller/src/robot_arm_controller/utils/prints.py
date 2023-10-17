@@ -11,6 +11,7 @@ custom_theme = Theme(
         "info": "cyan",
         "status": "white",
         "move_tool": "yellow",
+        "move_joints": "green",
         "move_angles": "green",
         "set_tool": "blue",
         "set_settings": "purple",

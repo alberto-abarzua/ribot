@@ -6,6 +6,7 @@ if [ "$1" = "-c" ]; then
     exec "$@"
 fi
 
+
 build() {
     echo "Building twin"
     cd /app || exit 1
@@ -15,6 +16,7 @@ build() {
         echo "Failed to build twin"
         exit 1
     fi
+    # move /app/compile_commands.json to /app/output
 }
 
 case "$1" in

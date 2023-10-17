@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
@@ -9,6 +10,10 @@ from robot_arm_controller.controller import ArmController
 from utils.general import controller_dependency
 
 router = APIRouter()
+
+# --------
+# Post Models
+# --------
 
 
 class Move(BaseModel):
@@ -26,6 +31,22 @@ class Tool(BaseModel):
     wait: Optional[bool] = False
 
 
+class MoveJoint(BaseModel):
+    joint_idx: int
+    joint_value: float
+    wait: Optional[bool] = False
+
+
+class HomeJoint(BaseModel):
+    joint_idx: int
+    wait: Optional[bool] = False
+
+
+class MoveJoints(BaseModel):
+    joint_values: list
+    wait: Optional[bool] = False
+
+
 # --------
 # General
 # --------
@@ -35,6 +56,15 @@ class Tool(BaseModel):
 def home(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     print("Homing the arm in home endpoint")
     controller.home()
+    return {"message": "Homed"}
+
+
+@router.post("/home_joint/")
+def home_joint(
+    home_joint: HomeJoint, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    joint_idx = home_joint.dict().pop("joint_idx")
+    controller.home_joint(joint_idx)
     return {"message": "Homed"}
 
 
@@ -81,6 +111,50 @@ def valid_pose(
         return JSONResponse(content={"message": "Pose is not valid"}, status_code=400)
 
 
+@router.post("/joint/")
+def move_joint(
+    move: MoveJoint, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
+    joint_idx = move_dict.pop("joint_idx")
+    joint_value = move_dict.pop("joint_value")
+    controller.move_joint_to(joint_idx, joint_value)
+    if wait:
+        controller.wait_done_moving()
+    return {"message": "Moved"}
+
+
+@router.post("/joint/relative/")
+def move_joint_to_relative(
+    move: MoveJoint, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
+    joint_idx = move_dict.pop("joint_idx")
+    joint_value = move_dict.pop("joint_value")
+    controller.move_joint_to_relative(joint_idx, joint_value)
+    if wait:
+        controller.wait_done_moving()
+    return {"message": "Moved"}
+
+
+@router.post("/joints/relative/")
+def move_joints_to_relative(
+    move: MoveJoints, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    move_dict = move.dict()
+    wait = move_dict.pop("wait")
+
+    joint_values = move_dict.pop("joint_values")
+    controller.move_joints_to_relative(joint_values)
+    if wait:
+        controller.wait_done_moving()
+    return {"message": "Moved"}
+
+
 # --------
 # Pose
 # --------
@@ -114,12 +188,18 @@ def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any
 @router.get("/status/")
 def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     pose = controller.current_pose
-    status_dict = pose.as_dict
+    status_dict: Dict[str, Any] = deepcopy(pose.as_dict)
     status_dict["toolValue"] = controller.tool_value
     status_dict["isHomed"] = controller.is_homed
-    print(controller)
     status_dict["moveQueueSize"] = controller.move_queue_size
+    status_dict["currentAngles"] = controller.current_angles
     return status_dict
+
+
+@router.post("/stop/")
+def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+    controller.stop_movement()
+    return {"message": "Movement stopped"}
 
 
 # --------

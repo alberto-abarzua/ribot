@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:latest  
 
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -16,6 +16,8 @@ WORKDIR /app
 COPY . .
 
 RUN chmod +x /app/entrypoint.sh
+
+RUN rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
