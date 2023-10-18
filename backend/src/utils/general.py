@@ -35,7 +35,7 @@ def start_controller() -> None:
     controller = get_controller()
     controller.start(wait=True)
     controller.print_status = PRINT_DEBUG
-    controller.configure_from_file(CONFIG_FILE)
+    controller.configure_from_file(CONFIG_FILE, reload=True)
 
 
 def stop_controller() -> None:

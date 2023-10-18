@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from robot_arm_controller.controller import ArmController, Settings
 
 from utils.general import controller_dependency
+from pathlib import Path
 
 router = APIRouter()
 
@@ -47,3 +48,18 @@ def set_item(
     controller.set_setting_joints(setting, value)
 
     return {"setting": setting, "value": value}
+
+
+@router.post("/config_from_file/")
+def config_from_file(
+    file_path: str, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    CONFIG_PATH = Path(__file__).parent.parent / "config"
+    controller.configure_from_file(CONFIG_PATH / file_path)
+    return {"config_from_file": file_path}
+
+
+@router.get("/list_configs/")
+def list_configs() -> Dict[Any, Any]:
+    CONFIG_PATH = Path(__file__).parent.parent / "config"
+    return {"configs": [str(f) for f in CONFIG_PATH.iterdir() if f.is_file()]}

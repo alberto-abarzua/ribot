@@ -5,6 +5,7 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
 import SideNav from '@/components/general/layout/SideNav';
+import ConfigFile from '@/components/settings/ConfigFile';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
 import store from '@/redux/store';
 import api from '@/utils/api';
@@ -117,6 +118,7 @@ export default function Home() {
                         <ActionContainer></ActionContainer>
                     </div>
                     <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
+                        <ConfigFile></ConfigFile>
                         <ArmSimulation></ArmSimulation>
                         <ArmStatus></ArmStatus>
                         <JointsControls></JointsControls>
