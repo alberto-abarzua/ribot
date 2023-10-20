@@ -7,6 +7,7 @@ services:
         - ../frontend/package.json:/app/package.json
         - ../frontend/package-lock.json:/app/package-lock.json
         - ../frontend/tailwind.config.js:/app/tailwind.config.js
+        - ../frontend/components.json:/app/components.json
         - ../frontend/postcss.config.js:/app/postcss.config.js
       ports:
         - "3000:3000"

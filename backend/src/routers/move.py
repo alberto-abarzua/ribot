@@ -178,30 +178,3 @@ def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any
     tool_value = controller.tool_value
 
     return {"toolValue": tool_value}
-
-
-# --------
-# Status
-# --------
-
-
-@router.get("/status/")
-def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
-    pose = controller.current_pose
-    status_dict: Dict[str, Any] = deepcopy(pose.as_dict)
-    status_dict["toolValue"] = controller.tool_value
-    status_dict["isHomed"] = controller.is_homed
-    status_dict["moveQueueSize"] = controller.move_queue_size
-    status_dict["currentAngles"] = controller.current_angles
-    return status_dict
-
-
-@router.post("/stop/")
-def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
-    controller.stop_movement()
-    return {"message": "Movement stopped"}
-
-
-# --------
-# Angle
-# --------

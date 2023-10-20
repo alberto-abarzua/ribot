@@ -1,6 +1,6 @@
 'use client';
 import ActionContainer from '@/components/actions/ActionContainer';
-import ArmSimulation from '@/components/ArmSimulation/ArmSimulation';
+import ArmSimulation from '@/components/armsimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
@@ -32,7 +32,7 @@ export default function Home() {
         }
 
         const fetchCurrentPose = async () => {
-            const response = await api.get('/move/status/');
+            const response = await api.get('/settings/status/');
             dispatch(armPoseActions.updateCurrent(response.data));
         };
 
@@ -63,7 +63,6 @@ export default function Home() {
                         toolValue: 0,
                     })
                 );
-                // console.log(currentPoseRef.current)
                 try {
                     console.log('moving');
                     let response = await api.post('/move/pose/move/', pose);
@@ -88,7 +87,7 @@ export default function Home() {
                         }
                     } catch (error) {
                         if (error.response && error.response.status === 400) {
-                            alert(error.response.data.message); //TODO: make this a toast
+                            alert(error.response.data.message);
                         } else {
                             console.error('An unexpected error occurred:', error);
                             alert('An unexpected error occurred');
@@ -111,14 +110,13 @@ export default function Home() {
         <Provider store={store}>
             <DndProvider backend={HTML5Backend}>
                 <div className="box-border flex h-full">
-                    <div className="flex h-full w-full flex-col  lg:w-1/12 ">
+                    <div className="flex flex-col  lg:w-1/12 ">
                         <SideNav></SideNav>
                     </div>
-                    <div className="flex h-full w-full flex-col items-center bg-white lg:w-5/12 ">
-                        <ActionContainer></ActionContainer>
+                    <div className="flex flex-col items-center bg-white lg:w-5/12 ">
+                        <ActionContainer></ActionContainer> 
                     </div>
-                    <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
-                        <ConfigFile></ConfigFile>
+                    <div className="bg-red-100 box-border flex flex-col bg-slate-50 lg:w-6/12">
                         <ArmSimulation></ArmSimulation>
                         <ArmStatus></ArmStatus>
                         <JointsControls></JointsControls>

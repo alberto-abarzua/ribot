@@ -12,7 +12,7 @@ const ArmStatus = () => {
     };
 
     const call_stop_movement = async () => {
-        await api.post('/move/stop/');
+        await api.post('/settings/stop/');
     };
     const currentPose = useSelector(state => state.armPose);
 
