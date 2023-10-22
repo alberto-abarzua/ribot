@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors')
 module.exports = {
     darkMode: ['class'],
     content: [
@@ -29,6 +30,29 @@ module.exports = {
                 'accordion-down': 'accordion-down 0.2s ease-out',
                 'accordion-up': 'accordion-up 0.2s ease-out',
             },
+        colors: {
+                'action-move': {
+                  ...colors.lime, 
+                  DEFAULT: colors.lime[500]
+                },
+                'action-move-hover' : colors.lime[600],
+
+                'action-tool': {
+                  ...colors.amber,
+                  DEFAULT: colors.amber[500]
+                },
+                'action-tool-hover' : colors.amber[600],
+                'action-sleep': {
+                  ...colors.indigo,
+                  DEFAULT: colors.indigo[700]
+                },
+                'action-sleep-hover' : colors.indigo[800],
+                'action-custom': {
+                  ...colors.red,
+                  DEFAULT: colors.red[500]
+                },
+                'action-custom-hover' : colors.red[600],
+              },
         },
     },
     plugins: [require('tailwindcss-animate')],

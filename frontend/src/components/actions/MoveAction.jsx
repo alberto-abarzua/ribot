@@ -51,7 +51,7 @@ const MoveAction = ({ ...props }) => {
     return (
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}
-            className="h-30 bg-slate-400 "
+            className="h-30 bg-action-move"
             {...props}
         >
             <>

@@ -109,14 +109,15 @@ export default function Home() {
     return (
         <Provider store={store}>
             <DndProvider backend={HTML5Backend}>
-                <div className="box-border flex h-full">
-                    <div className="flex flex-col  lg:w-1/12 ">
+                <div className="box-border flex h-screen ">
+                    <div className="relative flex h-full w-full flex-col lg:w-1/12 ">
                         <SideNav></SideNav>
                     </div>
-                    <div className="flex flex-col items-center bg-white lg:w-5/12 ">
-                        <ActionContainer></ActionContainer> 
+
+                    <div className="flex h-full w-full flex-col items-center lg:w-5/12 ">
+                        <ActionContainer></ActionContainer>
                     </div>
-                    <div className="bg-red-100 box-border flex flex-col bg-slate-50 lg:w-6/12">
+                    <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
                         <ArmSimulation></ArmSimulation>
                         <ArmStatus></ArmStatus>
                         <JointsControls></JointsControls>

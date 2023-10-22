@@ -3,7 +3,7 @@ const ArmSimulation = () => {
     const websocket_port = process.env.NEXT_PUBLIC_ARM_SIMULATION_WEBSOCKET_PORT;
     const websocket_host = process.env.NEXT_PUBLIC_ARM_SIMULATION_WEBSOCKET_HOST;
     return (
-        <div className="" >
+        <div className="">
             <iframe
                 src={`${simulation_url}/game.html?ip=${websocket_host}&port=${websocket_port}`}
                 className=""
@@ -11,6 +11,5 @@ const ArmSimulation = () => {
         </div>
     );
 };
-
 
 export default ArmSimulation;

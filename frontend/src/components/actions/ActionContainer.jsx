@@ -52,11 +52,15 @@ const ActionContainer = () => {
     };
 
     let play_or_stop;
+    let play_or_stop_pos = 'absolute bottom-10 right-8 z-20';
     if (valid) {
         if (running) {
             play_or_stop = (
                 <div
-                    className="absolute bottom-10 right-0 z-20 flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-red-400 px-2 hover:bg-red-500"
+                    className={
+                        play_or_stop_pos +
+                        ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-red-400 px-2 hover:bg-red-500'
+                    }
                     onClick={handleClick}
                 >
                     <StopIcon className="text-3xl text-white" />
@@ -67,7 +71,8 @@ const ActionContainer = () => {
             play_or_stop = (
                 <div
                     className={
-                        'absolute bottom-10 right-0 z-20 flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 px-2 hover:bg-green-500 '
+                        play_or_stop_pos +
+                        ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 px-2 hover:bg-green-500 '
                     }
                     onClick={handleClick}
                 >
@@ -80,7 +85,8 @@ const ActionContainer = () => {
         play_or_stop = (
             <div
                 className={
-                    'absolute bottom-10 right-0 z-20 flex h-14 w-fit cursor-not-allowed items-center justify-center rounded-md bg-orange-400 px-2 hover:bg-orange-500 '
+                    play_or_stop_pos +
+                    ' flex h-14 w-fit cursor-not-allowed items-center justify-center rounded-md bg-orange-400 px-2 hover:bg-orange-500 '
                 }
             >
                 <ErrorIcon className="text-3xl text-white" />
@@ -92,7 +98,7 @@ const ActionContainer = () => {
     return (
         <div className="relative m-0 flex h-full max-h-screen w-full flex-col items-center space-y-4 ">
             <ToolBar />
-            <div className="flex h-full max-h-screen w-full flex-col items-center gap-4 overflow-y-auto">
+            <div className="flex h-full max-h-screen w-full flex-col items-center gap-4 overflow-y-auto pt-14">
                 {actionList.map(action => action.render())}
             </div>
             {play_or_stop}
