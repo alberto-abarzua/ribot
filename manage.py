@@ -231,14 +231,15 @@ def gdb(**kwargs):
 def runserver(**kwargs):
 
     esp = kwargs['esp']
+    detached = kwargs['detached']
     if esp:
         print("Running server for the esp-32")
         dcu(['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml'],
-            env={"ESP_CONTROLLER_SERVER_HOST": get_ip()})
+            env={"ESP_CONTROLLER_SERVER_HOST": get_ip()}, detached=detached)
     else:
         print('Running server for the linux platform')
         dcu(['backend.yaml', 'unity_webgl_server.yaml',
-            'frontend.yaml', 'firmware.yaml'])
+            'frontend.yaml', 'firmware.yaml'], detached=detached)
 
 
 def shell(**kwargs):
@@ -315,6 +316,8 @@ def main(**kwargs):
     parser_runserver.set_defaults(func=runserver)
     parser_runserver.add_argument(
         '--esp', action='store_true', help='Run server for ESP-32 ')
+    parser_runserver.add_argument(
+        '--detached', '-d', action='store_true', help='Run server in detached mode')
 
     parser_down = subparsers.add_parser(
         'down', help='Stop all containers')

@@ -61,6 +61,7 @@ const ToolBar = () => {
             onClick: addSleepAction,
             bgColor: 'bg-action-sleep',
             hoverColor: 'hover:bg-action-sleep-hover',
+            helpText: 'Sleep Action: Pause movement',
         },
         {
             name: 'Tool',
@@ -68,6 +69,7 @@ const ToolBar = () => {
             onClick: addToolAction,
             bgColor: 'bg-action-tool',
             hoverColor: 'hover:bg-action-tool-hover',
+            helpText: 'Tool Action: Change tool value',
         },
         {
             name: 'Custom',
@@ -75,6 +77,7 @@ const ToolBar = () => {
             onClick: addToolAction,
             bgColor: 'bg-action-custom',
             hoverColor: 'hover:bg-action-custom-hover',
+            helpText: 'Action Set: Set of actions',
         },
     ];
 
