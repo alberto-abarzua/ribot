@@ -15,9 +15,9 @@ from robot_arm_controller.control.arm_kinematics import (
 )
 from robot_arm_controller.control.controller_servers import (
     ControllerServer,
-    FIFOLock,
     WebsocketServer,
 )
+from robot_arm_controller.utils.fifo_lock import FIFOLock
 from robot_arm_controller.utils.messages import Message, MessageOp
 from robot_arm_controller.utils.prints import console
 
@@ -38,6 +38,12 @@ class Setting:
     last_updated: float = -1
 
 
+class ControllerStatus(Enum):
+    NOT_STARTED = 0
+    RUNNING = 1
+    STOPPED = 2
+
+
 class ArmController:
     def __init__(
         self,
@@ -45,37 +51,34 @@ class ArmController:
         websocket_port: int = 8600,
         server_port: int = 8500,
     ) -> None:
-        # Arm Status
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
         self.current_angles_lock: FIFOLock = FIFOLock()
 
         self.tool_value: float = 0
         self.move_queue_size: int = 0
         self.is_homed: bool = False
-        self.last_health_check: float = 0
-        self.last_status_time: float = 0
 
-        self.stopped = False
-        self.connected = False
         self.config_file: Optional[Path] = None
-
-        self.print_status = False
-        self.print_idx = 0
-
-        self.controller_server: ControllerServer = ControllerServer(self, server_port)
-        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
 
         self.arm_params = arm_parameters
         self.num_joints: int = len(self._current_angles)
         self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
 
-        self.command_cooldown: float = 0.01
-        self.connection_controller_timeout: int = 60
-
         self.joint_settings: List[Dict[Settings, Setting]] = []
         self.joint_settings_response_code: List[Dict[int, Setting]] = []
 
-        # register new handlers here
+        self.last_status_time: float = 0
+
+        self.status: ControllerStatus = ControllerStatus.NOT_STARTED
+
+        self.print_status = False
+        self.print_idx = 0
+
+        self.stop_event: threading.Event = threading.Event()
+
+        self.controller_server: ControllerServer = ControllerServer(self, server_port)
+        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
+        self.file_reload_thread: Optional[threading.Thread] = None
 
         self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {
             MessageOp.MOVE: self.handle_move_message,
@@ -119,21 +122,33 @@ class ArmController:
         else:
             self.websocket_server = None
 
+        connection_controller_timeout = 60
         self.controller_server.start()
         start_time = time.time()
         if wait:
-            while not self.is_ready:
+            while not self.is_ready and not self.stop_event.is_set():
                 time.sleep(0.1)
-                if time.time() - start_time > self.connection_controller_timeout:
+                if time.time() - start_time > connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
+
+        self.status = ControllerStatus.RUNNING
         console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
         console.log("Stopping controller...", style="setup", end="\n")
-        self.stopped = True
+        self.stop_event.set()
+        self.status = ControllerStatus.STOPPED
+
+        time.sleep(3)
+
         if self.websocket_server is not None:
             self.websocket_server.stop()
+
         self.controller_server.stop()
+
+        if self.file_reload_thread is not None and self.file_reload_thread.is_alive():
+            self.file_reload_thread.join()
+
         console.log("Controller Stopped", style="setup")
 
     @property
@@ -239,16 +254,17 @@ class ArmController:
             self.arm_params.joints[i].set_bounds(min_angle_rad, max_angle_rad)
 
         if reload:
-            thread = threading.Thread(target=self.check_and_reload_config, args=(file,))
-            thread.start()
+            self.file_reload_thread = threading.Thread(target=self.check_and_reload_config, args=(file,))
+            self.file_reload_thread.start()
 
     def check_and_reload_config(self, file: Path) -> None:
         start_time = time.time()
-        while not self.stopped:
+        while not self.stop_event.is_set():
             if file.stat().st_mtime > start_time:
                 self.configure_from_file(file)
                 start_time = time.time()
             time.sleep(3)
+        exit(0)
 
     """
     ----------------------------------------
@@ -259,17 +275,15 @@ class ArmController:
     def handle_move_message(self, _: Message) -> None:
         pass
 
-    def check_last_status(self) -> bool:
+    def check_last_status(self) -> None:
         current_time = time.time()
         if self.last_status_time == 0:
-            return True
+            return
+
         if current_time - self.last_status_time > 5:
             console.log("No status message received", style="error")
             self.connected = False
             self.stop()
-            return False
-
-        return True
 
     def handle_status_message(self, message: Message) -> None:
         code = message.code
@@ -284,9 +298,6 @@ class ArmController:
                     self.print_idx = 0
                 self.print_idx += 1
             self.last_status_time = time.time()
-
-        if code == 4:
-            self.last_health_check = time.time()
 
     def handle_config_message(self, message: Message) -> None:
         code = message.code
@@ -330,19 +341,18 @@ class ArmController:
 
         message = Message(MessageOp.MOVE, 3)
         self.controller_server.send_message(message, mutex=True)
-        time.sleep(self.command_cooldown)
         start_time = time.time()
         self.is_homed = False
         time.sleep(1)
         if wait:
-            while not self.is_homed:
+            while not self.is_homed and not self.stop_event.is_set():
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
             # wait for angles to get to 0
             start_time = time.time()
 
-            while not all([abs(angle) < 0.1 for angle in self.current_angles]):
+            while not all([abs(angle) < 0.1 for angle in self.current_angles]) and not self.stop_event.is_set():
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
@@ -361,7 +371,6 @@ class ArmController:
         message = Message(MessageOp.MOVE, 5, [joint_idx])
 
         self.controller_server.send_message(message, mutex=True)
-        time.sleep(self.command_cooldown)
 
     def move_joint_to_relative(self, joint_idx: int, angle: float) -> bool:
         message = Message(MessageOp.MOVE, 11, [joint_idx, angle])
@@ -387,13 +396,13 @@ class ArmController:
             console.log(f"Setting tool value to: {angle}", style="set_tool")
 
     def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
-        while not np.allclose(self.current_angles, target_angles, atol=epsilon):
+        while not np.allclose(self.current_angles, target_angles, atol=epsilon) and not self.stop_event.is_set():
             time.sleep(0.2)
 
     def wait_done_moving(self) -> None:
         if self.print_status:
             console.log(f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
-        while self.move_queue_size > 0:
+        while self.move_queue_size > 0 and not self.stop_event.is_set():
             time.sleep(0.2)
         if self.print_status:
             console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
@@ -409,19 +418,6 @@ class ArmController:
                     API Methods -- STATUS
     ----------------------------------------
     """
-
-    def health_check(self) -> bool:
-        if not self.is_ready:
-            console.log("Not connected", style="error")
-            return False
-        message = Message(MessageOp.STATUS, 3)
-        current_time = time.time()
-        with self.controller_server.connection_mutex:
-            self.controller_server.send_message(message)
-        while self.last_health_check < current_time and time.time() - current_time < 5:
-            time.sleep(0.01)
-
-        return self.last_health_check > current_time
 
     def stop_movement(self) -> None:
         message = Message(MessageOp.STATUS, 5)
@@ -461,7 +457,7 @@ class ArmController:
         if setting.last_updated < 0:  # valid value
             message = Message(MessageOp.CONFIG, code, [float(joint_idx)])
             self.controller_server.send_message(message, mutex=True)
-            while setting.last_updated < 0:
+            while setting.last_updated < 0 and not self.stop_event.is_set():
                 time.sleep(0.01)
         return setting.value
 
@@ -515,7 +511,7 @@ class SingletonArmController:
     @classmethod
     def get_instance(cls) -> ArmController:
         if cls._instance is not None:
-            if cls._instance.stopped:
+            if cls._instance.status == ControllerStatus.STOPPED:
                 console.log("Error in SingletonArmController instance has stopped!", style="error")
                 cls._instance = None
                 time.sleep(7)

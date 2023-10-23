@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from robot_arm_controller.controller import ArmController, Settings
+from robot_arm_controller.controller import ArmController, Settings, ControllerStatus
 
 from utils.general import controller_dependency
 
@@ -48,7 +48,9 @@ def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     status_dict["isHomed"] = controller.is_homed
     status_dict["moveQueueSize"] = controller.move_queue_size
     status_dict["currentAngles"] = controller.current_angles
-    status_dict["connected"] = controller.connected and not controller.stopped
+
+    status_dict["connected"] = controller.status == ControllerStatus.RUNNING
+    status_dict["status"] = controller.status
     return status_dict
 
 
