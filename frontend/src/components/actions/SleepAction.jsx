@@ -23,13 +23,13 @@ const SleepAction = ({ ...props }) => {
 
     return (
         <BaseAction
-            className={'bg-action-sleep h-20'}
+            className={'h-20 bg-action-sleep'}
             icon={<BedtimeIcon className="text-6xl"></BedtimeIcon>}
             {...props}
         >
             <div className="flex flex-1 items-center  justify-end">
                 <div className="flex items-center justify-end text-black">
-                    <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
+                    <div className=" flex items-center justify-center rounded-md bg-action-data p-2  shadow">
                         <TextVariable
                             label="Timeout (s)"
                             setValue={value =>

@@ -10,6 +10,10 @@ const actionListSlice = createSlice({
     name: 'actionList',
     initialState,
     reducers: {
+        clearActionList(state) {
+            state.actions = [];
+        },
+
         addAction(state, action) {
             action.payload.index = state.actions.length;
             state.actions.push(action.payload);

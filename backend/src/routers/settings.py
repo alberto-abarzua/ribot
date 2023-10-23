@@ -1,12 +1,12 @@
-from typing import Any, Dict, Optional
 from copy import deepcopy
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from robot_arm_controller.controller import ArmController, Settings
 
 from utils.general import controller_dependency
-from pathlib import Path
 
 router = APIRouter()
 
@@ -34,6 +34,7 @@ def get_items(
             "value": controller.get_setting_joints(Settings(setting)),
         }
 
+
 # --------
 # Status
 # --------
@@ -47,6 +48,7 @@ def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     status_dict["isHomed"] = controller.is_homed
     status_dict["moveQueueSize"] = controller.move_queue_size
     status_dict["currentAngles"] = controller.current_angles
+    status_dict["connected"] = controller.connected and not controller.stopped
     return status_dict
 
 
@@ -60,6 +62,7 @@ def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any
 def health_check(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     controller.health_check()
     return {"message": "Health check completed"}
+
 
 # --------
 # Settings

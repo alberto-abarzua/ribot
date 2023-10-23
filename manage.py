@@ -52,6 +52,8 @@ def dcu(files: List[str], env: dict = {}, detached=False):
 def dcd(files: List[str]):
     file_list = get_file_list(files)
 
+    print("Stopping containers")
+    print(file_list)
     subprocess.check_call(
         ['docker', 'compose', *file_list, 'down', '--remove-orphans'])
 
@@ -116,9 +118,11 @@ def build_firmware_locally(**kwargs):
 
 
 def down(**kwargs):
-    container_name = kwargs['container']
+    container_name = kwargs.get('container', None)
+    print("Stopping containers")
+    print(container_name)
 
-    if container_name:
+    if container_name is not None:
         if container_name == 'firmware':
             dcd(['firmware.yaml'])
         elif container_name == 'controller':
@@ -325,7 +329,7 @@ def main(**kwargs):
     parser_down.set_defaults(func=down)
 
     parser_down.add_argument(
-        '--container', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to stop')
+        '--container', '-c', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to stop')
 
     parser_build_flash_esp = subparsers.add_parser(
         'build-flash-esp', help='Build and flash firmware to esp32')

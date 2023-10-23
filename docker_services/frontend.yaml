@@ -2,6 +2,7 @@ version: "3.8"
 services:
   frontend:
     build: ../frontend
+    stop_grace_period: 5s
     volumes:
       - ../frontend/src:/app/src
       - ../frontend/package.json:/app/package.json

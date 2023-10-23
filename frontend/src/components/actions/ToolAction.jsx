@@ -25,13 +25,13 @@ const ToolAction = ({ ...props }) => {
 
     return (
         <BaseAction
-            className={'bg-action-tool h-20'}
+            className={'h-20 bg-action-tool'}
             icon={<BuildIcon className="text-6xl"></BuildIcon>}
             {...props}
         >
             <div className="flex flex-1 items-center  justify-end">
                 <div className="flex items-center justify-end text-black">
-                    <div className=" flex items-center justify-center rounded-md bg-slate-200 p-2  shadow">
+                    <div className=" flex items-center justify-center rounded-md bg-action-data p-2  shadow">
                         <TextVariable
                             label="Tool Value"
                             value={toolValue.toolValue}

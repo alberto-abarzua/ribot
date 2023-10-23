@@ -33,9 +33,9 @@ def get_controller() -> ArmController:
 
 def start_controller() -> None:
     controller = get_controller()
-    controller.start(wait=True)
     controller.print_status = PRINT_DEBUG
-    controller.configure_from_file(CONFIG_FILE, reload=True)
+    controller.set_config_file(CONFIG_FILE)
+    controller.start()
 
 
 def stop_controller() -> None:

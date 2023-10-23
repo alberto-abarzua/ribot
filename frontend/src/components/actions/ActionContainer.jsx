@@ -16,8 +16,6 @@ const ActionContainer = () => {
     const armPose = useSelector(state => state.armPose);
     const runningRef = useRef(false);
 
-    console.log(actionListSerialized);
-
     let valid = true;
 
     for (const action of actionListSerialized) {

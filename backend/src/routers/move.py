@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter

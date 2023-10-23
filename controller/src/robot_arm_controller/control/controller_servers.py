@@ -4,7 +4,6 @@ import asyncio
 import queue
 import socket
 import threading
-import time
 import types
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -72,6 +71,7 @@ class WebsocketServer(ControllerDependencies):
 
         # asyncio event loop
         self.loop: Optional[asyncio.AbstractEventLoop] = None
+        self.server: Optional[asyncio.AbstractServer] = None
 
     async def handler(self, websocket: Any, _: str) -> None:
         async for message in websocket:
@@ -83,9 +83,18 @@ class WebsocketServer(ControllerDependencies):
     def _start(self) -> None:
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
-        start_server = websockets.serve(self.handler, "0.0.0.0", self.port)  # type: ignore
-        console.log(f"Starting websocket server on port {self.port}", style="setup")
-        asyncio.get_event_loop().run_until_complete(start_server)
+        try:
+            start_server = websockets.serve(  # type: ignore
+                self.handler, "0.0.0.0", self.port)  # type: ignore
+        except OSError as e:
+            console.log(
+                f"Failed to bind to address {self.port} with error: {str(e)}", style="error")
+            self.stop()
+            return
+        console.log(
+            f"Starting websocket server on port {self.port}", style="setup")
+        self.server = asyncio.get_event_loop().run_until_complete(start_server)
+
         asyncio.get_event_loop().run_forever()
 
     def start(self) -> None:
@@ -95,10 +104,19 @@ class WebsocketServer(ControllerDependencies):
 
     def stop(self) -> None:
         self.stop_event.set()
+        if self.server is not None:
+            self.server.close()
         if self.loop is not None:
             self.loop.call_soon_threadsafe(self.loop.stop)
-        if self.thread is not None:
-            self.thread.join()
+        self.controller.connected = False
+        self.controller.stopped = True
+
+        if threading.current_thread() != self.thread:
+            if self.thread and self.thread.is_alive():
+                self.thread.join()
+        else:
+            console.log("Websocket server thread is itself", style="error")
+            exit()
 
 
 class ControllerServer(ControllerDependencies):
@@ -115,8 +133,6 @@ class ControllerServer(ControllerDependencies):
         self.status_time_interval: float = 1 / 30  # 30 Hz
         self.stop_event: threading.Event = threading.Event()
 
-        self.last_status_time: float = time.time()
-
     @property
     def connection_mutex(self) -> FIFOLock:
         return self._connection_mutex
@@ -125,13 +141,18 @@ class ControllerServer(ControllerDependencies):
         while not self.stop_event.is_set():
             message = Message(MessageOp.STATUS, 0)
             self.send_message(message, mutex=True)
-            self.last_status_time = time.time()
             self.stop_event.wait(self.status_time_interval)
 
     def _start(self) -> None:
         addr = ("0.0.0.0", 8500)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(addr)
+        try:
+            self.server_socket.bind(addr)
+        except OSError as e:
+            console.log(
+                f"Failed to bind to address {addr} with error: {str(e)}", style="error")
+            self.stop()
+            return
         self.server_socket.listen(1)
         console.log(f"Listening on {addr}", style="setup")
 
@@ -143,8 +164,19 @@ class ControllerServer(ControllerDependencies):
 
             self.connection_socket.setblocking(False)
             self.connection_socket.settimeout(0)
+            # SO_KEEPALIVE set
+            self.connection_socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+            self.controller.configure()
+            self.controller.connected = True
 
             self.handle_controller_connection()
+
+        console.log("Closing server socket", style="setup")
+        self.controller.connected = False
+        self.controller.stopped = True
+        self.server_socket.close()
 
     def start(self) -> None:
         self.thread = threading.Thread(target=self._start)
@@ -158,17 +190,25 @@ class ControllerServer(ControllerDependencies):
     def stop(self) -> None:
         console.log("Stopping controller server", style="error")
         self.stop_event.set()
-        if self.status_thread:
+        if self.status_thread and self.status_thread.is_alive():
             self.status_thread.join()
-        if self.thread:
-            self.thread.join()
+        self.controller.connected = False
+        self.controller.stopped = True
+        if threading.current_thread() != self.thread:
+            if self.thread and self.thread.is_alive():
+                self.thread.join()
+        else:
+            console.log("Controller server thread is itself", style="error")
+            exit()
 
     def _send_message(self, message: Message) -> None:
         if self.is_ready and self.connection_socket is not None:
             try:
                 self.connection_socket.send(message.encode())
+
             except OSError as e:
-                console.log(f"Connection failed with error: {str(e)}", style="error")
+                console.log(
+                    f"Connection failed with error: {str(e)}", style="error")
                 self.stop()
 
     def send_message(self, message: Message, mutex: bool = False) -> None:
@@ -182,6 +222,15 @@ class ControllerServer(ControllerDependencies):
         NO_NEW_DATA = 0
         ERROR = 2
         NOT_READY = 3
+
+    def connection_socket_alive(self) -> bool:
+        if self.connection_socket is None:
+            return False
+        try:
+            self.connection_socket.getpeername()
+            return True
+        except OSError:
+            return False
 
     def _receive_message(self, timeout: Optional[int] = None) -> Union[ControllerServer.ReceiveStatusCode, Message]:
         if not self.is_ready or self.connection_socket is None:
@@ -211,7 +260,9 @@ class ControllerServer(ControllerDependencies):
         except BlockingIOError:
             return self.ReceiveStatusCode.NO_NEW_DATA
         except OSError as e:
-            console.log(f"Connection failed with error: {str(e)}", style="error")
+            console.log(
+                f"Connection failed with error: {str(e)}", style="error")
+            self.stop()
             return self.ReceiveStatusCode.ERROR
 
     def receive_message(
@@ -225,6 +276,10 @@ class ControllerServer(ControllerDependencies):
 
     def handle_controller_connection(self) -> None:
         while not self.stop_event.is_set():
+            valid = self.controller.check_last_status()
+            if not valid:
+                self.stop()
+
             with self.connection_mutex:
                 msg = self.receive_message()
 

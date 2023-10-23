@@ -7,6 +7,7 @@ const initialState = {
     roll: 0,
     pitch: 0,
     yaw: 0,
+    connected: false,
     toolValue: 0,
     isHomed: false,
     moveQueueSize: 0,
@@ -79,6 +80,16 @@ const armPoseSlice = createSlice({
         updateCurrentToolValue(state, action) {
             state.toolValue = action.payload;
         },
+        updateCurrentIsHomed(state, action) {
+            state.isHomed = action.payload;
+        },
+        updateCurrentMoveQueueSize(state, action) {
+            state.moveQueueSize = action.payload;
+        },
+        updateCurrentConnected(state, action) {
+            state.connected = action.payload;
+        },
+
         updateCurrent(state, action) {
             if (state.x !== action.payload.x) {
                 state.x = action.payload.x;
@@ -109,6 +120,9 @@ const armPoseSlice = createSlice({
             }
             if (state.currentAngles !== action.payload.currentAngles) {
                 state.currentAngles = action.payload.currentAngles;
+            }
+            if (state.connected !== action.payload.connected) {
+                state.connected = action.payload.connected;
             }
         },
     },

@@ -5,7 +5,6 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
 import SideNav from '@/components/general/layout/SideNav';
-import ConfigFile from '@/components/settings/ConfigFile';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
 import store from '@/redux/store';
 import api from '@/utils/api';
@@ -32,8 +31,19 @@ export default function Home() {
         }
 
         const fetchCurrentPose = async () => {
-            const response = await api.get('/settings/status/');
-            dispatch(armPoseActions.updateCurrent(response.data));
+            try {
+                const response = await api.get('/settings/status/');
+                dispatch(armPoseActions.updateCurrent(response.data));
+                console.log(response.data);
+            } catch (error) {
+                console.log('error');
+                if (error.response && error.response.status === 400) {
+                    console.log(error.response.data.message);
+                } else {
+                    console.error('An unexpected error occurred:', error);
+                }
+                dispatch(armPoseActions.updateCurrentConnected(false));
+            }
         };
 
         const moveToPose = async () => {
@@ -98,8 +108,8 @@ export default function Home() {
         };
 
         intervalIdRef.current = setInterval(() => {
-            moveToPose();
             fetchCurrentPose();
+            moveToPose();
         }, 100);
 
         return () => {

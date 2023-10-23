@@ -1,4 +1,5 @@
 import dataclasses
+import threading
 import time
 from enum import Enum
 from pathlib import Path
@@ -7,7 +8,6 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import toml  # type: ignore
 
-import threading
 from robot_arm_controller.control.arm_kinematics import (
     ArmKinematics,
     ArmParameters,
@@ -53,16 +53,17 @@ class ArmController:
         self.move_queue_size: int = 0
         self.is_homed: bool = False
         self.last_health_check: float = 0
+        self.last_status_time: float = 0
 
         self.stopped = False
+        self.connected = False
+        self.config_file: Optional[Path] = None
 
         self.print_status = False
         self.print_idx = 0
 
-        self.controller_server: ControllerServer = ControllerServer(
-            self, server_port)
-        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(
-            self, websocket_port)
+        self.controller_server: ControllerServer = ControllerServer(self, server_port)
+        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
 
         self.arm_params = arm_parameters
         self.num_joints: int = len(self._current_angles)
@@ -92,8 +93,7 @@ class ArmController:
             }
             self.joint_settings.append(current_joint_settings)
             self.joint_settings_response_code.append(
-                {setting.code_get +
-                    1: setting for setting in current_joint_settings.values()}
+                {setting.code_get + 1: setting for setting in current_joint_settings.values()}
             )
 
     """
@@ -125,8 +125,7 @@ class ArmController:
             while not self.is_ready:
                 time.sleep(0.1)
                 if time.time() - start_time > self.connection_controller_timeout:
-                    raise TimeoutError(
-                        "Controller took too long to start, check arm client")
+                    raise TimeoutError("Controller took too long to start, check arm client")
         console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
@@ -149,8 +148,7 @@ class ArmController:
     @current_angles.setter
     def current_angles(self, angles: List[float]) -> None:
         if len(angles) != self.num_joints:
-            raise ValueError(
-                f"Angles must be a list of length {self.num_joints}")
+            raise ValueError(f"Angles must be a list of length {self.num_joints}")
         with self.current_angles_lock:
             self._current_angles = angles
 
@@ -164,7 +162,14 @@ class ArmController:
 
         return websocket_server_up and controller_server_up
 
-    def configure_from_file(self, file: Path, reload: bool = False) -> None:
+    def set_config_file(self, file: Path) -> None:
+        self.config_file = file
+
+    def configure(self) -> None:
+        if self.config_file is not None:
+            self.configure_from_file(self.config_file)
+
+    def configure_from_file(self, file: Path, reload: bool = True) -> None:
         contents = toml.load(file)
         joint_configuration = contents["joint_configuration"]
         joints = contents["joints"]
@@ -227,19 +232,14 @@ class ArmController:
                 self.set_joint_endstop_dummy(i)
 
             self.set_setting_joint(Settings.SPEED_RAD_PER_S, speed, i)
-            self.set_setting_joint(
-                Settings.HOMING_DIRECTION, homing_direction, i)
-            self.set_setting_joint(
-                Settings.STEPS_PER_REV_MOTOR_AXIS, steps_per_rev_motor_axis, i)
-            self.set_setting_joint(
-                Settings.CONVERSION_RATE_AXIS_JOINTS, conversion_rate_axis_joint, i)
-            self.set_setting_joint(
-                Settings.HOMING_OFFSET_RADS, homing_offset_rads, i)
+            self.set_setting_joint(Settings.HOMING_DIRECTION, homing_direction, i)
+            self.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, steps_per_rev_motor_axis, i)
+            self.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, conversion_rate_axis_joint, i)
+            self.set_setting_joint(Settings.HOMING_OFFSET_RADS, homing_offset_rads, i)
             self.arm_params.joints[i].set_bounds(min_angle_rad, max_angle_rad)
 
         if reload:
-            thread = threading.Thread(
-                target=self.check_and_reload_config, args=(file,))
+            thread = threading.Thread(target=self.check_and_reload_config, args=(file,))
             thread.start()
 
     def check_and_reload_config(self, file: Path) -> None:
@@ -259,6 +259,18 @@ class ArmController:
     def handle_move_message(self, _: Message) -> None:
         pass
 
+    def check_last_status(self) -> bool:
+        current_time = time.time()
+        if self.last_status_time == 0:
+            return True
+        if current_time - self.last_status_time > 5:
+            console.log("No status message received", style="error")
+            self.connected = False
+            self.stop()
+            return False
+
+        return True
+
     def handle_status_message(self, message: Message) -> None:
         code = message.code
         if code == 1:
@@ -271,6 +283,7 @@ class ArmController:
                     console.log(self, style="status")
                     self.print_idx = 0
                 self.print_idx += 1
+            self.last_status_time = time.time()
 
         if code == 4:
             self.last_health_check = time.time()
@@ -305,8 +318,7 @@ class ArmController:
         self,
         pose: ArmPose,
     ) -> bool:
-        target_angles = self.kinematics.pose_to_angles(
-            pose, self.current_angles)
+        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
             console.log("Target pose is not reachable", style="error")
             return False
@@ -342,8 +354,7 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
-            console.log(
-                f"Moving joint {joint_idx} to angle: {angle}", style="move_joints")
+            console.log(f"Moving joint {joint_idx} to angle: {angle}", style="move_joints")
         return True
 
     def home_joint(self, joint_idx: int) -> None:
@@ -357,8 +368,7 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
-            console.log(
-                f"Moving joint {joint_idx} relative angle: {angle}", style="move_joints")
+            console.log(f"Moving joint {joint_idx} relative angle: {angle}", style="move_joints")
         return True
 
     def move_joints_to_relative(self, angles: List[float]) -> bool:
@@ -366,8 +376,7 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         self.move_queue_size += 1
         if self.print_status:
-            console.log(
-                f"Moving joints relative angles: {angles}", style="move_joints")
+            console.log(f"Moving joints relative angles: {angles}", style="move_joints")
         return True
 
     def set_tool_value(self, angle: float) -> None:
@@ -383,17 +392,14 @@ class ArmController:
 
     def wait_done_moving(self) -> None:
         if self.print_status:
-            console.log(
-                f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
+            console.log(f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
         while self.move_queue_size > 0:
             time.sleep(0.2)
         if self.print_status:
-            console.log(
-                f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
+            console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
 
     def valid_pose(self, pose: ArmPose) -> bool:
-        target_angles = self.kinematics.pose_to_angles(
-            pose, self.current_angles)
+        target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
             return False
         return True
@@ -431,8 +437,7 @@ class ArmController:
 
     def set_setting_joint(self, setting_key: Settings, value: float, joint_idx: int) -> None:
         if setting_key not in self.joint_settings[joint_idx].keys():
-            raise ValueError(
-                f"Invalid setting key for joint setting: {setting_key}")
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_set
         message = Message(MessageOp.CONFIG, code, [float(joint_idx), value])
@@ -440,8 +445,7 @@ class ArmController:
         setting.last_updated = -1
 
         if self.print_status:
-            console.log(
-                f"Setting {setting_key} to {value} for joint {joint_idx}", style="set_settings")
+            console.log(f"Setting {setting_key} to {value} for joint {joint_idx}", style="set_settings")
 
     def set_setting_joints(self, setting_key: Settings, value: float) -> None:
         for joint_idx in range(self.num_joints):
@@ -449,8 +453,7 @@ class ArmController:
 
     def get_setting_joint(self, setting_key: Settings, joint_idx: int) -> float:
         if setting_key not in self.joint_settings[joint_idx].keys():
-            raise ValueError(
-                f"Invalid setting key for joint setting: {setting_key}")
+            raise ValueError(f"Invalid setting key for joint setting: {setting_key}")
 
         setting = self.joint_settings[joint_idx][setting_key]
         code = setting.code_get
@@ -466,40 +469,28 @@ class ArmController:
         return [self.get_setting_joint(setting_key, joint_idx) for joint_idx in range(self.num_joints)]
 
     def set_joint_driver_stepper(self, joint_idx: int, step_pin: int, dir_pin: int) -> None:
-        message = Message(MessageOp.CONFIG, 21, [float(
-            joint_idx), float(step_pin), float(dir_pin)])
+        message = Message(MessageOp.CONFIG, 21, [float(joint_idx), float(step_pin), float(dir_pin)])
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
-            console.log(
-                f"Setting stepper driver for joint {joint_idx}", style="set_settings")
+            console.log(f"Setting stepper driver for joint {joint_idx}", style="set_settings")
 
     def set_joint_driver_servo(self, joint_idx: int, pin: int) -> None:
         message = Message(MessageOp.CONFIG, 23, [float(joint_idx), float(pin)])
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
-            console.log(
-                f"Setting servo driver for joint {joint_idx}", style="set_settings")
+            console.log(f"Setting servo driver for joint {joint_idx}", style="set_settings")
 
     def set_joint_endstop_hall(self, joint_idx: int, pin: int) -> None:
         message = Message(MessageOp.CONFIG, 25, [float(joint_idx), float(pin)])
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
-            console.log(
-                f"Setting endstop hall for joint {joint_idx}", style="set_settings")
+            console.log(f"Setting endstop hall for joint {joint_idx}", style="set_settings")
 
     def set_joint_endstop_dummy(self, joint_idx: int) -> None:
         message = Message(MessageOp.CONFIG, 27, [float(joint_idx)])
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
-            console.log(
-                f"Setting endstop dummy for joint {joint_idx}", style="set_settings")
-
-
-class ControllerManager:
-    """
-    Handles instances of the controller
-
-    """
+            console.log(f"Setting endstop dummy for joint {joint_idx}", style="set_settings")
 
 
 class SingletonArmController:
@@ -519,18 +510,20 @@ class SingletonArmController:
         cls.websocket_port = websocket_port
         cls.server_port = server_port
 
-        cls._instance = ArmController(
-            arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
+        cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
 
     @classmethod
     def get_instance(cls) -> ArmController:
         if cls._instance is not None:
             if cls._instance.stopped:
+                console.log("Error in SingletonArmController instance has stopped!", style="error")
                 cls._instance = None
+                time.sleep(7)
 
                 if cls.arm_parameters is not None:
-                    cls.create_instance(cls.arm_parameters,
-                                        cls.websocket_port, cls.server_port)
+                    cls.create_instance(cls.arm_parameters, cls.websocket_port, cls.server_port)
+                    if cls._instance is not None:
+                        cls._instance.start()
 
                 return cls.get_instance()
             else:

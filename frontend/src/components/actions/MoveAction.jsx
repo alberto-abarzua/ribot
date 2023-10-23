@@ -55,7 +55,7 @@ const MoveAction = ({ ...props }) => {
             {...props}
         >
             <>
-                <div className="inline-flex flex-1 flex-col items-end justify-center rounded-md bg-slate-200 p-2 text-black shadow">
+                <div className="inline-flex flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow">
                     <div className="inline-flex items-center justify-end  ">
                         <TextVariable
                             label="X"
@@ -82,7 +82,7 @@ const MoveAction = ({ ...props }) => {
                     </div>
                 </div>
 
-                <div className="inline-flex  flex-1 flex-col items-end justify-center rounded-md bg-slate-200 p-2 text-black shadow ">
+                <div className="inline-flex  flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow ">
                     <div className="inline-flex items-center justify-end">
                         <TextVariable
                             label="Roll"
