@@ -2,8 +2,7 @@
 import ActionContainer from '@/components/actions/ActionContainer';
 import ArmSimulation from '@/components/armsimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
-import AxisControls from '@/components/controls/AxisControls';
-import JointsControls from '@/components/controls/JointsControls';
+import ControlPanel from '@/components/controls/ControlPanel';
 import SideNav from '@/components/general/layout/SideNav';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
 import store from '@/redux/store';
@@ -126,11 +125,15 @@ export default function Home() {
                     <div className="flex h-full w-full flex-col items-center lg:w-5/12 ">
                         <ActionContainer></ActionContainer>
                     </div>
-                    <div className="box-border flex h-full w-full flex-col bg-slate-50 lg:w-6/12">
-                        <ArmSimulation></ArmSimulation>
-                        <ArmStatus></ArmStatus>
-                        <JointsControls></JointsControls>
-                        <AxisControls></AxisControls>
+                    <div className="relative box-border flex h-full w-full flex-col items-start justify-start bg-slate-50 lg:w-6/12">
+                        <div className="relative flex h-2/5 w-full">
+                            <ArmSimulation></ArmSimulation>
+                            <div className="absolute right-0">
+                                <ArmStatus></ArmStatus>
+                            </div>
+                        </div>
+                    
+                        <ControlPanel></ControlPanel>
                     </div>
                 </div>
             </DndProvider>

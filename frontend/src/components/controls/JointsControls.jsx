@@ -18,7 +18,7 @@ const JointsControls = () => {
     };
 
     return (
-        <div className="flex flex-wrap items-center gap-4 p-4">
+        <div className="flex w-fit flex-wrap items-center gap-4 p-4">
             <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
                 <div>
                     <h3 className="mb-2 text-lg font-medium">Joint Controls</h3>

@@ -21,7 +21,7 @@ const MoveAxis = ({ label, value, setValue, step_amount = 10 }) => {
                 +
             </button>
             <div className="inline-flex h-6 w-16 cursor-default items-center justify-center gap-2.5 rounded-md bg-gray-200 shadow">
-                <div className="w-12 select-none text-center text-xs font-normal text-black">
+                <div className="w-12 select-none text-center font-normal text-black">
                     {value.toFixed(2)}
                 </div>
             </div>

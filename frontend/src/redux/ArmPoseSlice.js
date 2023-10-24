@@ -10,6 +10,7 @@ const initialState = {
     connected: false,
     toolValue: 0,
     isHomed: false,
+    status: 0,
     moveQueueSize: 0,
     currentAngles: [0, 0, 0, 0, 0, 0],
     toMove: {
@@ -123,6 +124,9 @@ const armPoseSlice = createSlice({
             }
             if (state.connected !== action.payload.connected) {
                 state.connected = action.payload.connected;
+            }
+            if (state.status !== action.payload.status) {
+                state.status = action.payload.status;
             }
         },
     },
