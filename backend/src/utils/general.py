@@ -26,6 +26,8 @@ def get_controller() -> ArmController:
             arm_parameters=arm_params,
             websocket_port=websocket_port,
             server_port=server_port,
+            config_file=CONFIG_FILE,
+            print_status=PRINT_DEBUG,
         )
 
     return SingletonArmController.get_instance()
@@ -33,8 +35,6 @@ def get_controller() -> ArmController:
 
 def start_controller() -> None:
     controller = get_controller()
-    controller.print_status = PRINT_DEBUG
-    controller.set_config_file(CONFIG_FILE)
     controller.start()
 
 

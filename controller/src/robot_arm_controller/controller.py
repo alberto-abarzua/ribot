@@ -40,8 +40,9 @@ class Setting:
 
 class ControllerStatus(Enum):
     NOT_STARTED = 0
-    RUNNING = 1
-    STOPPED = 2
+    WAITING_CONNECTION = 1
+    RUNNING = 2
+    STOPPED = 3
 
 
 class ArmController:
@@ -131,15 +132,14 @@ class ArmController:
                 if time.time() - start_time > connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
 
-        self.status = ControllerStatus.RUNNING
+        self.status = ControllerStatus.WAITING_CONNECTION
+
         console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
         console.log("Stopping controller...", style="setup", end="\n")
         self.stop_event.set()
         self.status = ControllerStatus.STOPPED
-
-        time.sleep(3)
 
         if self.websocket_server is not None:
             self.websocket_server.stop()
@@ -150,6 +150,7 @@ class ArmController:
             self.file_reload_thread.join()
 
         console.log("Controller Stopped", style="setup")
+        exit()
 
     @property
     def current_pose(self) -> ArmPose:
@@ -266,6 +267,9 @@ class ArmController:
             time.sleep(3)
         exit(0)
 
+    def set_status_running(self) -> None:
+        self.status = ControllerStatus.RUNNING
+
     """
     ----------------------------------------
                     Handlers
@@ -282,7 +286,6 @@ class ArmController:
 
         if current_time - self.last_status_time > 5:
             console.log("No status message received", style="error")
-            self.connected = False
             self.stop()
 
     def handle_status_message(self, message: Message) -> None:
@@ -494,6 +497,8 @@ class SingletonArmController:
     arm_parameters: Optional[ArmParameters] = None
     websocket_port: int = 8600
     server_port: int = 8500
+    print_status: bool = False
+    config_file: Optional[Path] = None
 
     @classmethod
     def create_instance(
@@ -501,12 +506,19 @@ class SingletonArmController:
         arm_parameters: ArmParameters,
         websocket_port: int = 8600,
         server_port: int = 8500,
+        config_file: Optional[Path] = None,
+        print_status: bool = False,
     ) -> None:
         cls.arm_parameters = arm_parameters
         cls.websocket_port = websocket_port
         cls.server_port = server_port
+        cls.print_status = print_status
+        cls.config_file = config_file
 
         cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
+        cls._instance.print_status = print_status
+        if config_file is not None:
+            cls._instance.set_config_file(config_file)
 
     @classmethod
     def get_instance(cls) -> ArmController:
@@ -514,12 +526,17 @@ class SingletonArmController:
             if cls._instance.status == ControllerStatus.STOPPED:
                 console.log("Error in SingletonArmController instance has stopped!", style="error")
                 cls._instance = None
-                time.sleep(7)
+
+                time.sleep(5)
 
                 if cls.arm_parameters is not None:
-                    cls.create_instance(cls.arm_parameters, cls.websocket_port, cls.server_port)
+                    cls.create_instance(
+                        cls.arm_parameters, cls.websocket_port, cls.server_port, cls.config_file, cls.print_status
+                    )
                     if cls._instance is not None:
+                        console.log("Restarting SingletonArmController instance", style="error")
                         cls._instance.start()
+                        console.log("SingletonArmController instance restarted", style="error")
 
                 return cls.get_instance()
             else:

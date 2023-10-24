@@ -36,9 +36,8 @@ export default function Home() {
                 dispatch(armPoseActions.updateCurrent(response.data));
                 console.log(response.data);
             } catch (error) {
-                console.log('error');
                 if (error.response && error.response.status === 400) {
-                    console.log(error.response.data.message);
+                    console.error(error.response.data.message);
                 } else {
                     console.error('An unexpected error occurred:', error);
                 }

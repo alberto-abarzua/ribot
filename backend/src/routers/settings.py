@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from robot_arm_controller.controller import ArmController, Settings, ControllerStatus
+from robot_arm_controller.controller import ArmController, ControllerStatus, Settings
 
 from utils.general import controller_dependency
 
@@ -58,12 +58,6 @@ def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
 def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     controller.stop_movement()
     return {"message": "Movement stopped"}
-
-
-@router.post("/health_check/")
-def health_check(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
-    controller.health_check()
-    return {"message": "Health check completed"}
 
 
 # --------

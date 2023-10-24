@@ -71,12 +71,14 @@ class ControllerServer(ControllerDependencies):
         addr = ("0.0.0.0", self.port)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
         try:
             self.server_socket.bind(addr)
         except OSError as e:
             console.log(f"Failed to bind to address (ControllerServer) {addr} with error: {str(e)}", style="error")
-            self.stop()
+            self.controller.stop()
             return
 
         self.server_socket.listen(1)
@@ -91,9 +93,10 @@ class ControllerServer(ControllerDependencies):
 
         self.connection_socket = conn
 
+        self.controller.set_status_running()
+
         self.connection_socket.setblocking(False)
         self.connection_socket.settimeout(0)
-        self.connection_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
         self.controller.configure()
         self.controller.connected = True
@@ -112,11 +115,16 @@ class ControllerServer(ControllerDependencies):
 
     @no_self_call
     def stop(self) -> None:
+        console.log("Stopping controller server", style="light_info")
         if self.status_thread and self.status_thread.is_alive():
             self.status_thread.join()
 
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
+        console.log("Status thread stopped", style="setup")
+
+        if self.thread is not threading.current_thread():
+            if self.thread and self.thread.is_alive():
+                self.thread.join()
+        console.log("Controller server stopped", style="setup")
 
     def _send_message(self, message: Message) -> None:
         if self.is_ready and self.connection_socket is not None:
@@ -125,7 +133,7 @@ class ControllerServer(ControllerDependencies):
 
             except OSError as e:
                 console.log(f"Connection failed with error: {str(e)}", style="error")
-                self.stop()
+                self.controller.stop()
 
     def send_message(self, message: Message, mutex: bool = False) -> None:
         if mutex:
@@ -163,7 +171,7 @@ class ControllerServer(ControllerDependencies):
             return self.ReceiveStatusCode.NO_NEW_DATA
         except OSError as e:
             console.log(f"Connection failed with error: {str(e)}", style="error")
-            self.stop()
+            self.controller.stop()
             return self.ReceiveStatusCode.ERROR
 
     def receive_message(
@@ -182,8 +190,10 @@ class ControllerServer(ControllerDependencies):
 
     def handle_controller_connection(self) -> None:
         # Main loop
-        while not self.stop_event.is_set():
+        while True:
             self.controller.check_last_status()
+            if self.controller.stop_event.is_set():
+                break
 
             with self.connection_mutex:
                 msg = self.receive_message()
@@ -224,11 +234,9 @@ class WebsocketServer(ControllerDependencies):
             )  # type: ignore
         except OSError as e:
             console.log(f"Failed to bind to address (WebsocketServer) {self.port} with error: {str(e)}", style="error")
-            self.stop()
+            self.controller.stop()
             return
         console.log(f"Starting websocket server on port {self.port}", style="setup")
-        # set SO_REUSEADDR to 1 on socket
-        start_server.ws_server.sockets[0].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server = asyncio.get_event_loop().run_until_complete(start_server)
 
         asyncio.get_event_loop().run_forever()
@@ -246,5 +254,8 @@ class WebsocketServer(ControllerDependencies):
         if self.loop is not None:
             self.loop.call_soon_threadsafe(self.loop.stop)
 
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
+        if self.thread is not threading.current_thread():
+            if self.thread and self.thread.is_alive():
+                self.thread.join()
+
+        console.log("Websocket server stopped", style="setup")
