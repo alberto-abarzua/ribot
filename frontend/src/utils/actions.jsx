@@ -1,10 +1,9 @@
 // import React from 'react';
+import { generateUniqueId } from './idManager';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
 import api from '@/utils/api';
-
-import { generateUniqueId } from './idManager';
 
 const ActionTypes = {
     MOVE: 'move',

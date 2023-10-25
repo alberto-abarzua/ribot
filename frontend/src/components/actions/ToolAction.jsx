@@ -1,12 +1,10 @@
+import BaseAction from './BaseAction';
+import TextVariable from '../general/text/TextVariable';
 import { actionListActions } from '@/redux/ActionListSlice';
 import BuildIcon from '@mui/icons-material/Build';
-
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-
-import TextVariable from '../general/text/TextVariable';
-import BaseAction from './BaseAction';
 
 const ToolAction = ({ ...props }) => {
     const dispatch = useDispatch();

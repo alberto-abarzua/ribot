@@ -1,23 +1,11 @@
-import PrimaryButton from '@/components/general/buttons/PrimaryButton';
 import TextVariable from '@/components/general/text/TextVariable';
-import api from '@/utils/api';
+import { ControllerStatus } from '@/utils/arm_enums';
 import AddHomeIcon from '@mui/icons-material/AddHome';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import NearbyErrorIcon from '@mui/icons-material/NearbyError';
-import { ControllerStatus } from '@/utils/arm_enums';
-
 import { useSelector } from 'react-redux';
 
-import WarningButton from '../general/buttons/WarningButton';
-
 const ArmStatus = () => {
-    const call_home = async () => {
-        await api.post('/move/home/');
-    };
-
-    const call_stop_movement = async () => {
-        await api.post('/settings/stop/');
-    };
     const currentPose = useSelector(state => state.armPose);
     const isHomed = currentPose.isHomed;
     const armStatus = currentPose.status;
@@ -81,10 +69,6 @@ const ArmStatus = () => {
                     <TextVariable label="Z" disabled={true} value={currentPose.z} />
                     <TextVariable label="Tool" disabled={true} value={currentPose.toolValue} />
                 </div>
-            </div>
-            <div className="flex w-full  items-end justify-end">
-                <PrimaryButton onClick={call_home}>Home Arm</PrimaryButton>
-                <WarningButton onClick={call_stop_movement}>STOP</WarningButton>
             </div>
         </div>
     );

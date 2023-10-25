@@ -2,10 +2,10 @@ FROM python:3.11.6-alpine
 
 WORKDIR /app
 
-# pythonenvbuffer
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
 ENV PYTHONPATH=/app/src
 
 

@@ -1,6 +1,5 @@
 import { BaseActionObj } from '@/utils/actions';
 import { createSlice } from '@reduxjs/toolkit';
-
 import update from 'immutability-helper';
 const initialState = {
     actions: [],

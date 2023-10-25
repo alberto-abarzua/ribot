@@ -1,7 +1,6 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
-
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 

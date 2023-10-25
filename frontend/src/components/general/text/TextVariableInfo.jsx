@@ -1,20 +1,13 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import InfoHover from './InfoHover';
 import TextVariable from '@/components/general/text/TextVariable';
 import PropTypes from 'prop-types';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const TextVariableInfo = ({ label, value, setValue, infoText, disabled = false }) => {
     return (
-        <div className="flex ">
-            <TooltipProvider>
-                <Tooltip delayDuration={300}>
-                    <TooltipTrigger>
-                        <InfoOutlinedIcon className="relative left-2 text-lg text-blue-400" />
-                    </TooltipTrigger>
-
-                    <TooltipContent>{infoText}</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+        <div className="flex items-center ">
+            <div className="relative left-2">
+                <InfoHover text={infoText} />
+            </div>
             <TextVariable label={label} value={value} setValue={setValue} disabled={disabled} />
         </div>
     );

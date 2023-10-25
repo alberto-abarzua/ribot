@@ -1,13 +1,12 @@
+import BaseAction from './BaseAction';
+import TextVariable from '../general/text/TextVariable';
 import { actionListActions } from '@/redux/ActionListSlice';
 import api from '@/utils/api';
 import GamesIcon from '@mui/icons-material/Games';
-
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import TextVariable from '../general/text/TextVariable';
-import BaseAction from './BaseAction';
 const MoveAction = ({ ...props }) => {
     const dispatch = useDispatch();
 

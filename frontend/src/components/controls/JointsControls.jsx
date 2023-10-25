@@ -1,7 +1,6 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import api from '@/utils/api';
-
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 

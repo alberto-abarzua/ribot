@@ -7,7 +7,6 @@ import SideNav from '@/components/general/layout/SideNav';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
 import store from '@/redux/store';
 import api from '@/utils/api';
-
 import { useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -126,13 +125,13 @@ export default function Home() {
                         <ActionContainer></ActionContainer>
                     </div>
                     <div className="relative box-border flex h-full w-full flex-col items-start justify-start bg-slate-50 lg:w-6/12">
-                        <div className="relative flex h-2/5 w-full">
+                        <div className="relative flex h-3/5 w-full">
                             <ArmSimulation></ArmSimulation>
                             <div className="absolute right-0">
                                 <ArmStatus></ArmStatus>
                             </div>
                         </div>
-                    
+
                         <ControlPanel></ControlPanel>
                     </div>
                 </div>
