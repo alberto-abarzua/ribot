@@ -59,6 +59,7 @@ const BaseAction = ({ icon, children, className, id, index, ...props }) => {
             isDragging: monitor.isDragging(),
         }),
     });
+
     drag(drop(ref));
 
     let indicator = null;

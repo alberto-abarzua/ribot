@@ -95,7 +95,6 @@ const ControlPanel = () => {
                 </div>
             </div>
             {controlContent}
-            <JointsControls />
         </div>
     );
 };

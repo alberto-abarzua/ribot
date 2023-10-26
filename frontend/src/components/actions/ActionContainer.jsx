@@ -6,14 +6,17 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Button } from '@/components/ui/button';
 
 const ActionContainer = () => {
-    const dispatch = useDispatch();
     const actionListSerialized = useSelector(state => state.actionList.actions);
     const actionList = actionListSerialized.map(action => BaseActionObj.fromSerializable(action));
-    const [running, setRunning] = useState(false);
     const armPose = useSelector(state => state.armPose);
+
+    const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
+
+    const dispatch = useDispatch();
 
     let valid = true;
 
@@ -48,49 +51,74 @@ const ActionContainer = () => {
         }
     };
 
-    let play_or_stop;
-    let play_or_stop_pos = 'absolute bottom-10 right-8 z-20';
+    let play_or_stop = {
+        icon: null,
+        color: null,
+        hoverColor: null,
+        text: null,
+    };
     if (valid) {
         if (running) {
-            play_or_stop = (
-                <div
-                    className={
-                        play_or_stop_pos +
-                        ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-red-400 px-2 hover:bg-red-500'
-                    }
-                    onClick={handleClick}
-                >
-                    <StopIcon className="text-3xl text-white" />
-                    <div className="text-lg text-white"> Stop</div>
-                </div>
-            );
+            play_or_stop.icon = <StopIcon className="text-3xl text-white" />;
+            play_or_stop.color = 'bg-red-400';
+            play_or_stop.hoverColor = 'hover:bg-red-500';
+            play_or_stop.text = 'Stop';
         } else {
-            play_or_stop = (
-                <div
-                    className={
-                        play_or_stop_pos +
-                        ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 px-2 hover:bg-green-500 '
-                    }
-                    onClick={handleClick}
-                >
-                    <PlayArrowIcon className="text-3xl text-white" />
-                    <div className="text-lg text-white"> Run</div>
-                </div>
-            );
+            play_or_stop.icon = <PlayArrowIcon className="text-3xl text-white" />;
+            play_or_stop.color = 'bg-green-400';
+            play_or_stop.hoverColor = 'hover:bg-green-500';
+            play_or_stop.text = 'Run';
         }
     } else {
-        play_or_stop = (
-            <div
-                className={
-                    play_or_stop_pos +
-                    ' flex h-14 w-fit cursor-not-allowed items-center justify-center rounded-md bg-orange-400 px-2 hover:bg-orange-500 '
-                }
-            >
-                <ErrorIcon className="text-3xl text-white" />
-                <div className="text-lg text-white"> Errors</div>
-            </div>
-        );
+        // error
+        play_or_stop.icon = <ErrorIcon className="text-3xl text-white" />;
+        play_or_stop.color = 'bg-orange-400';
+        play_or_stop.hoverColor = 'hover:bg-orange-500';
+        play_or_stop.text = 'Errors';
     }
+    // let play_or_stop_pos = 'absolute bottom-10 right-8 z-20';
+    // if (valid) {
+    //     if (running) {
+    //         play_or_stop = (
+    //             <div
+    //                 className={
+    //                     play_or_stop_pos +
+    //                     ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-red-400 px-2 hover:bg-red-500'
+    //                 }
+    //                 onClick={handleClick}
+    //             >
+    //                 <StopIcon className="text-3xl text-white" />
+    //                 <div className="text-lg text-white"> Stop</div>
+    //             </div>
+    //         );
+    //     } else {
+    //         play_or_stop = (
+    //             <div
+    //                 className={
+    //                     play_or_stop_pos +
+    //                     ' flex h-14 w-fit cursor-pointer items-center justify-center rounded-md bg-green-400 px-2 hover:bg-green-500 '
+    //                 }
+    //                 onClick={handleClick}
+    //             >
+    //                 <PlayArrowIcon className="text-3xl text-white" />
+    //                 <div className="text-lg text-white"> Run</div>
+    //             </div>
+    //         );
+    //     }
+    // } else {
+    //     play_or_stop = (
+    //         <div
+    //             className={
+    //                 play_or_stop_pos +
+    //                 ' flex h-14 w-fit cursor-not-allowed items-center justify-center rounded-md bg-orange-400 px-2 hover:bg-orange-500 '
+    //             }
+    //         >
+    //             <ErrorIcon className="text-3xl text-white" />
+    //             <div className="text-lg text-white"> Errors</div>
+    //         </div>
+    //     );
+    // }
+    //
 
     return (
         <div className="relative m-0 flex h-full max-h-screen w-full flex-col items-center space-y-4 ">
