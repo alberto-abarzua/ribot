@@ -9,10 +9,11 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH=/app/src
 
 
-RUN pip install pdm==2.9.3
+RUN pip install pdm==2.10
 
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./pdm.lock ./pdm.lock
+
 
 COPY . .
 

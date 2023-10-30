@@ -86,11 +86,14 @@ module.exports = {
                     DEFAULT: colors.indigo[700],
                 },
                 'action-sleep-hover': colors.indigo[800],
-                'action-custom': {
+
+                'action-set': {
                     ...colors.red,
                     DEFAULT: colors.red[500],
                 },
-                'action-custom-hover': colors.red[600],
+
+                'action-set-hover': colors.red[600],
+
                 'action-data': colors.slate[100],
             },
         },

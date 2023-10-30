@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { actionListActions } from '@/redux/ActionListSlice';
-import { MoveActionObj, ToolActionObj, SleepActionObj } from '@/utils/actions';
+import { MoveActionObj, ToolActionObj, SleepActionObj, ActionSetObj } from '@/utils/actions';
+
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import BuildIcon from '@mui/icons-material/Build';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
@@ -55,6 +56,13 @@ const ToolBar = () => {
         dispatch(actionListActions.addAction(obj.toSerializable()));
     };
 
+    const addActionSet = () => {
+        let index = actionList.length;
+        let value = [];
+        let obj = new ActionSetObj(value, index);
+        dispatch(actionListActions.addAction(obj.toSerializable()));
+    };
+
     const clearActionList = () => {
         dispatch(actionListActions.clearActionList());
     };
@@ -87,9 +95,9 @@ const ToolBar = () => {
         {
             name: 'Custom',
             icon: DashboardCustomizeIcon,
-            onClick: addToolAction,
-            bgColor: 'bg-action-custom',
-            hoverColor: 'hover:bg-action-custom-hover',
+            onClick: addActionSet,
+            bgColor: 'bg-action-set',
+            hoverColor: 'hover:bg-action-set-hover',
             helpText: 'Action Set: Set of actions',
         },
     ];

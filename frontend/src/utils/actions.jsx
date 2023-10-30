@@ -1,5 +1,6 @@
 // import React from 'react';
 import { generateUniqueId } from './idManager';
+import ActionSet from '@/components/actions/ActionSet';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
@@ -9,6 +10,7 @@ const ActionTypes = {
     MOVE: 'move',
     SLEEP: 'sleep',
     TOOL: 'tool',
+    ACTIONSET: 'actionset',
 };
 
 class BaseActionObj {
@@ -59,6 +61,8 @@ class BaseActionObj {
             return new SleepActionObj(serializable.value, serializable.index, serializable.id);
         } else if (serializable.type == ActionTypes.TOOL) {
             return new ToolActionObj(serializable.value, serializable.index, serializable.id);
+        } else if (serializable.type == ActionTypes.ACTIONSET) {
+            return new ActionSet(serializable.value, serializable.index, serializable.id);
         }
     }
 }
@@ -142,4 +146,29 @@ class SleepActionObj extends BaseActionObj {
     }
 }
 
-export { MoveActionObj, ToolActionObj, SleepActionObj, ActionTypes, BaseActionObj };
+class ActionSetObj extends BaseActionObj {
+    constructor(value, index, id) {
+        let new_value = value.map(action => BaseActionObj.fromSerializable(action));
+        super(new_value, ActionTypes.SLEEP, index, id);
+    }
+
+    render() {
+        return (
+            <ActionSet key={this.id} index={this.index} id={this.id} value={this.value}></ActionSet>
+        );
+    }
+
+    async run() {
+        for (let action of this.value) {
+            await action.run();
+        }
+    }
+
+    toSerializable() {
+        let serializable = super.toSerializable();
+        serializable.value = this.value.map(action => action.toSerializable());
+        return serializable;
+    }
+}
+
+export { MoveActionObj, ToolActionObj, SleepActionObj, ActionTypes, BaseActionObj, ActionSetObj };

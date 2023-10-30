@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  remote:
+    image: uintuser/remote:base
+    tty: true
+    privileged: true
+    command: sleep infinity
+    deploy: # Resource constraints
+      resources:
+        limits:
+          cpus: "16"
+          memory: 128G
+    volumes:
+      - type: tmpfs # Use tmpfs for I/O-intensive ops
+        target: /tmp
+      - type: tmpfs
+        target: /root/.cache/
+      - local:/root/.local/
+      - cache:/root/.cache/
+      - tmux_plugins:/root/.tmux/plugins/
+      - ../.:/root/workspace/
+      - $HOME/.config/nvim:/root/.config/nvim
+      - $HOME/.config/github-copilot/:/root/.config/github-copilot/
+      - $HOME/.zshrc:/root/.zshrc
+      - $HOME/.p10k.zsh:/root/.p10k.zsh
+      - $HOME/.tmux.conf:/root/.tmux.conf
+      - $HOME/.gitconfig:/root/.gitconfig
+    network_mode: host # Use host network for less overhead
+volumes:
+  local:
+  tmux_plugins:
+  cache:
