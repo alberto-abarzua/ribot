@@ -1,10 +1,9 @@
-// import React from 'react';
-import { generateUniqueId } from './idManager';
 import ActionSet from '@/components/actions/ActionSet';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
 import api from '@/utils/api';
+import update from 'immutability-helper';
 
 const ActionTypes = {
     MOVE: 'move',
@@ -13,162 +12,148 @@ const ActionTypes = {
     ACTIONSET: 'actionset',
 };
 
-class BaseActionObj {
-    constructor(value, type, index, id = -1) {
-        if (new.target == BaseActionObj) {
-            throw new TypeError('Cannot construct BaseActionObj instances directly');
-        }
-
-        this.value = value;
-        this.type = type;
-        if (id == -1) {
-            this.id = BaseActionObj.generateUniqueId();
-        } else {
-            this.id = id;
-        }
-        this.index = index;
-        this.running = false;
-        this.valid = true;
-    }
-
-    static generateUniqueId() {
-        return generateUniqueId();
-    }
-
-    render() {
-        throw new Error('You have to implement the method render!');
-    }
-
-    async run() {
-        throw new Error('You have to implement the method run!');
-    }
-
-    toSerializable() {
-        return {
-            value: this.value,
-            type: this.type,
-            id: this.id,
-            index: this.index,
-            running: this.running,
-            valid: this.valid,
-        };
-    }
-
-    static fromSerializable(serializable) {
-        if (serializable.type == ActionTypes.MOVE) {
-            return new MoveActionObj(serializable.value, serializable.index, serializable.id);
-        } else if (serializable.type == ActionTypes.SLEEP) {
-            return new SleepActionObj(serializable.value, serializable.index, serializable.id);
-        } else if (serializable.type == ActionTypes.TOOL) {
-            return new ToolActionObj(serializable.value, serializable.index, serializable.id);
-        } else if (serializable.type == ActionTypes.ACTIONSET) {
-            return new ActionSet(serializable.value, serializable.index, serializable.id);
-        }
-    }
-}
-
-class MoveActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.MOVE, index, id);
-    }
-
-    render() {
-        return (
-            <MoveAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></MoveAction>
-        );
-    }
-    async run() {
+const actionHandlers = {
+    [ActionTypes.MOVE]: async action => {
         let pose = {
-            x: this.value.x,
-            y: this.value.y,
-            z: this.value.z,
-            roll: this.value.roll,
-            pitch: this.value.pitch,
-            yaw: this.value.yaw,
+            x: action.value.x,
+            y: action.value.y,
+            z: action.value.z,
+            roll: action.value.roll,
+            pitch: action.value.pitch,
+            yaw: action.value.yaw,
             wait: true,
         };
         await api.post('/move/pose/move/', pose);
-    }
-}
-
-class ToolActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.TOOL, index, id);
-    }
-
-    render() {
-        return (
-            <ToolAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></ToolAction>
-        );
-    }
-
-    async run() {
+    },
+    [ActionTypes.SLEEP]: async action => {
+        let duration = action.value.duration;
+        await action.sleep(duration);
+    },
+    [ActionTypes.TOOL]: async action => {
         let target = {
-            toolValue: this.value.toolValue,
+            toolValue: action.value.toolValue,
             wait: true,
         };
         await api.post('/move/tool/move/', target);
-    }
-}
-
-class SleepActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.SLEEP, index, id);
-    }
-
-    render() {
-        return (
-            <SleepAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></SleepAction>
-        );
-    }
-    async run() {
-        let duration = this.value.duration;
-        await this.sleep(duration);
-    }
-
-    sleep(duration) {
-        return new Promise(resolve => setTimeout(resolve, duration * 1000));
-    }
-}
-
-class ActionSetObj extends BaseActionObj {
-    constructor(value, index, id) {
-        let new_value = value.map(action => BaseActionObj.fromSerializable(action));
-        super(new_value, ActionTypes.SLEEP, index, id);
-    }
-
-    render() {
-        return (
-            <ActionSet key={this.id} index={this.index} id={this.id} value={this.value}></ActionSet>
-        );
-    }
-
-    async run() {
-        for (let action of this.value) {
-            await action.run();
+    },
+    [ActionTypes.ACTIONSET]: async action => {
+        for (let subAction of action.value) {
+            await subAction.run();
         }
+    },
+};
+
+const runAction = async action => {
+    const handler = actionHandlers[action.type];
+    if (handler) {
+        await handler(action);
+    } else {
+        throw new Error('Invalid action type');
+    }
+};
+
+const clearActionList = actionList => {
+    actionList.length = 0;
+};
+
+const updatePosition = (actionList, hoverId, dragId) => {
+    let dragIndex = getById(actionList, dragId).index;
+    let hoverIndex = getById(actionList, hoverId).index;
+
+    const updatedList = update(actionList, {
+        $splice: [
+            [dragIndex, 1],
+            [hoverIndex, 0, getById(actionList, dragId)],
+        ],
+    });
+
+    for (let i = 0; i < updatedList.length; i++) {
+        updatedList[i].index = i;
     }
 
-    toSerializable() {
-        let serializable = super.toSerializable();
-        serializable.value = this.value.map(action => action.toSerializable());
-        return serializable;
-    }
-}
+    actionList = updatedList;
+};
 
-export { MoveActionObj, ToolActionObj, SleepActionObj, ActionTypes, BaseActionObj, ActionSetObj };
+const addAction = (actionList, type, value) => {
+    let new_action = {
+        id: Date.now(),
+        index: 0,
+        type: type,
+        value: value,
+        valid: false,
+        running: false,
+    };
+    actionList.push(new_action);
+};
+
+const deleteAction = (actionList, id) => {
+    const index = actionList.findIndex(action => action.id === id);
+    if (index === -1) {
+        return;
+    }
+    actionList.splice(index, 1);
+};
+
+const duplicateAction = (actionList, id) => {
+    let action = getById(actionList, id);
+
+    let new_action = {
+        id: Date.now(),
+        index: action.index + 1,
+        type: action.type,
+        value: action.value,
+        valid: false,
+        running: false,
+    };
+    actionList.splice(action.index + 1, 0, new_action);
+    for (let i = action.index + 2; i < actionList.length; i++) {
+        actionList[i].index = i;
+    }
+};
+
+const renderAction = (action, actionList, setActionList) => {
+    const components = {
+        [ActionTypes.MOVE]: MoveAction,
+        [ActionTypes.SLEEP]: SleepAction,
+        [ActionTypes.TOOL]: ToolAction,
+        [ActionTypes.ACTIONSET]: ActionSet,
+    };
+
+    const Component = components[action.type];
+
+    return Component ? (
+        <Component
+            key={action.id}
+            index={action.index}
+            id={action.id}
+            value={action.value}
+            actionList={actionList}
+            setActionList={setActionList}
+        ></Component>
+    ) : null;
+};
+
+const getById = actionList => {
+    return id => {
+        return actionList.find(action => action.id === id);
+    };
+};
+
+const idInList = actionList => {
+    return id => {
+        return actionList.some(action => action.id === id);
+    };
+};
+
+export {
+    ActionTypes,
+    addAction,
+    runAction,
+    renderAction,
+    getById,
+    idInList,
+    deleteAction,
+    duplicateAction,
+    clearActionList,
+    updatePosition,
+};

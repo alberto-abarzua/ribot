@@ -21,7 +21,6 @@
         "react/jsx-filename-extension": [1, { "extensions": [".jsx"] }],
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "warn",
-        "indent": ["error", 4],
         "import/order": [
             "error",
             {

@@ -1,5 +1,6 @@
 'use client';
-import ActionContainer from '@/components/actions/ActionContainer';
+import { Provider } from 'react-redux';
+import ActionsPanel from '@/components/actions/ActionsPanel';
 import ArmSimulation from '@/components/armsimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import ControlPanel from '@/components/controls/ControlPanel';
@@ -10,7 +11,6 @@ import api from '@/utils/api';
 import { useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Provider } from 'react-redux';
 import { useSelector, useDispatch } from 'react-redux';
 
 export default function Home() {
@@ -32,7 +32,6 @@ export default function Home() {
             try {
                 const response = await api.get('/settings/status/');
                 dispatch(armPoseActions.updateCurrent(response.data));
-                console.log(response.data);
             } catch (error) {
                 if (error.response && error.response.status === 400) {
                     console.error(error.response.data.message);
@@ -71,7 +70,6 @@ export default function Home() {
                     })
                 );
                 try {
-                    console.log('moving');
                     let response = await api.post('/move/pose/move/', pose);
                     if (response.status === 400) {
                         alert(response.data.message);
@@ -86,7 +84,6 @@ export default function Home() {
                 }
 
                 if (currentPoseRef.current.toMove.toolValue !== 0) {
-                    console.log('seding tool');
                     try {
                         let response = await api.post('/move/tool/move/', tool);
                         if (response.status === 400) {
@@ -122,7 +119,7 @@ export default function Home() {
                     </div>
 
                     <div className="flex h-full w-full flex-col items-center lg:w-5/12 ">
-                        <ActionContainer></ActionContainer>
+                        <ActionsPanel></ActionsPanel>
                     </div>
                     <div className="relative box-border flex h-full w-full flex-col items-start justify-start bg-slate-50 lg:w-6/12">
                         <div className="relative flex h-3/5 w-full">
