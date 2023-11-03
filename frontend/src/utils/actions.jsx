@@ -52,6 +52,21 @@ const runAction = async action => {
     }
 };
 
+const renderAction = action => {
+    const components = {
+        [ActionTypes.MOVE]: MoveAction,
+        [ActionTypes.SLEEP]: SleepAction,
+        [ActionTypes.TOOL]: ToolAction,
+        [ActionTypes.ACTIONSET]: ActionSet,
+    };
+
+    const Component = components[action.type];
+
+    return Component ? <Component action={action}></Component> : null;
+};
+
+// REVIEW FUNCTIONS BELOW
+
 const clearActionList = actionList => {
     actionList.length = 0;
 };
@@ -109,28 +124,6 @@ const duplicateAction = (actionList, id) => {
     for (let i = action.index + 2; i < actionList.length; i++) {
         actionList[i].index = i;
     }
-};
-
-const renderAction = (action, actionList, setActionList) => {
-    const components = {
-        [ActionTypes.MOVE]: MoveAction,
-        [ActionTypes.SLEEP]: SleepAction,
-        [ActionTypes.TOOL]: ToolAction,
-        [ActionTypes.ACTIONSET]: ActionSet,
-    };
-
-    const Component = components[action.type];
-
-    return Component ? (
-        <Component
-            key={action.id}
-            index={action.index}
-            id={action.id}
-            value={action.value}
-            actionList={actionList}
-            setActionList={setActionList}
-        ></Component>
-    ) : null;
 };
 
 const getById = actionList => {

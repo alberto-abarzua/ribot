@@ -88,6 +88,7 @@ const actionListSlice = createSlice({
                 state.actions[i].running = false;
             }
         },
+
         setValidStatus(state, action) {
             let id = action.payload.id;
             getById(state.actions, id).valid = action.payload.valid;

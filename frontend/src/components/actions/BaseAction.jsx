@@ -10,8 +10,11 @@ import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 
-const BaseAction = ({ icon, children, className, id, index, ...props }) => {
+const BaseAction = ({ icon, children, className, action, ...props }) => {
     const dispatch = useDispatch();
+    const id = action.id;
+    const index = action.index;
+
     const running = useSelector(state => state.actionList.actions[index].running);
     const valid = useSelector(state => state.actionList.actions[index].valid);
 

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { actionListActions } from '@/redux/ActionListSlice';
-import { MoveActionObj, ToolActionObj, SleepActionObj, ActionSetObj } from '@/utils/actions';
+import { ActionTypes } from '@/utils/actions';
 
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import BuildIcon from '@mui/icons-material/Build';
@@ -20,12 +20,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 const ToolBar = () => {
     const dispatch = useDispatch();
-    const actionList = useSelector(state => state.actionList.actions);
 
     const currentPose = useSelector(state => state.armPose);
 
     const addMoveAction = () => {
-        let index = actionList.length;
         let value = {
             x: currentPose.x,
             y: currentPose.y,
@@ -34,33 +32,26 @@ const ToolBar = () => {
             pitch: currentPose.pitch,
             yaw: currentPose.yaw,
         };
-        let obj = new MoveActionObj(value, index);
-        dispatch(actionListActions.addAction(obj.toSerializable()));
+        dispatch(actionListActions.addAction({ type: ActionTypes.MOVE, value: value }));
     };
 
     const addSleepAction = () => {
-        let index = actionList.length;
         let value = {
             duration: 2,
         };
-        let obj = new SleepActionObj(value, index);
-        dispatch(actionListActions.addAction(obj.toSerializable()));
+        dispatch(actionListActions.addAction({ type: ActionTypes.SLEEP, value: value }));
     };
 
     const addToolAction = () => {
-        let index = actionList.length;
         let value = {
             toolValue: currentPose.toolValue,
         };
-        let obj = new ToolActionObj(value, index);
-        dispatch(actionListActions.addAction(obj.toSerializable()));
+        dispatch(actionListActions.addAction({ type: ActionTypes.TOOL, value: value }));
     };
 
     const addActionSet = () => {
-        let index = actionList.length;
         let value = [];
-        let obj = new ActionSetObj(value, index);
-        dispatch(actionListActions.addAction(obj.toSerializable()));
+        dispatch(actionListActions.addAction({ type: ActionTypes.ACTIONSET, value: value }));
     };
 
     const clearActionList = () => {
