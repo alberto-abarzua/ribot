@@ -69,7 +69,7 @@ def stop_movement(controller: ArmController = controller_dependency) -> Dict[Any
 def set_item(
     item: SetSetting, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    item_dict = item.dict()
+    item_dict = item.model_dump()
     setting = Settings(item_dict["setting"])
     value = item_dict["value"]
     joint_idx = item_dict["joint_idx"]

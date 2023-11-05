@@ -1,0 +1,29 @@
+# Node.js dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Vite cache
+.vite/
+
+# Build output
+dist/
+build/
+
+# Version control
+.git/
+.gitignore
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE generated files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+

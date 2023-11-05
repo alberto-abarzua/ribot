@@ -38,6 +38,15 @@ def dcr(file_str: str, command: str, env={}, service_ports_and_aliases=False):
         return subprocess.check_call(
             ['docker', 'compose', '-f', str(file_path), 'run', '--rm', '--service-ports', '--use-aliases', *command_list], env={**os.environ, **env})
 
+def dce(file_str: str, command: str, env={}, service_ports_and_aliases=False):
+    command_list = command.split(' ')
+    file_path = DOCKER_SERVICES/file_str
+    if not service_ports_and_aliases:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'exec', *command_list], env={**os.environ, **env})
+    else:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'exec', '--service-ports', '--use-aliases', *command_list], env={**os.environ, **env})
 
 def dcu(files: List[str], env: dict = {}, detached=False):
     file_list = get_file_list(files)

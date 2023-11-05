@@ -8,16 +8,12 @@ import { useSelector, useDispatch } from 'react-redux';
 
 const SleepAction = ({ ...props }) => {
     const dispatch = useDispatch();
-    const action = useSelector(state => state.actionList.actions[props.index]);
+    const action = useSelector(state => state.actionList.byId[props.id]);
     const [sleepValue, setsleepValue] = useState(action.value);
+
     useEffect(() => {
-        dispatch(
-            actionListActions.updateValueByIndex({
-                index: props.index,
-                value: sleepValue,
-            })
-        );
-    }, [sleepValue, dispatch, props.index]);
+        dispatch(actionListActions.setActionValue({ actionId: props.id, value: sleepValue }));
+    }, [sleepValue, dispatch, props.id]);
 
     return (
         <BaseAction
@@ -44,6 +40,6 @@ const SleepAction = ({ ...props }) => {
 };
 
 SleepAction.propTypes = {
-    index: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired,
 };
 export default SleepAction;

@@ -9,17 +9,12 @@ import { useSelector, useDispatch } from 'react-redux';
 const ToolAction = ({ ...props }) => {
     const dispatch = useDispatch();
 
-    const action = useSelector(state => state.actionList.actions[props.index]);
+    const action = useSelector(state => state.actionList.byId[props.id]);
     const [toolValue, setToolValue] = useState(action.value);
 
     useEffect(() => {
-        dispatch(
-            actionListActions.updateValueByIndex({
-                index: props.index,
-                value: toolValue,
-            })
-        );
-    }, [toolValue, dispatch, props.index]);
+        dispatch(actionListActions.setActionValue({ actionId: props.id, value: toolValue }));
+    }, [toolValue, dispatch, props.id]);
 
     return (
         <BaseAction
@@ -46,7 +41,7 @@ const ToolAction = ({ ...props }) => {
 };
 
 ToolAction.propTypes = {
-    index: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired,
 };
 
 export default ToolAction;

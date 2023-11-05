@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 
 const ActionContainer = ({ actionList }) => {
     return (
-        <div className="flex h-full w-full flex-col">
-            {actionList.map(action => renderAction(action))}
+        <div className="flex h-full w-full flex-col gap-y-4 p-4">
+            {actionList && actionList.map(action => renderAction(action))}
         </div>
     );
 };

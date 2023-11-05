@@ -62,7 +62,7 @@ def home(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
 def home_joint(
     home_joint: HomeJoint, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    joint_idx = home_joint.dict().pop("joint_idx")
+    joint_idx = home_joint.model_dump().pop("joint_idx")
     controller.home_joint(joint_idx)
     return {"message": "Homed"}
 
@@ -72,9 +72,9 @@ def home_joint(
 # --------
 
 
-@router.post("/pose/move/")
+@router.post("/pose/")
 def move(move: Move, controller: ArmController = controller_dependency) -> JSONResponse:
-    move_dict = move.dict()
+    move_dict = move.model_dump()
     wait = move_dict.pop("wait")
 
     pose = ArmPose(**move_dict)
@@ -88,19 +88,27 @@ def move(move: Move, controller: ArmController = controller_dependency) -> JSONR
     else:
         return JSONResponse(content={"message": "Not moved"}, status_code=400)
 
+@router.post("/pose/relative/")
+def move_relative(move: Move, controller: ArmController = controller_dependency) -> JSONResponse:
+    move_dict = move.model_dump()
+    wait = move_dict.pop("wait")
 
-@router.get("/pose/current/")
-def currentpose(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
-    pose = controller.current_pose
-    pose_dict = pose.as_dict
-    return pose_dict
+    pose = ArmPose(**move_dict)
 
+    move_is_possible = controller.move_to_relative(pose)
+
+    if wait:
+        controller.wait_done_moving()
+    if move_is_possible:
+        return JSONResponse(content={"message": "Moved"}, status_code=200)
+    else:
+        return JSONResponse(content={"message": "Not moved"}, status_code=400)
 
 @router.post("/pose/validate/")
 def valid_pose(
     move: Move, controller: ArmController = controller_dependency
 ) -> JSONResponse:
-    move_dict = move.dict()
+    move_dict = move.model_dump()
     move_dict.pop("wait")
     pose = ArmPose(**move_dict)
     move_is_possible = controller.valid_pose(pose)
@@ -109,12 +117,15 @@ def valid_pose(
     else:
         return JSONResponse(content={"message": "Pose is not valid"}, status_code=400)
 
+# --------
+# Joints
+# --------
 
 @router.post("/joint/")
 def move_joint(
     move: MoveJoint, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    move_dict = move.dict()
+    move_dict = move.model_dump()
     wait = move_dict.pop("wait")
 
     joint_idx = move_dict.pop("joint_idx")
@@ -129,7 +140,7 @@ def move_joint(
 def move_joint_to_relative(
     move: MoveJoint, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    move_dict = move.dict()
+    move_dict = move.model_dump()
     wait = move_dict.pop("wait")
 
     joint_idx = move_dict.pop("joint_idx")
@@ -144,7 +155,7 @@ def move_joint_to_relative(
 def move_joints_to_relative(
     move: MoveJoints, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    move_dict = move.dict()
+    move_dict = move.model_dump()
     wait = move_dict.pop("wait")
 
     joint_values = move_dict.pop("joint_values")
@@ -155,7 +166,7 @@ def move_joints_to_relative(
 
 
 # --------
-# Pose
+# Tool
 # --------
 
 
@@ -163,7 +174,7 @@ def move_joints_to_relative(
 def tool_post(
     tool: Tool, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
-    tool_dict = tool.dict()
+    tool_dict = tool.model_dump()
     tool_value = tool_dict["toolValue"]
     wait = tool_dict["wait"]
     controller.set_tool_value(tool_value)

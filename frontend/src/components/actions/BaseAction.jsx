@@ -1,4 +1,5 @@
 import { actionListActions } from '@/redux/ActionListSlice';
+import { PositionTypes, dragLocation } from '@/utils/dragndrop';
 import { ItemTypes } from '@/utils/ItemTypes';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CloseIcon from '@mui/icons-material/Close';
@@ -10,15 +11,15 @@ import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 
-const BaseAction = ({ icon, children, className, action, ...props }) => {
+const BaseAction = ({ icon, children, className, id, ...props }) => {
     const dispatch = useDispatch();
-    const id = action.id;
-    const index = action.index;
+    const action = useSelector(state => state.actionList.byId[id]);
 
-    const running = useSelector(state => state.actionList.actions[index].running);
-    const valid = useSelector(state => state.actionList.actions[index].valid);
+    const running = action.running;
+    const valid = action.valid;
 
     const ref = useRef(null);
+
     const [{ handlerId }, drop] = useDrop({
         accept: ItemTypes.ACTION,
         collect(monitor) {
@@ -27,41 +28,50 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
             };
         },
         hover(item, monitor) {
-            if (!ref.current) {
+            const dragPos = dragLocation(ref, monitor);
+
+            if (id === item.id) {
                 return;
             }
-            const dragIndex = item.index;
-            const hoverIndex = index;
-            if (dragIndex === hoverIndex) {
+
+            if (item.id == action.parentId) {
                 return;
             }
-            const hoverBoundingRect = ref.current.getBoundingClientRect();
-            const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-            const clientOffset = monitor.getClientOffset();
-            const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-            if (
-                (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) ||
-                (dragIndex > hoverIndex && hoverClientY > hoverMiddleY)
-            ) {
+
+            if (dragPos === PositionTypes.OUT) {
                 return;
             }
+
+            const before = dragPos === PositionTypes.TOP;
+            console.log('hovering on action', id % 1000, dragPos);
             dispatch(
-                actionListActions.moveInList({
-                    dragIndex,
-                    hoverIndex,
+                actionListActions.moveAction({
+                    refActionId: item.id, // action to be moved
+                    targetActionId: id, // neighbor action to place before or after
+                    before: before,
                 })
             );
-
-            item.index = hoverIndex;
         },
     });
+
     const [{ isDragging }, drag] = useDrag({
         type: ItemTypes.ACTION,
-        item: { id, index },
+        item: { id },
         collect: monitor => ({
             isDragging: monitor.isDragging(),
         }),
     });
+    if (isDragging) {
+        console.log('dragging', id % 1000);
+    }
+
+    const onDelete = () => {
+        dispatch(actionListActions.deleteAction({ actionId: id }));
+    };
+
+    const onDuplicate = () => {
+        dispatch(actionListActions.duplicateAction({ actionId: id }));
+    };
 
     drag(drop(ref));
 
@@ -86,33 +96,34 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
     if (!isDragging) {
         return (
             <div
-                className={`transform transition-all duration-100  ${className} group relative flex w-full max-w-lg shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow   `}
+                className={`transform transition-all duration-100  ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow   `}
                 {...props}
                 ref={ref}
                 style={{ opacity: isDragging ? 0 : 1 }}
                 data-handler-id={handlerId}
             >
-                <div className="flex flex-1 items-center justify-start">{icon}</div>
+                <div className="flex flex-shrink-0 items-center justify-start">{icon}</div>
                 {children}
                 <div className="flex cursor-grab items-center justify-start ">{indicator}</div>
                 <div
                     className="absolute right-0 top-0 flex cursor-pointer items-center justify-center rounded-bl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
-                    onClick={() => dispatch(actionListActions.deleteAction(index))}
+                    onClick={onDelete}
                 >
                     <CloseIcon className="text-xl"></CloseIcon>
                 </div>
                 <div
                     className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center rounded-tl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
-                    onClick={() => dispatch(actionListActions.duplicateAction(index))}
+                    onClick={onDuplicate}
                 >
                     <ContentCopyIcon className="text-xl"></ContentCopyIcon>
                 </div>
+                <p>{id % 1000}</p>
             </div>
         );
     } else {
         return (
             <div
-                className=" h-24 w-full max-w-lg rounded-md border border-dashed bg-slate-100 shadow"
+                className="h-20 w-full rounded-md border border-dashed bg-slate-100 shadow"
                 {...props}
                 ref={ref}
                 data-handler-id={handlerId}
@@ -126,7 +137,6 @@ BaseAction.propTypes = {
     children: PropTypes.element.isRequired,
     className: PropTypes.string,
     id: PropTypes.number.isRequired,
-    index: PropTypes.number.isRequired,
 };
 
 export default BaseAction;

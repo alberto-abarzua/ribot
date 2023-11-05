@@ -9,13 +9,12 @@ import { useSelector, useDispatch } from 'react-redux';
 
 const MoveAction = ({ ...props }) => {
     const dispatch = useDispatch();
+    const id = props.id;
 
-    // get index from props
-    const action = useSelector(state => state.actionList.actions[props.index]);
+    const action = useSelector(state => state.actionList.byId[id]);
 
     const [currentPose, setCurrentPose] = useState(action.value);
 
-    console.log(action);
     useEffect(() => {
         const checkValid = async () => {
             let pose = {
@@ -29,24 +28,19 @@ const MoveAction = ({ ...props }) => {
             try {
                 const res = await api.post('/move/pose/validate/', pose);
                 if (res.status === 200) {
-                    dispatch(actionListActions.setValidStatus({ index: props.index, valid: true }));
+                    dispatch(actionListActions.setValidStatus({ actionId: id, valid: true }));
                 }
             } catch (err) {
-                dispatch(actionListActions.setValidStatus({ index: props.index, valid: false }));
+                dispatch(actionListActions.setValidStatus({ actionId: id, valid: false }));
             }
         };
 
         checkValid();
-    }, [currentPose, dispatch, props.index]);
+    }, [currentPose, dispatch, id]);
 
     useEffect(() => {
-        dispatch(
-            actionListActions.updateValueByIndex({
-                index: props.index,
-                value: currentPose,
-            })
-        );
-    }, [currentPose, dispatch, props.index]);
+        dispatch(actionListActions.setActionValue({ actionId: id, value: currentPose }));
+    }, [currentPose, dispatch, id]);
     return (
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}
@@ -113,7 +107,7 @@ const MoveAction = ({ ...props }) => {
 };
 
 MoveAction.propTypes = {
-    index: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired,
 };
 
 export default MoveAction;

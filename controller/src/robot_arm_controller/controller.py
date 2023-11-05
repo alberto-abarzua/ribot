@@ -338,6 +338,14 @@ class ArmController:
             return False
         return self.move_joints_to(target_angles)
 
+    def move_to_relative(
+            self,
+            pose: ArmPose,
+    ) -> bool:
+        target_pose = self.current_pose + pose
+        return self.move_to(target_pose)
+        
+
     def home(self, wait: bool = True) -> None:
         if self.print_status:
             console.log("Homing arm...", style="homing")

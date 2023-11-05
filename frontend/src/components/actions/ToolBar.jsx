@@ -32,26 +32,38 @@ const ToolBar = () => {
             pitch: currentPose.pitch,
             yaw: currentPose.yaw,
         };
-        dispatch(actionListActions.addAction({ type: ActionTypes.MOVE, value: value }));
+        dispatch(
+            actionListActions.addAction({ type: ActionTypes.MOVE, value: value, parentId: null })
+        );
     };
 
     const addSleepAction = () => {
         let value = {
             duration: 2,
         };
-        dispatch(actionListActions.addAction({ type: ActionTypes.SLEEP, value: value }));
+        dispatch(
+            actionListActions.addAction({ type: ActionTypes.SLEEP, value: value, parentId: null })
+        );
     };
 
     const addToolAction = () => {
         let value = {
             toolValue: currentPose.toolValue,
         };
-        dispatch(actionListActions.addAction({ type: ActionTypes.TOOL, value: value }));
+        dispatch(
+            actionListActions.addAction({ type: ActionTypes.TOOL, value: value, parentId: null })
+        );
     };
 
     const addActionSet = () => {
         let value = [];
-        dispatch(actionListActions.addAction({ type: ActionTypes.ACTIONSET, value: value }));
+        dispatch(
+            actionListActions.addAction({
+                type: ActionTypes.ACTIONSET,
+                value: value,
+                parentId: null,
+            })
+        );
     };
 
     const clearActionList = () => {
@@ -96,12 +108,11 @@ const ToolBar = () => {
     return (
         <div className="fixed  z-40 mx-auto inline-flex h-14  items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
             {elements.map((action, index) => (
-                <>
+                <div key={index}>
                     <TooltipProvider>
                         <Tooltip delayDuration={300}>
                             <TooltipTrigger>
                                 <div
-                                    key={index}
                                     className={`flex h-14 w-20 shrink grow basis-0 items-center justify-center gap-2.5 ${action.bgColor} ${action.hoverColor}`}
                                     onClick={action.onClick}
                                 >
@@ -116,7 +127,7 @@ const ToolBar = () => {
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                </>
+                </div>
             ))}
 
             <DropdownMenu>

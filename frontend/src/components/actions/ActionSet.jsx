@@ -1,26 +1,52 @@
-import BaseAction from './BaseAction';
-// import { actionListActions } from '@/redux/ActionListSlice';
-import { BaseActionObj } from '@/utils/actions';
-import BuildIcon from '@mui/icons-material/Build';
+import ActionContainer from '@/components/actions/ActionContainer';
+import BaseAction from '@/components/actions/BaseAction';
+import { actionListActions } from '@/redux/ActionListSlice';
+import { ItemTypes } from '@/utils/ItemTypes';
 import PropTypes from 'prop-types';
-import { useSelector } from 'react-redux';
-
+import { useDrop } from 'react-dnd';
+import { useSelector, useDispatch } from 'react-redux';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 const ActionSet = ({ ...props }) => {
-    // const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-    const action = useSelector(state => state.actionList.actions[props.index]);
-    const actionObj = BaseActionObj.fromSerializable(action);
+    const action = useSelector(state => state.actionList.byId[props.id]);
+
+    const actionList = action.value;
+
+    const [, drop] = useDrop({
+        accept: ItemTypes.ACTION,
+        collect(monitor) {
+            return {
+                handlerId: monitor.getHandlerId(),
+            };
+        },
+        drop(item, monitor) {
+            if (item.id === props.id) {
+                return;
+            }
+            dispatch(
+                actionListActions.pushActionToValue({ actionId: props.id, actionToAddId: item.id })
+            );
+        },
+    });
+
+    const body =
+        actionList.length === 0 ? (
+            <div ref={drop}>Drag here</div>
+        ) : (
+            <ActionContainer actionList={actionList}></ActionContainer>
+        );
 
     return (
         <BaseAction
-            className={'h-20 bg-action-set'}
-            icon={<BuildIcon className="text-6xl"></BuildIcon>}
+            className={' bg-action-set'}
+            icon={<DashboardCustomizeIcon className="text-6xl"></DashboardCustomizeIcon>}
             {...props}
         >
             <div className="flex flex-1 items-center  justify-end">
                 <div className="flex items-center justify-end text-black">
                     <div className=" flex items-center justify-center rounded-md bg-action-data p-2  shadow">
-                        {actionObj.value.map(action => action.render())}
+                        {body}
                     </div>
                 </div>
             </div>
@@ -29,7 +55,7 @@ const ActionSet = ({ ...props }) => {
 };
 
 ActionSet.propTypes = {
-    index: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired,
 };
 
 export default ActionSet;

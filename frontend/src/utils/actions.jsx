@@ -3,7 +3,7 @@ import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
 import api from '@/utils/api';
-import update from 'immutability-helper';
+import { generateUniqueId } from '@/utils/idManager';
 
 const ActionTypes = {
     MOVE: 'move',
@@ -62,91 +62,7 @@ const renderAction = action => {
 
     const Component = components[action.type];
 
-    return Component ? <Component action={action}></Component> : null;
+    return Component ? <Component key={action.id} id={action.id}></Component> : null;
 };
 
-// REVIEW FUNCTIONS BELOW
-
-const clearActionList = actionList => {
-    actionList.length = 0;
-};
-
-const updatePosition = (actionList, hoverId, dragId) => {
-    let dragIndex = getById(actionList, dragId).index;
-    let hoverIndex = getById(actionList, hoverId).index;
-
-    const updatedList = update(actionList, {
-        $splice: [
-            [dragIndex, 1],
-            [hoverIndex, 0, getById(actionList, dragId)],
-        ],
-    });
-
-    for (let i = 0; i < updatedList.length; i++) {
-        updatedList[i].index = i;
-    }
-
-    actionList = updatedList;
-};
-
-const addAction = (actionList, type, value) => {
-    let new_action = {
-        id: Date.now(),
-        index: 0,
-        type: type,
-        value: value,
-        valid: false,
-        running: false,
-    };
-    actionList.push(new_action);
-};
-
-const deleteAction = (actionList, id) => {
-    const index = actionList.findIndex(action => action.id === id);
-    if (index === -1) {
-        return;
-    }
-    actionList.splice(index, 1);
-};
-
-const duplicateAction = (actionList, id) => {
-    let action = getById(actionList, id);
-
-    let new_action = {
-        id: Date.now(),
-        index: action.index + 1,
-        type: action.type,
-        value: action.value,
-        valid: false,
-        running: false,
-    };
-    actionList.splice(action.index + 1, 0, new_action);
-    for (let i = action.index + 2; i < actionList.length; i++) {
-        actionList[i].index = i;
-    }
-};
-
-const getById = actionList => {
-    return id => {
-        return actionList.find(action => action.id === id);
-    };
-};
-
-const idInList = actionList => {
-    return id => {
-        return actionList.some(action => action.id === id);
-    };
-};
-
-export {
-    ActionTypes,
-    addAction,
-    runAction,
-    renderAction,
-    getById,
-    idInList,
-    deleteAction,
-    duplicateAction,
-    clearActionList,
-    updatePosition,
-};
+export { ActionTypes, runAction, renderAction };

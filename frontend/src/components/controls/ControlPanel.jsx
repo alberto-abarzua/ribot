@@ -1,27 +1,18 @@
-import DangerousIcon from '@mui/icons-material/Dangerous';
-import HomeIcon from '@mui/icons-material/Home';
-import OtherHousesIcon from '@mui/icons-material/OtherHouses';
-
-import React, { useState } from 'react';
-
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
 import InfoHover from '@/components/general/text/InfoHover';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import api from '@/utils/api';
-import { useSelector } from 'react-redux';
 import { ControllerStatus } from '@/utils/arm_enums';
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Bolt } from '@mui/icons-material';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import HomeIcon from '@mui/icons-material/Home';
+import OtherHousesIcon from '@mui/icons-material/OtherHouses';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 
 const ControlPanel = () => {
     const call_home = async () => {
@@ -31,6 +22,7 @@ const ControlPanel = () => {
     const call_stop_movement = async () => {
         await api.post('/settings/stop/');
     };
+
     const status = useSelector(state => state.armPose.status);
     const isHomed = useSelector(state => state.armPose.isHomed);
 
@@ -94,7 +86,6 @@ const ControlPanel = () => {
                 </div>
             </div>
             {controlContent}
-            <JointsControls />
         </div>
     );
 };

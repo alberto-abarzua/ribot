@@ -31,6 +31,8 @@ const ActionPanel = () => {
         setRunning(false);
     };
 
+    console.log('rendering ActionPanel');
+
     const handleClickPlayStop = () => {
         setRunning(prev => !prev);
         runningRef.current = !runningRef.current;
