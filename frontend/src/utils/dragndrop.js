@@ -2,6 +2,7 @@ const PositionTypes = {
     TOP: 'top',
     BOTTOM: 'bottom',
     OUT: 'out',
+    MIDDLE: 'middle',
 };
 
 const dragLocation = (ref, monitor) => {
@@ -10,37 +11,31 @@ const dragLocation = (ref, monitor) => {
     }
 
     const hoverBoundingRect = ref.current.getBoundingClientRect();
+    const toleranceDistance = 20;
 
-    // Get vertical middle of the element
-    const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-    // Determine mouse position
     const clientOffset = monitor.getClientOffset();
+    const top = hoverBoundingRect.top;
+    const bottom = hoverBoundingRect.bottom;
+    const currentY = clientOffset.y;
 
-    // If getClientOffset is null, consider it as OUT
-    if (!clientOffset) {
-        return PositionTypes.OUT;
-    }
+    const distFromTop = Math.abs(currentY - top);
+    const distFromBottom = Math.abs(currentY - bottom);
+    const innerTopBoundary = top + toleranceDistance;
+    const innerBottomBoundary = bottom - toleranceDistance;
 
-    const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-    const hoverClientX = clientOffset.x - hoverBoundingRect.left;
-
-    // Check if the mouse is outside the element on either axis
-    if (
-        hoverClientX < 0 ||
-        hoverClientX > hoverBoundingRect.right - hoverBoundingRect.left ||
-        hoverClientY < 0 ||
-        hoverClientY > hoverBoundingRect.bottom - hoverBoundingRect.top
-    ) {
-        return PositionTypes.OUT;
-    }
-
-    // Corrected logic for top and bottom checks
-    if (hoverClientY < hoverMiddleY) {
+    if (distFromTop <= toleranceDistance) {
         return PositionTypes.TOP;
-    } else {
+    }
+
+    if (distFromBottom <= toleranceDistance) {
         return PositionTypes.BOTTOM;
     }
+
+    if (currentY > innerTopBoundary && currentY < innerBottomBoundary) {
+        return PositionTypes.MIDDLE;
+    }
+
+    return PositionTypes.OUT;
 };
 
 export { PositionTypes, dragLocation };
