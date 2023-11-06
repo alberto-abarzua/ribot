@@ -9,11 +9,11 @@ import ErrorIcon from '@mui/icons-material/Error';
 import PropTypes from 'prop-types';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
-const BaseAction = ({ icon, children, className, id, ...props }) => {
+const BaseAction = ({ icon, children, className, action, ...props }) => {
+    const id = action.id;
     const dispatch = useDispatch();
-    const action = useSelector(state => state.actionList.byId[id]);
 
     const running = action.running;
     const valid = action.valid;
@@ -29,15 +29,22 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
         },
         hover(item, monitor) {
             const dragPos = dragLocation(ref, monitor);
-            if (id === item.id || item.id == action.parentId || dragPos === PositionTypes.OUT)
+
+            if (
+                id == item.id ||
+                item.id == action.parentId ||
+                dragPos === PositionTypes.OUT ||
+                dragPos === PositionTypes.MIDDLE
+            )
                 return;
 
-            const before = dragPos === PositionTypes.TOP;
             dispatch(
                 actionListActions.moveAction({
                     refActionId: item.id,
                     targetActionId: id,
-                    before: before,
+                    before: dragPos === PositionTypes.TOP,
+                    type: item.type,
+                    value: item.value,
                 })
             );
         },
@@ -74,15 +81,12 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
         <ErrorIcon className="text-5xl text-orange-500 transition-all duration-300 group-hover:text-gray-600" />
     );
 
-    console.log('isDragging action ', id % 1000, isDragging);
-
     if (!isDragging) {
         return (
             <div
                 className={`transform transition-all duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow`}
                 {...props}
                 ref={ref}
-                style={{ opacity: isDragging ? 0 : 1 }}
                 data-handler-id={handlerId}
             >
                 <div className="flex flex-shrink-0 items-center justify-start">{icon}</div>
@@ -100,13 +104,12 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
                 >
                     <ContentCopyIcon className="text-xl" />
                 </div>
-                <p>{id % 1000}</p>
             </div>
         );
     } else {
         return (
             <div
-                className="h-20 w-full rounded-md border border-dashed bg-slate-100 shadow"
+                className="h-10 w-full rounded-md border border-dashed bg-blue-500 opacity-40 shadow"
                 {...props}
                 ref={ref}
                 data-handler-id={handlerId}
@@ -119,7 +122,12 @@ BaseAction.propTypes = {
     icon: PropTypes.element.isRequired,
     children: PropTypes.element.isRequired,
     className: PropTypes.string,
-    id: PropTypes.number.isRequired,
+    action: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        parentId: PropTypes.number,
+        running: PropTypes.bool.isRequired,
+        valid: PropTypes.bool.isRequired,
+    }).isRequired,
 };
 
 export default BaseAction;

@@ -17,6 +17,7 @@
         "@emotion/react": "^11.11.1",
         "@emotion/styled": "^11.11.0",
         "@mui/icons-material": "^5.14.7",
+        "@radix-ui/react-accordion": "^1.1.2",
         "@radix-ui/react-dropdown-menu": "^2.0.6",
         "@radix-ui/react-label": "^2.0.2",
         "@radix-ui/react-slot": "^1.0.2",

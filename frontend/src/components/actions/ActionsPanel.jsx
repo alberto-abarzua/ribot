@@ -2,7 +2,8 @@ import ActionContainer from '@/components/actions/ActionContainer';
 import ToolBar from '@/components/actions/ToolBar';
 import { Button } from '@/components/ui/button';
 import { actionListActions } from '@/redux/ActionListSlice';
-import { ActionTypes, runAction } from '@/utils/actions';
+import { runAction } from '@/utils/actions';
+import byIdContext from '@/utils/byIdContext';
 import ErrorIcon from '@mui/icons-material/Error';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -11,10 +12,11 @@ import { useSelector, useDispatch } from 'react-redux';
 
 const ActionPanel = () => {
     const dispatch = useDispatch();
-    const actionList = useSelector(state => state.actionList.actions);
-    const byId = useSelector(state => state.actionList.byId);
-    console.log('byId', byId);
-    console.log('actionList', actionList);
+
+    const actionSlice = useSelector(state => state.actionList);
+
+    const actionList = actionSlice.actions;
+    const byId = actionSlice.byId;
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
@@ -28,21 +30,16 @@ const ActionPanel = () => {
     const runActions = async () => {
         for (let action of actionList) {
             if (!runningRef.current) return;
+
+            action = byId[action.id];
             dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: true }));
-            console.log('running action', action);
-            if (action.type === ActionTypes.ACTIONSET) {
-                action = byId[action.id];
-            }
             await runAction(action, dispatch);
-            console.log('finished running action', action);
 
             dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: false }));
         }
-        console.log('finished running all actions');
 
         setRunning(false);
     };
-    console.log('rendering ActionPanel');
 
     const handleClickPlayStop = () => {
         setRunning(prev => !prev);
@@ -79,23 +76,25 @@ const ActionPanel = () => {
     }
 
     return (
-        <div className="relative m-0 flex h-full max-h-screen w-full flex-col items-center space-y-4 ">
-            <ToolBar />
-            <div className="flex h-full max-h-screen w-full flex-col items-center gap-4 overflow-y-auto pt-14">
-                <ActionContainer actionList={actionList} />
+        <byIdContext.Provider value={byId}>
+            <div className="relative m-0 flex h-full max-h-screen w-full flex-col items-center space-y-4 ">
+                <ToolBar />
+                <div className="flex h-full max-h-screen w-full flex-col items-center gap-4 overflow-y-auto pt-14">
+                    <ActionContainer actionList={actionList} />
+                </div>
+                <div className="absolute bottom-10 right-8 z-20">
+                    <Button
+                        color={play_or_stop.color}
+                        hoverColor={play_or_stop.hoverColor}
+                        onClick={handleClickPlayStop}
+                        disabled={!valid}
+                    >
+                        {play_or_stop.icon}
+                        <div className="text-lg text-white"> {play_or_stop.text}</div>
+                    </Button>
+                </div>
             </div>
-            <div className="absolute bottom-10 right-8 z-20">
-                <Button
-                    color={play_or_stop.color}
-                    hoverColor={play_or_stop.hoverColor}
-                    onClick={handleClickPlayStop}
-                    disabled={!valid}
-                >
-                    {play_or_stop.icon}
-                    <div className="text-lg text-white"> {play_or_stop.text}</div>
-                </Button>
-            </div>
-        </div>
+        </byIdContext.Provider>
     );
 };
 

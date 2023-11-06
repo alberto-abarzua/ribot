@@ -39,11 +39,9 @@ const actionHandlers = {
         await api.post('/move/tool/move/', target);
     },
     [ActionTypes.ACTIONSET]: async (action, dispatch) => {
-        console.log('running actionset', action);
         for (let subAction of action.value) {
-            console.log('running subaction', subAction);
             dispatch(actionListActions.setRunningStatus({ actionId: subAction.id, running: true }));
-            await runAction(subAction);
+            await runAction(subAction, dispatch);
             dispatch(
                 actionListActions.setRunningStatus({ actionId: subAction.id, running: false })
             );
@@ -70,7 +68,9 @@ const renderAction = action => {
 
     const Component = components[action.type];
 
-    return Component ? <Component key={action.id} id={action.id}></Component> : null;
+    return Component ? (
+        <Component key={action.id} id={action.id} action={action}></Component>
+    ) : null;
 };
 
 export { ActionTypes, runAction, renderAction };

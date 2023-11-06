@@ -1,3 +1,4 @@
+import ToolBarElement from './ToolBarElement';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -6,7 +7,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { actionListActions } from '@/redux/ActionListSlice';
 import { ActionTypes } from '@/utils/actions';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
@@ -22,83 +22,53 @@ const ToolBar = () => {
 
     const currentPose = useSelector(state => state.armPose);
 
-    const addMoveAction = () => {
-        let value = {
-            x: currentPose.x,
-            y: currentPose.y,
-            z: currentPose.z,
-            roll: currentPose.roll,
-            pitch: currentPose.pitch,
-            yaw: currentPose.yaw,
-        };
-        dispatch(
-            actionListActions.addAction({ type: ActionTypes.MOVE, value: value, parentId: null })
-        );
-    };
-
-    const addSleepAction = () => {
-        let value = {
-            duration: 2,
-        };
-        dispatch(
-            actionListActions.addAction({ type: ActionTypes.SLEEP, value: value, parentId: null })
-        );
-    };
-
-    const addToolAction = () => {
-        let value = {
-            toolValue: currentPose.toolValue,
-        };
-        dispatch(
-            actionListActions.addAction({ type: ActionTypes.TOOL, value: value, parentId: null })
-        );
-    };
-
-    const addActionSet = () => {
-        let value = [];
-        dispatch(
-            actionListActions.addAction({
-                type: ActionTypes.ACTIONSET,
-                value: value,
-                parentId: null,
-            })
-        );
-    };
-
     const clearActionList = () => {
         dispatch(actionListActions.clearActionList());
+    };
+
+    const moveValue = {
+        x: currentPose.x,
+        y: currentPose.y,
+        z: currentPose.z,
+        roll: currentPose.roll,
+        pitch: currentPose.pitch,
+        yaw: currentPose.yaw,
     };
 
     const elements = [
         {
             name: 'Move',
             icon: GamesIcon,
-            onClick: addMoveAction,
             bgColor: 'bg-action-move',
+            type: ActionTypes.MOVE,
+            value: moveValue,
             hoverColor: 'hover:bg-action-move-hover',
-            helpText: 'Move Action: Move to a pose',
+            helpText: 'Move Addction: Move to a pose',
         },
         {
             name: 'Sleep',
             icon: BedtimeIcon,
-            onClick: addSleepAction,
             bgColor: 'bg-action-sleep',
+            type: ActionTypes.SLEEP,
+            value: { duration: 2 },
             hoverColor: 'hover:bg-action-sleep-hover',
             helpText: 'Sleep Action: Pause movement',
         },
         {
             name: 'Tool',
             icon: BuildIcon,
-            onClick: addToolAction,
             bgColor: 'bg-action-tool',
+            type: ActionTypes.TOOL,
+            value: { toolValue: 0 },
             hoverColor: 'hover:bg-action-tool-hover',
             helpText: 'Tool Action: Change tool value',
         },
         {
             name: 'Custom',
             icon: DashboardCustomizeIcon,
-            onClick: addActionSet,
             bgColor: 'bg-action-set',
+            type: ActionTypes.ACTIONSET,
+            value: [],
             hoverColor: 'hover:bg-action-set-hover',
             helpText: 'Action Set: Set of actions',
         },
@@ -106,27 +76,8 @@ const ToolBar = () => {
 
     return (
         <div className="fixed  z-40 mx-auto inline-flex h-14  items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
-            {elements.map((action, index) => (
-                <div key={index}>
-                    <TooltipProvider>
-                        <Tooltip delayDuration={300}>
-                            <TooltipTrigger>
-                                <div
-                                    className={`flex h-14 w-20 shrink grow basis-0 items-center justify-center gap-2.5 ${action.bgColor} ${action.hoverColor}`}
-                                    onClick={action.onClick}
-                                >
-                                    <div className="relative flex h-10 w-10 items-center justify-center text-3xl text-white">
-                                        <action.icon className="text-3xl"></action.icon>
-                                    </div>
-                                </div>
-                            </TooltipTrigger>
-
-                            <TooltipContent>
-                                <p>{action.helpText} </p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
+            {elements.map((element, index) => (
+                <ToolBarElement key={index} element={element} />
             ))}
 
             <DropdownMenu>

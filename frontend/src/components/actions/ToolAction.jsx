@@ -1,25 +1,27 @@
-import BaseAction from './BaseAction';
-import TextVariable from '../general/text/TextVariable';
+import BaseAction from '@/components/actions/BaseAction';
+import TextVariable from '@/components/general/text/TextVariable';
 import { actionListActions } from '@/redux/ActionListSlice';
 import BuildIcon from '@mui/icons-material/Build';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
-const ToolAction = ({ ...props }) => {
+const ToolAction = ({ action, ...props }) => {
+    const id = action.id;
+
     const dispatch = useDispatch();
 
-    const action = useSelector(state => state.actionList.byId[props.id]);
     const [toolValue, setToolValue] = useState(action.value);
 
     useEffect(() => {
-        dispatch(actionListActions.setActionValue({ actionId: props.id, value: toolValue }));
-    }, [toolValue, dispatch, props.id]);
+        dispatch(actionListActions.setActionValue({ actionId: id, value: toolValue }));
+    }, [toolValue, dispatch, id]);
 
     return (
         <BaseAction
             className={'h-20 bg-action-tool'}
             icon={<BuildIcon className="text-6xl"></BuildIcon>}
+            action={action}
             {...props}
         >
             <div className="flex flex-1 items-center  justify-end">
@@ -41,7 +43,13 @@ const ToolAction = ({ ...props }) => {
 };
 
 ToolAction.propTypes = {
-    id: PropTypes.number.isRequired,
+    action: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+        id: PropTypes.number.isRequired,
+        value: PropTypes.shape({
+            toolValue: PropTypes.number.isRequired,
+        }).isRequired,
+    }).isRequired,
 };
 
 export default ToolAction;

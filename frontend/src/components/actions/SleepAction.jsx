@@ -4,21 +4,22 @@ import { actionListActions } from '@/redux/ActionListSlice';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
-const SleepAction = ({ ...props }) => {
+const SleepAction = ({ action, ...props }) => {
+    const id = action.id;
     const dispatch = useDispatch();
-    const action = useSelector(state => state.actionList.byId[props.id]);
     const [sleepValue, setsleepValue] = useState(action.value);
 
     useEffect(() => {
-        dispatch(actionListActions.setActionValue({ actionId: props.id, value: sleepValue }));
-    }, [sleepValue, dispatch, props.id]);
+        dispatch(actionListActions.setActionValue({ actionId: id, value: sleepValue }));
+    }, [sleepValue, dispatch, id]);
 
     return (
         <BaseAction
             className={'h-20 bg-action-sleep'}
             icon={<BedtimeIcon className="text-6xl"></BedtimeIcon>}
+            action={action}
             {...props}
         >
             <div className="flex flex-1 items-center  justify-end">
@@ -40,6 +41,12 @@ const SleepAction = ({ ...props }) => {
 };
 
 SleepAction.propTypes = {
-    id: PropTypes.number.isRequired,
+    action: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+        id: PropTypes.number.isRequired,
+        value: PropTypes.shape({
+            duration: PropTypes.number.isRequired,
+        }).isRequired,
+    }).isRequired,
 };
 export default SleepAction;

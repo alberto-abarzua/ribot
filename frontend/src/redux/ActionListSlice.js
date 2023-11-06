@@ -29,20 +29,31 @@ const actionListSlice = createSlice({
     initialState,
     reducers: {
         moveAction: (state, action) => {
-            const { refActionId, targetActionId, before } = action.payload;
-            console.log(
-                'Moving action ',
-                refActionId % 1000,
-                ' to ',
-                targetActionId % 1000,
-                ' before ',
-                before
-            );
+            let { refActionId, targetActionId, before } = action.payload;
+
             // refaction is the action being moved
             // targetAction is the action that refAction is being moved to
 
-            const refAction = state.byId[refActionId];
+            let refAction = state.byId[refActionId];
             const targetAction = state.byId[targetActionId];
+
+            if (!refAction) {
+                const { type, value } = action.payload;
+                const newAction = {
+                    id: refActionId,
+                    type,
+                    parentId: targetAction.parentId,
+                    value,
+                    valid: true,
+                    running: false,
+                };
+                state.byId[newAction.id] = newAction;
+                refAction = newAction;
+                refActionId = newAction.id;
+                //updte the parent list
+                const parentList = getParentList(state, refAction);
+                parentList.push(refAction);
+            }
 
             const refActionList = getParentList(state, refAction);
             const targetActionList = getParentList(state, targetAction);
@@ -73,7 +84,7 @@ const actionListSlice = createSlice({
 
         addAction: (state, action) => {
             const { type, parentId, value } = action.payload;
-            // if parentId is undefined
+
             const newAction = {
                 id: Date.now(),
                 type,
@@ -82,6 +93,7 @@ const actionListSlice = createSlice({
                 valid: true,
                 running: false,
             };
+
             state.byId[newAction.id] = newAction;
 
             if (parentId !== null) {
@@ -93,9 +105,12 @@ const actionListSlice = createSlice({
 
         deleteAction: (state, action) => {
             const { actionId } = action.payload;
+
             const actionToDelete = state.byId[actionId];
             const actionList = getParentList(state, actionToDelete);
+
             const actionIndex = actionList.findIndex(action => action.id === actionId);
+
             if (actionIndex !== -1) {
                 actionList.splice(actionIndex, 1);
             }
@@ -105,16 +120,35 @@ const actionListSlice = createSlice({
         duplicateAction: (state, action) => {
             const { actionId } = action.payload;
             const actionToDuplicate = state.byId[actionId];
-
             const actionList = getParentList(state, actionToDuplicate);
-
             const actionIndex = actionList.findIndex(action => action.id === actionId);
-            const newAction = {
-                ...actionToDuplicate,
-                id: Date.now(),
+
+            // Deep clone the action
+            let newAction = JSON.parse(JSON.stringify(actionToDuplicate));
+
+            // Helper function to generate a unique ID
+
+            // Recursively update id, parentId, and state.byId
+            let id_offset = 0;
+            const updateHelper = (actionToUpdate, newParentId) => {
+                const newId = Date.now() + id_offset;
+                id_offset++;
+                actionToUpdate.id = newId;
+                actionToUpdate.parentId = newParentId;
+                state.byId[newId] = actionToUpdate;
+                if (actionToUpdate.type === ActionTypes.ACTIONSET) {
+                    console.log(actionToUpdate);
+                    for (let subactionToUpdate of actionToUpdate.value) {
+                        updateHelper(subactionToUpdate, newId);
+                    }
+                }
             };
+
+            updateHelper(newAction, actionToDuplicate.parentId);
+            console.log(newAction);
+            console.log(actionToDuplicate);
+
             actionList.splice(actionIndex + 1, 0, newAction);
-            state.byId[newAction.id] = newAction;
         },
 
         setValidStatus: (state, action) => {
@@ -132,25 +166,48 @@ const actionListSlice = createSlice({
             state.byId[actionId].value = value;
         },
         pushActionToValue: (state, action) => {
-            const { actionId, actionToAddId } = action.payload;
-            // make sure the action type is actionset
-            const targetAction = state.byId[actionId];
-            if (targetAction.type !== ActionTypes.ACTIONSET) {
-                console.error('pushActionToValue: action type is not actionset');
-                return;
-            }
-            const ActionToAdd = state.byId[actionToAddId];
+            let { actionId, actionToAddId } = action.payload;
 
-            targetAction.value.push(ActionToAdd);
-            // delete actionToAdd from its old location
-            const actionList = getParentList(state, ActionToAdd);
-            const actionIndex = actionList.findIndex(action => action.id === actionToAddId);
-            if (actionIndex !== -1) {
-                actionList.splice(actionIndex, 1);
+            let targetList = state.actions;
+            let targetActionId = null;
+            if (actionId) {
+                targetList = state.byId[actionId].value;
+                targetActionId = actionId;
             }
-            // update parentId
 
-            ActionToAdd.parentId = targetAction.id;
+            let actionToAdd = state.byId[actionToAddId];
+
+            // check if actionToAdd exits
+
+            if (!actionToAdd) {
+                const { type, value } = action.payload;
+                const newAction = {
+                    id: actionToAddId,
+                    type,
+                    parentId: targetActionId,
+                    value,
+                    valid: true,
+                    running: false,
+                };
+
+                state.byId[newAction.id] = newAction;
+
+                actionToAdd = newAction;
+                actionToAddId = newAction.id;
+                targetList.push(actionToAdd);
+            } else {
+                targetList.push(actionToAdd);
+
+                // delete actionToAdd from its old location
+                const actionList = getParentList(state, actionToAdd);
+                const actionIndex = actionList.findIndex(action => action.id === actionToAddId);
+                if (actionIndex !== -1) {
+                    actionList.splice(actionIndex, 1);
+                }
+                // update parentId
+
+                actionToAdd.parentId = targetActionId;
+            }
         },
 
         clearActionList: state => {

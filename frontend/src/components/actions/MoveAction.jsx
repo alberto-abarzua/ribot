@@ -5,13 +5,12 @@ import api from '@/utils/api';
 import GamesIcon from '@mui/icons-material/Games';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
-const MoveAction = ({ ...props }) => {
+const MoveAction = ({ action, ...props }) => {
+    const id = action.id;
+
     const dispatch = useDispatch();
-    const id = props.id;
-
-    const action = useSelector(state => state.actionList.byId[id]);
 
     const [currentPose, setCurrentPose] = useState(action.value);
 
@@ -44,11 +43,12 @@ const MoveAction = ({ ...props }) => {
     return (
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}
+            action={action}
             className="h-30 bg-action-move"
             {...props}
         >
-            <>
-                <div className="inline-flex flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow">
+            <div className="flex flex-1 items-center justify-end gap-x-4">
+                <div className="inline-flex flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow">
                     <div className="inline-flex items-center justify-end  ">
                         <TextVariable
                             label="X"
@@ -75,7 +75,7 @@ const MoveAction = ({ ...props }) => {
                     </div>
                 </div>
 
-                <div className="inline-flex  flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow ">
+                <div className="inline-flex flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow ">
                     <div className="inline-flex items-center justify-end">
                         <TextVariable
                             label="Roll"
@@ -101,13 +101,26 @@ const MoveAction = ({ ...props }) => {
                         />
                     </div>
                 </div>
-            </>
+            </div>
         </BaseAction>
     );
 };
 
 MoveAction.propTypes = {
-    id: PropTypes.number.isRequired,
+    action: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        parentId: PropTypes.number,
+        running: PropTypes.bool.isRequired,
+        valid: PropTypes.bool.isRequired,
+        value: PropTypes.shape({
+            x: PropTypes.number.isRequired,
+            y: PropTypes.number.isRequired,
+            z: PropTypes.number.isRequired,
+            roll: PropTypes.number.isRequired,
+            pitch: PropTypes.number.isRequired,
+            yaw: PropTypes.number.isRequired,
+        }).isRequired,
+    }).isRequired,
 };
 
 export default MoveAction;
