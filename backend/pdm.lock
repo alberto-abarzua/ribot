@@ -3,10 +3,9 @@
 
 [metadata]
 groups = ["default", "dev"]
-cross_platform = true
-static_urls = false
-lock_version = "4.3"
-content_hash = "sha256:37a85fe45af4dba20bd4d756bae790b34c849fcce68834c284315d3f69339860"
+strategy = ["cross_platform"]
+lock_version = "4.4"
+content_hash = "sha256:aa51267e9037ec4569c90773a9176cdbfa6a610d4d3c4989c5a6d494f6f2cb64"
 
 [[package]]
 name = "annotated-types"

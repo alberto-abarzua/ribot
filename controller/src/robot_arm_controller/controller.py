@@ -339,12 +339,11 @@ class ArmController:
         return self.move_joints_to(target_angles)
 
     def move_to_relative(
-            self,
-            pose: ArmPose,
+        self,
+        pose: ArmPose,
     ) -> bool:
         target_pose = self.current_pose + pose
         return self.move_to(target_pose)
-        
 
     def home(self, wait: bool = True) -> None:
         if self.print_status:
@@ -523,8 +522,7 @@ class SingletonArmController:
         cls.print_status = print_status
         cls.config_file = config_file
 
-        cls._instance = ArmController(arm_parameters=arm_parameters,
-                                      websocket_port=websocket_port, server_port=server_port)
+        cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
         cls._instance.print_status = print_status
         if config_file is not None:
             cls._instance.set_config_file(config_file)

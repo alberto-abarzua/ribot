@@ -1,7 +1,7 @@
 import actionListReducer from '@/redux/ActionListSlice';
 import armPoseReducer from '@/redux/ArmPoseSlice';
-import { configureStore } from '@reduxjs/toolkit';
 import rootSaga from '@/redux/sagas';
+import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 
 const sagaMiddleware = createSagaMiddleware();

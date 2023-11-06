@@ -2,10 +2,10 @@ import ActionContainer from '@/components/actions/ActionContainer';
 import BaseAction from '@/components/actions/BaseAction';
 import { actionListActions } from '@/redux/ActionListSlice';
 import { ItemTypes } from '@/utils/ItemTypes';
+import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import PropTypes from 'prop-types';
 import { useDrop } from 'react-dnd';
 import { useSelector, useDispatch } from 'react-redux';
-import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 const ActionSet = ({ ...props }) => {
     const dispatch = useDispatch();
 
@@ -20,7 +20,7 @@ const ActionSet = ({ ...props }) => {
                 handlerId: monitor.getHandlerId(),
             };
         },
-        drop(item, monitor) {
+        drop(item) {
             if (item.id === props.id) {
                 return;
             }

@@ -88,8 +88,11 @@ def move(move: Move, controller: ArmController = controller_dependency) -> JSONR
     else:
         return JSONResponse(content={"message": "Not moved"}, status_code=400)
 
+
 @router.post("/pose/relative/")
-def move_relative(move: Move, controller: ArmController = controller_dependency) -> JSONResponse:
+def move_relative(
+    move: Move, controller: ArmController = controller_dependency
+) -> JSONResponse:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
 
@@ -104,6 +107,7 @@ def move_relative(move: Move, controller: ArmController = controller_dependency)
     else:
         return JSONResponse(content={"message": "Not moved"}, status_code=400)
 
+
 @router.post("/pose/validate/")
 def valid_pose(
     move: Move, controller: ArmController = controller_dependency
@@ -117,9 +121,11 @@ def valid_pose(
     else:
         return JSONResponse(content={"message": "Pose is not valid"}, status_code=400)
 
+
 # --------
 # Joints
 # --------
+
 
 @router.post("/joint/")
 def move_joint(

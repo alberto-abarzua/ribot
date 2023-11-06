@@ -1,4 +1,3 @@
-
 import ActionsPanel from '@/components/actions/ActionsPanel';
 import ArmSimulation from '@/components/armsimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';

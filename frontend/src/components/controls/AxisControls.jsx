@@ -1,9 +1,9 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
+import api from '@/utils/api';
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import api from '@/utils/api';
 
 const AxisControls = () => {
     const [coordsStep, setCoordsStep] = useState(10);

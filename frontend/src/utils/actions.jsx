@@ -2,8 +2,8 @@ import ActionSet from '@/components/actions/ActionSet';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
-import api from '@/utils/api';
 import { actionListActions } from '@/redux/ActionListSlice';
+import api from '@/utils/api';
 
 const ActionTypes = {
     MOVE: 'move',

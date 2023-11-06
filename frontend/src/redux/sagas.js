@@ -1,6 +1,6 @@
-import { call, put, delay, all } from 'redux-saga/effects';
-import api from '@/utils/api';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
+import api from '@/utils/api';
+import { call, put, delay, all } from 'redux-saga/effects';
 
 function* fetchApiData() {
     try {

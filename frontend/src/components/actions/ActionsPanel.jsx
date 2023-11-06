@@ -2,12 +2,12 @@ import ActionContainer from '@/components/actions/ActionContainer';
 import ToolBar from '@/components/actions/ToolBar';
 import { Button } from '@/components/ui/button';
 import { actionListActions } from '@/redux/ActionListSlice';
+import { ActionTypes, runAction } from '@/utils/actions';
 import ErrorIcon from '@mui/icons-material/Error';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { ActionTypes, runAction } from '@/utils/actions';
 
 const ActionPanel = () => {
     const dispatch = useDispatch();

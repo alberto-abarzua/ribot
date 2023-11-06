@@ -1,7 +1,8 @@
-FROM python:3.11.6-alpine
+FROM python:3.11-slim-buster
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y build-essential
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

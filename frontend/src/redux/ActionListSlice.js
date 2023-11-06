@@ -153,7 +153,7 @@ const actionListSlice = createSlice({
             ActionToAdd.parentId = targetAction.id;
         },
 
-        clearActionList: (state, _) => {
+        clearActionList: state => {
             state.actions = [];
             state.byId = {};
         },

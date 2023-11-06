@@ -149,7 +149,7 @@ class ArmPose:
             "yaw": self.yaw,
         }
 
-    def __add__(self, other: 'ArmPose') -> 'ArmPose':
+    def __add__(self, other: "ArmPose") -> "ArmPose":
         if not isinstance(other, ArmPose):
             raise ValueError("Can only add two ArmPose instances")
         return ArmPose(
@@ -158,7 +158,7 @@ class ArmPose:
             self.z + other.z,
             self.roll + other.roll,
             self.pitch + other.pitch,
-            self.yaw + other.yaw
+            self.yaw + other.yaw,
         )
 
 
