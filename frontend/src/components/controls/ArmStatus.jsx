@@ -31,7 +31,7 @@ const ArmStatus = () => {
             status.icon = AddHomeIcon;
         } else {
             status.label = 'Ready';
-            status.color = 'bg-green-200';
+            status.color = 'bg-green-300';
             status.icon = DoneAllIcon;
         }
     } else if (armStatus === ControllerStatus.STOPPED) {
