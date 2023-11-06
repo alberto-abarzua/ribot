@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "fastapi>=0.101.1",
     "uvicorn>=0.23.2",
+    "numpy>=1.20",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
@@ -15,7 +16,7 @@ license = {text = "MIT"}
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "-e file:///app/controller#egg=robot-arm-controller",
+    "-e file:///${PROJECT_ROOT}/controller#egg=robot-arm-controller",
 ]
 
 
@@ -27,3 +28,6 @@ pure_lint = "flake8 src"
 type_check = "mypy src"
 format = {composite = ["isort", "black"]}
 lint = {composite = ["pure_lint", "type_check"]}
+
+[tool.pdm.overrides]
+use_venv = false

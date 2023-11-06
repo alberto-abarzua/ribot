@@ -106,7 +106,6 @@ class ArmPose:
     roll: float
     pitch: float
     yaw: float
-
     tool_pos: float = 90
 
     def __init__(
@@ -149,6 +148,18 @@ class ArmPose:
             "pitch": self.pitch,
             "yaw": self.yaw,
         }
+
+    def __add__(self, other: "ArmPose") -> "ArmPose":
+        if not isinstance(other, ArmPose):
+            raise ValueError("Can only add two ArmPose instances")
+        return ArmPose(
+            self.x + other.x,
+            self.y + other.y,
+            self.z + other.z,
+            self.roll + other.roll,
+            self.pitch + other.pitch,
+            self.yaw + other.yaw,
+        )
 
 
 """

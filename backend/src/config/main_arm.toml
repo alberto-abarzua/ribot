@@ -36,15 +36,15 @@ title = "Robot arm configuration"
     a6y= 0
 
 [[joints]]
-    name = "joint_1"
+    name = "joinT_1"
     homing_direction = -1 # 1 or -1
     conversion_rate_axis_joint = 9.3 # Gear ratio
     homing_offset_rad = 0 # Offset from home position
     speed_rad_per_s = 0.5
     [joints.driver]
         type = "stepper"
-        dir_pin = 5
-        step_pin = 4
+        dir_pin = 14
+        step_pin = 13
     # [joints.driver]
     #     type = "servo"
     #     pin = 20
@@ -57,21 +57,24 @@ title = "Robot arm configuration"
 [[joints]]
     name = "joint_2"
     homing_direction = 1 
-    conversion_rate_axis_joint = 1.0 
+    conversion_rate_axis_joint = 7.0 
     homing_offset_rad = 0.0 
+    speed_rad_per_s = 0.4
     [joints.driver]
         type = "stepper"
-        dir_pin = 14
-        step_pin = 13
+        dir_pin = 5
+        step_pin = 4
     [joints.endstop]
-        type = "dummy"
+        type = "hall"
         pin = 25
         
 [[joints]]
     name = "joint_3"
     homing_direction = 1 
-    conversion_rate_axis_joint = 1.0 
+    conversion_rate_axis_joint = 15.0
     homing_offset_rad = 0.0
+    speed_rad_per_s = 0.2
+    steps_per_rev_motor_axis = 400 # Microstepping
     [joints.driver]
         type = "stepper"
         dir_pin = 16
@@ -83,7 +86,7 @@ title = "Robot arm configuration"
 [[joints]]
     name = "joint_4"
     homing_direction = 1
-    conversion_rate_axis_joint = 1.0
+    conversion_rate_axis_joint = 5.0
     homing_offset_rad = 0.0 
     [joints.driver]
         type = "stepper"

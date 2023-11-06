@@ -1,71 +1,161 @@
-import { BaseActionObj } from '@/utils/actions';
+import { ActionTypes } from '@/utils/actions';
 import { createSlice } from '@reduxjs/toolkit';
 
-import update from 'immutability-helper';
 const initialState = {
-    actions: [],
+    actions: [], // array actions
+    byId: {}, // hash table with all actions by id
+};
+
+// Action
+// {
+//    id,
+//    value,
+//    type,
+//    parentId,
+//    valid,
+//    running,
+// }
+
+const getParentList = (state, action) => {
+    const { parentId } = action;
+    if (parentId === null) {
+        return state.actions;
+    }
+    return state.byId[parentId].value;
 };
 
 const actionListSlice = createSlice({
     name: 'actionList',
     initialState,
     reducers: {
-        addAction(state, action) {
-            action.payload.index = state.actions.length;
-            state.actions.push(action.payload);
-        },
-        updateValueByIndex(state, action) {
-            state.actions[action.payload.index].value = action.payload.value;
-        },
-        moveInList(state, action) {
-            let dragIndex = action.payload.dragIndex;
-            let hoverIndex = action.payload.hoverIndex;
-            const updatedList = update(state.actions, {
-                $splice: [
-                    [dragIndex, 1],
-                    [hoverIndex, 0, state.actions[dragIndex]],
-                ],
-            });
+        moveAction: (state, action) => {
+            const { refActionId, targetActionId, before } = action.payload;
+            console.log(
+                'Moving action ',
+                refActionId % 1000,
+                ' to ',
+                targetActionId % 1000,
+                ' before ',
+                before
+            );
+            // refaction is the action being moved
+            // targetAction is the action that refAction is being moved to
 
-            state.actions = updatedList;
-            for (let i = 0; i < state.actions.length; i++) {
-                state.actions[i].index = i;
-            }
-        },
-        deleteAction(state, action) {
-            state.actions.splice(action.payload, 1);
-            for (let i = 0; i < state.actions.length; i++) {
-                state.actions[i].index = i;
-            }
-        },
-        setRunningStatus(state, action) {
-            state.actions[action.payload].running = true;
-            //set all other to false
-            for (let i = 0; i < state.actions.length; i++) {
-                if (i !== action.payload) {
-                    state.actions[i].running = false;
-                }
-            }
-        },
-        cleanRunningStatus(state) {
-            for (let i = 0; i < state.actions.length; i++) {
-                state.actions[i].running = false;
-            }
-        },
-        setValidStatus(state, action) {
-            state.actions[action.payload.index].valid = action.payload.valid;
-        },
-        duplicateAction(state, action) {
-            let index = action.payload;
-            let newAction = state.actions[index];
-            newAction = JSON.parse(JSON.stringify(newAction));
-            newAction.id = BaseActionObj.generateUniqueId();
-            state.actions.push(newAction);
-            newAction.index = state.actions.length;
+            const refAction = state.byId[refActionId];
+            const targetAction = state.byId[targetActionId];
 
-            for (let i = 0; i < state.actions.length; i++) {
-                state.actions[i].index = i;
+            const refActionList = getParentList(state, refAction);
+            const targetActionList = getParentList(state, targetAction);
+
+            // remove refAction from refActionList
+
+            const refActionIndex = refActionList.findIndex(action => action.id === refAction.id);
+
+            if (refActionIndex !== -1) {
+                refActionList.splice(refActionIndex, 1);
             }
+
+            // insert refAction into targetActionList
+            const targetActionIndex = targetActionList.findIndex(
+                action => action.id === targetAction.id
+            );
+            const insertIndex = before ? targetActionIndex : targetActionIndex + 1;
+            targetActionList.splice(insertIndex, 0, refAction);
+
+            const targetActionParentList = getParentList(state, targetAction);
+            const refActionParentList = getParentList(state, refAction);
+
+            if (targetActionParentList !== refActionParentList) {
+                refAction.parentId = targetAction.parentId;
+            }
+            state.byId[refActionId] = refAction;
+        },
+
+        addAction: (state, action) => {
+            const { type, parentId, value } = action.payload;
+            // if parentId is undefined
+            const newAction = {
+                id: Date.now(),
+                type,
+                parentId,
+                value,
+                valid: true,
+                running: false,
+            };
+            state.byId[newAction.id] = newAction;
+
+            if (parentId !== null) {
+                state.byId[parentId].value.push(newAction);
+            } else {
+                state.actions.push(newAction);
+            }
+        },
+
+        deleteAction: (state, action) => {
+            const { actionId } = action.payload;
+            const actionToDelete = state.byId[actionId];
+            const actionList = getParentList(state, actionToDelete);
+            const actionIndex = actionList.findIndex(action => action.id === actionId);
+            if (actionIndex !== -1) {
+                actionList.splice(actionIndex, 1);
+            }
+            delete state.byId[actionId];
+        },
+
+        duplicateAction: (state, action) => {
+            const { actionId } = action.payload;
+            const actionToDuplicate = state.byId[actionId];
+
+            const actionList = getParentList(state, actionToDuplicate);
+
+            const actionIndex = actionList.findIndex(action => action.id === actionId);
+            const newAction = {
+                ...actionToDuplicate,
+                id: Date.now(),
+            };
+            actionList.splice(actionIndex + 1, 0, newAction);
+            state.byId[newAction.id] = newAction;
+        },
+
+        setValidStatus: (state, action) => {
+            const { actionId, valid } = action.payload;
+            state.byId[actionId].valid = valid;
+        },
+
+        setRunningStatus: (state, action) => {
+            const { actionId, running } = action.payload;
+            state.byId[actionId].running = running;
+        },
+
+        setActionValue: (state, action) => {
+            const { actionId, value } = action.payload;
+            state.byId[actionId].value = value;
+        },
+        pushActionToValue: (state, action) => {
+            const { actionId, actionToAddId } = action.payload;
+            // make sure the action type is actionset
+            const targetAction = state.byId[actionId];
+            if (targetAction.type !== ActionTypes.ACTIONSET) {
+                console.error('pushActionToValue: action type is not actionset');
+                return;
+            }
+            const ActionToAdd = state.byId[actionToAddId];
+
+            targetAction.value.push(ActionToAdd);
+            // delete actionToAdd from its old location
+            const actionList = getParentList(state, ActionToAdd);
+            const actionIndex = actionList.findIndex(action => action.id === actionToAddId);
+            if (actionIndex !== -1) {
+                actionList.splice(actionIndex, 1);
+            }
+            // update parentId
+
+            ActionToAdd.parentId = targetAction.id;
+        },
+
+        clearActionList: state => {
+            state.actions = [];
+            state.byId = {};
         },
     },
 });

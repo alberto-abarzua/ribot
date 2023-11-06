@@ -51,10 +51,6 @@ class TestController(unittest.TestCase):
         self.controller.move_joints_to([0, 0, 0, 0, 0, 0])
         self.controller.wait_done_moving()
 
-    def test_health_check(self) -> None:
-        console.log("Running test: test_health_check", style="bold yellow")
-        self.assertTrue(self.controller.health_check())
-
     def test_move_to(self) -> None:
         console.log("Running test: test_move_to", style="bold yellow")
         epsilon = 0.01

@@ -1,4 +1,5 @@
 import dataclasses
+import threading
 import time
 from enum import Enum
 from pathlib import Path
@@ -14,9 +15,9 @@ from robot_arm_controller.control.arm_kinematics import (
 )
 from robot_arm_controller.control.controller_servers import (
     ControllerServer,
-    FIFOLock,
     WebsocketServer,
 )
+from robot_arm_controller.utils.fifo_lock import FIFOLock
 from robot_arm_controller.utils.messages import Message, MessageOp
 from robot_arm_controller.utils.prints import console
 
@@ -37,6 +38,13 @@ class Setting:
     last_updated: float = -1
 
 
+class ControllerStatus(Enum):
+    NOT_STARTED = 0
+    WAITING_CONNECTION = 1
+    RUNNING = 2
+    STOPPED = 3
+
+
 class ArmController:
     def __init__(
         self,
@@ -44,34 +52,34 @@ class ArmController:
         websocket_port: int = 8600,
         server_port: int = 8500,
     ) -> None:
-        # Arm Status
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
         self.current_angles_lock: FIFOLock = FIFOLock()
 
         self.tool_value: float = 0
         self.move_queue_size: int = 0
         self.is_homed: bool = False
-        self.last_health_check: float = 0
 
-        self.stopped = False
-
-        self.print_status = False
-        self.print_idx = 0
-
-        self.controller_server: ControllerServer = ControllerServer(self, server_port)
-        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
+        self.config_file: Optional[Path] = None
 
         self.arm_params = arm_parameters
         self.num_joints: int = len(self._current_angles)
         self.kinematics: ArmKinematics = ArmKinematics(self.arm_params)
 
-        self.command_cooldown: float = 0.01
-        self.connection_controller_timeout: int = 60
-
         self.joint_settings: List[Dict[Settings, Setting]] = []
         self.joint_settings_response_code: List[Dict[int, Setting]] = []
 
-        # register new handlers here
+        self.last_status_time: float = 0
+
+        self.status: ControllerStatus = ControllerStatus.NOT_STARTED
+
+        self.print_status = False
+        self.print_idx = 0
+
+        self.stop_event: threading.Event = threading.Event()
+
+        self.controller_server: ControllerServer = ControllerServer(self, server_port)
+        self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
+        self.file_reload_thread: Optional[threading.Thread] = None
 
         self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {
             MessageOp.MOVE: self.handle_move_message,
@@ -115,22 +123,34 @@ class ArmController:
         else:
             self.websocket_server = None
 
+        connection_controller_timeout = 60
         self.controller_server.start()
         start_time = time.time()
         if wait:
-            while not self.is_ready:
+            while not self.is_ready and not self.stop_event.is_set():
                 time.sleep(0.1)
-                if time.time() - start_time > self.connection_controller_timeout:
+                if time.time() - start_time > connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
+
+        self.status = ControllerStatus.WAITING_CONNECTION
+
         console.log("\nController Started!", style="setup")
 
     def stop(self) -> None:
         console.log("Stopping controller...", style="setup", end="\n")
-        self.stopped = True
+        self.stop_event.set()
+        self.status = ControllerStatus.STOPPED
+
         if self.websocket_server is not None:
             self.websocket_server.stop()
+
         self.controller_server.stop()
+
+        if self.file_reload_thread is not None and self.file_reload_thread.is_alive():
+            self.file_reload_thread.join()
+
         console.log("Controller Stopped", style="setup")
+        exit()
 
     @property
     def current_pose(self) -> ArmPose:
@@ -158,8 +178,14 @@ class ArmController:
 
         return websocket_server_up and controller_server_up
 
-    def configure_from_file(self, file: Path) -> None:
-        # TODO: Read toml file and configure arm
+    def set_config_file(self, file: Path) -> None:
+        self.config_file = file
+
+    def configure(self) -> None:
+        if self.config_file is not None:
+            self.configure_from_file(self.config_file)
+
+    def configure_from_file(self, file: Path, reload: bool = True) -> None:
         contents = toml.load(file)
         joint_configuration = contents["joint_configuration"]
         joints = contents["joints"]
@@ -228,6 +254,22 @@ class ArmController:
             self.set_setting_joint(Settings.HOMING_OFFSET_RADS, homing_offset_rads, i)
             self.arm_params.joints[i].set_bounds(min_angle_rad, max_angle_rad)
 
+        if reload:
+            self.file_reload_thread = threading.Thread(target=self.check_and_reload_config, args=(file,))
+            self.file_reload_thread.start()
+
+    def check_and_reload_config(self, file: Path) -> None:
+        start_time = time.time()
+        while not self.stop_event.is_set():
+            if file.stat().st_mtime > start_time:
+                self.configure_from_file(file)
+                start_time = time.time()
+            time.sleep(3)
+        exit(0)
+
+    def set_status_running(self) -> None:
+        self.status = ControllerStatus.RUNNING
+
     """
     ----------------------------------------
                     Handlers
@@ -236,6 +278,15 @@ class ArmController:
 
     def handle_move_message(self, _: Message) -> None:
         pass
+
+    def check_last_status(self) -> None:
+        current_time = time.time()
+        if self.last_status_time == 0:
+            return
+
+        if current_time - self.last_status_time > 5:
+            console.log("No status message received", style="error")
+            self.stop()
 
     def handle_status_message(self, message: Message) -> None:
         code = message.code
@@ -249,9 +300,7 @@ class ArmController:
                     console.log(self, style="status")
                     self.print_idx = 0
                 self.print_idx += 1
-
-        if code == 4:
-            self.last_health_check = time.time()
+            self.last_status_time = time.time()
 
     def handle_config_message(self, message: Message) -> None:
         code = message.code
@@ -289,25 +338,31 @@ class ArmController:
             return False
         return self.move_joints_to(target_angles)
 
+    def move_to_relative(
+        self,
+        pose: ArmPose,
+    ) -> bool:
+        target_pose = self.current_pose + pose
+        return self.move_to(target_pose)
+
     def home(self, wait: bool = True) -> None:
         if self.print_status:
             console.log("Homing arm...", style="homing")
 
         message = Message(MessageOp.MOVE, 3)
         self.controller_server.send_message(message, mutex=True)
-        time.sleep(self.command_cooldown)
         start_time = time.time()
         self.is_homed = False
         time.sleep(1)
         if wait:
-            while not self.is_homed:
+            while not self.is_homed and not self.stop_event.is_set():
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
             # wait for angles to get to 0
             start_time = time.time()
 
-            while not all([abs(angle) < 0.1 for angle in self.current_angles]):
+            while not all([abs(angle) < 0.1 for angle in self.current_angles]) and not self.stop_event.is_set():
                 time.sleep(0.1)
                 if time.time() - start_time > 60:
                     raise TimeoutError("Arm took too long to home")
@@ -326,7 +381,6 @@ class ArmController:
         message = Message(MessageOp.MOVE, 5, [joint_idx])
 
         self.controller_server.send_message(message, mutex=True)
-        time.sleep(self.command_cooldown)
 
     def move_joint_to_relative(self, joint_idx: int, angle: float) -> bool:
         message = Message(MessageOp.MOVE, 11, [joint_idx, angle])
@@ -352,13 +406,13 @@ class ArmController:
             console.log(f"Setting tool value to: {angle}", style="set_tool")
 
     def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
-        while not np.allclose(self.current_angles, target_angles, atol=epsilon):
+        while not np.allclose(self.current_angles, target_angles, atol=epsilon) and not self.stop_event.is_set():
             time.sleep(0.2)
 
     def wait_done_moving(self) -> None:
         if self.print_status:
             console.log(f"Waiting for arm to finish moving qsize: {self.move_queue_size}", style="waiting")
-        while self.move_queue_size > 0:
+        while self.move_queue_size > 0 and not self.stop_event.is_set():
             time.sleep(0.2)
         if self.print_status:
             console.log(f"Arm finished moving qsize: {self.move_queue_size}", style="waiting")
@@ -374,19 +428,6 @@ class ArmController:
                     API Methods -- STATUS
     ----------------------------------------
     """
-
-    def health_check(self) -> bool:
-        if not self.is_ready:
-            console.log("Not connected", style="error")
-            return False
-        message = Message(MessageOp.STATUS, 3)
-        current_time = time.time()
-        with self.controller_server.connection_mutex:
-            self.controller_server.send_message(message)
-        while self.last_health_check < current_time and time.time() - current_time < 5:
-            time.sleep(0.01)
-
-        return self.last_health_check > current_time
 
     def stop_movement(self) -> None:
         message = Message(MessageOp.STATUS, 5)
@@ -426,7 +467,7 @@ class ArmController:
         if setting.last_updated < 0:  # valid value
             message = Message(MessageOp.CONFIG, code, [float(joint_idx)])
             self.controller_server.send_message(message, mutex=True)
-            while setting.last_updated < 0:
+            while setting.last_updated < 0 and not self.stop_event.is_set():
                 time.sleep(0.01)
         return setting.value
 
@@ -458,18 +499,13 @@ class ArmController:
             console.log(f"Setting endstop dummy for joint {joint_idx}", style="set_settings")
 
 
-class ControllerManager:
-    """
-    Handles instances of the controller
-
-    """
-
-
 class SingletonArmController:
     _instance: Optional[ArmController] = None
     arm_parameters: Optional[ArmParameters] = None
     websocket_port: int = 8600
     server_port: int = 8500
+    print_status: bool = False
+    config_file: Optional[Path] = None
 
     @classmethod
     def create_instance(
@@ -477,21 +513,37 @@ class SingletonArmController:
         arm_parameters: ArmParameters,
         websocket_port: int = 8600,
         server_port: int = 8500,
+        config_file: Optional[Path] = None,
+        print_status: bool = False,
     ) -> None:
         cls.arm_parameters = arm_parameters
         cls.websocket_port = websocket_port
         cls.server_port = server_port
+        cls.print_status = print_status
+        cls.config_file = config_file
 
         cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
+        cls._instance.print_status = print_status
+        if config_file is not None:
+            cls._instance.set_config_file(config_file)
 
     @classmethod
     def get_instance(cls) -> ArmController:
         if cls._instance is not None:
-            if cls._instance.stopped:
+            if cls._instance.status == ControllerStatus.STOPPED:
+                console.log("Error in SingletonArmController instance has stopped!", style="error")
                 cls._instance = None
 
+                time.sleep(5)
+
                 if cls.arm_parameters is not None:
-                    cls.create_instance(cls.arm_parameters, cls.websocket_port, cls.server_port)
+                    cls.create_instance(
+                        cls.arm_parameters, cls.websocket_port, cls.server_port, cls.config_file, cls.print_status
+                    )
+                    if cls._instance is not None:
+                        console.log("Restarting SingletonArmController instance", style="error")
+                        cls._instance.start()
+                        console.log("SingletonArmController instance restarted", style="error")
 
                 return cls.get_instance()
             else:

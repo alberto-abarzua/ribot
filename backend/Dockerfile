@@ -1,19 +1,20 @@
-FROM python:3.11.4
-
+FROM python:3.11-slim-buster
 
 WORKDIR /app
 
-# pythonenvbuffer
+RUN apt-get update && apt-get install -y build-essential
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
 ENV PYTHONPATH=/app/src
 
 
-RUN pip install pdm==2.9.3
+RUN pip install pdm==2.10
 
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./pdm.lock ./pdm.lock
+
 
 COPY . .
 

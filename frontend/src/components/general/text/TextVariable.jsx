@@ -1,3 +1,4 @@
+import { Label } from '@/components/ui/label';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 
@@ -22,17 +23,23 @@ const TextVariable = ({ label, value: propValue, setValue, disabled = false }) =
     const onChangeFunc = e => {
         setLocalValue(e.target.value);
     };
+    const id = label.replace(/\s/g, '');
 
     return (
         <div className="flex h-10 w-auto items-center justify-end gap-2.5 px-2 py-1.5">
-            <div className="w-fit whitespace-nowrap text-xs font-normal">{label}</div>
-            <div className="flex h-7 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-50 shadow">
+            <Label htmlFor={id} className="whitespace-nowrap">
+                {label}
+            </Label>
+            <div
+                className="flex h-7 w-16 items-center justify-center gap-2.5 rounded-md bg-gray-50 shadow"
+                id={id}
+            >
                 <input
                     type="text"
                     value={typeof value === 'number' ? value.toFixed(2) : value}
                     onChange={onChangeFunc}
                     onBlur={onBlur}
-                    className="h-full w-full rounded-md text-center text-xs font-normal text-gray-800"
+                    className="h-full w-full rounded-md text-center font-normal text-gray-800"
                     disabled={disabled}
                 />
             </div>

@@ -38,6 +38,15 @@ def dcr(file_str: str, command: str, env={}, service_ports_and_aliases=False):
         return subprocess.check_call(
             ['docker', 'compose', '-f', str(file_path), 'run', '--rm', '--service-ports', '--use-aliases', *command_list], env={**os.environ, **env})
 
+def dce(file_str: str, command: str, env={}, service_ports_and_aliases=False):
+    command_list = command.split(' ')
+    file_path = DOCKER_SERVICES/file_str
+    if not service_ports_and_aliases:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'exec', *command_list], env={**os.environ, **env})
+    else:
+        return subprocess.check_call(
+            ['docker', 'compose', '-f', str(file_path), 'exec', '--service-ports', '--use-aliases', *command_list], env={**os.environ, **env})
 
 def dcu(files: List[str], env: dict = {}, detached=False):
     file_list = get_file_list(files)
@@ -52,6 +61,8 @@ def dcu(files: List[str], env: dict = {}, detached=False):
 def dcd(files: List[str]):
     file_list = get_file_list(files)
 
+    print("Stopping containers")
+    print(file_list)
     subprocess.check_call(
         ['docker', 'compose', *file_list, 'down', '--remove-orphans'])
 
@@ -116,9 +127,11 @@ def build_firmware_locally(**kwargs):
 
 
 def down(**kwargs):
-    container_name = kwargs['container']
+    container_name = kwargs.get('container', None)
+    print("Stopping containers")
+    print(container_name)
 
-    if container_name:
+    if container_name is not None:
         if container_name == 'firmware':
             dcd(['firmware.yaml'])
         elif container_name == 'controller':
@@ -231,14 +244,15 @@ def gdb(**kwargs):
 def runserver(**kwargs):
 
     esp = kwargs['esp']
+    detached = kwargs['detached']
     if esp:
         print("Running server for the esp-32")
         dcu(['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml'],
-            env={"ESP_CONTROLLER_SERVER_HOST": get_ip()})
+            env={"ESP_CONTROLLER_SERVER_HOST": get_ip()}, detached=detached)
     else:
         print('Running server for the linux platform')
         dcu(['backend.yaml', 'unity_webgl_server.yaml',
-            'frontend.yaml', 'firmware.yaml'])
+            'frontend.yaml', 'firmware.yaml'], detached=detached)
 
 
 def shell(**kwargs):
@@ -315,6 +329,8 @@ def main(**kwargs):
     parser_runserver.set_defaults(func=runserver)
     parser_runserver.add_argument(
         '--esp', action='store_true', help='Run server for ESP-32 ')
+    parser_runserver.add_argument(
+        '--detached', '-d', action='store_true', help='Run server in detached mode')
 
     parser_down = subparsers.add_parser(
         'down', help='Stop all containers')
@@ -322,7 +338,7 @@ def main(**kwargs):
     parser_down.set_defaults(func=down)
 
     parser_down.add_argument(
-        '--container', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to stop')
+        '--container', '-c', choices=['firmware', 'controller', 'backend', 'frontend', 'unity_webgl_server'], help='Container to stop')
 
     parser_build_flash_esp = subparsers.add_parser(
         'build-flash-esp', help='Build and flash firmware to esp32')

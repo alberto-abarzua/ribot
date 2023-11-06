@@ -1,146 +1,76 @@
-// import React from 'react';
+import ActionSet from '@/components/actions/ActionSet';
 import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
+import { actionListActions } from '@/redux/ActionListSlice';
 import api from '@/utils/api';
-
-import { generateUniqueId } from './idManager';
 
 const ActionTypes = {
     MOVE: 'move',
     SLEEP: 'sleep',
     TOOL: 'tool',
+    ACTIONSET: 'actionset',
 };
 
-class BaseActionObj {
-    constructor(value, type, index, id = -1) {
-        if (new.target == BaseActionObj) {
-            throw new TypeError('Cannot construct BaseActionObj instances directly');
-        }
-
-        this.value = value;
-        this.type = type;
-        if (id == -1) {
-            this.id = BaseActionObj.generateUniqueId();
-        } else {
-            this.id = id;
-        }
-        this.index = index;
-        this.running = false;
-        this.valid = true;
-    }
-
-    static generateUniqueId() {
-        return generateUniqueId();
-    }
-
-    render() {
-        throw new Error('You have to implement the method render!');
-    }
-
-    async run() {
-        throw new Error('You have to implement the method run!');
-    }
-
-    toSerializable() {
-        return {
-            value: this.value,
-            type: this.type,
-            id: this.id,
-            index: this.index,
-            running: this.running,
-            valid: this.valid,
-        };
-    }
-
-    static fromSerializable(serializable) {
-        if (serializable.type == ActionTypes.MOVE) {
-            return new MoveActionObj(serializable.value, serializable.index, serializable.id);
-        } else if (serializable.type == ActionTypes.SLEEP) {
-            return new SleepActionObj(serializable.value, serializable.index, serializable.id);
-        } else if (serializable.type == ActionTypes.TOOL) {
-            return new ToolActionObj(serializable.value, serializable.index, serializable.id);
-        }
-    }
-}
-
-class MoveActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.MOVE, index, id);
-    }
-
-    render() {
-        return (
-            <MoveAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></MoveAction>
-        );
-    }
-    async run() {
+const actionHandlers = {
+    [ActionTypes.MOVE]: async action => {
         let pose = {
-            x: this.value.x,
-            y: this.value.y,
-            z: this.value.z,
-            roll: this.value.roll,
-            pitch: this.value.pitch,
-            yaw: this.value.yaw,
+            x: action.value.x,
+            y: action.value.y,
+            z: action.value.z,
+            roll: action.value.roll,
+            pitch: action.value.pitch,
+            yaw: action.value.yaw,
             wait: true,
         };
-        await api.post('/move/pose/move/', pose);
-    }
-}
-
-class ToolActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.TOOL, index, id);
-    }
-
-    render() {
-        return (
-            <ToolAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></ToolAction>
-        );
-    }
-
-    async run() {
+        await api.post('/move/pose/', pose);
+    },
+    [ActionTypes.SLEEP]: async action => {
+        let duration = action.value.duration;
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const duration_ms = duration * 1000;
+        await sleep(duration_ms);
+    },
+    [ActionTypes.TOOL]: async action => {
         let target = {
-            toolValue: this.value.toolValue,
+            toolValue: action.value.toolValue,
             wait: true,
         };
         await api.post('/move/tool/move/', target);
-    }
-}
+    },
+    [ActionTypes.ACTIONSET]: async (action, dispatch) => {
+        console.log('running actionset', action);
+        for (let subAction of action.value) {
+            console.log('running subaction', subAction);
+            dispatch(actionListActions.setRunningStatus({ actionId: subAction.id, running: true }));
+            await runAction(subAction);
+            dispatch(
+                actionListActions.setRunningStatus({ actionId: subAction.id, running: false })
+            );
+        }
+    },
+};
 
-class SleepActionObj extends BaseActionObj {
-    constructor(value, index, id) {
-        super(value, ActionTypes.SLEEP, index, id);
+const runAction = async (action, dispatch) => {
+    const handler = actionHandlers[action.type];
+    if (handler) {
+        await handler(action, dispatch);
+    } else {
+        throw new Error('Invalid action type');
     }
+};
 
-    render() {
-        return (
-            <SleepAction
-                key={this.id}
-                index={this.index}
-                id={this.id}
-                value={this.value}
-            ></SleepAction>
-        );
-    }
-    async run() {
-        let duration = this.value.duration;
-        await this.sleep(duration);
-    }
+const renderAction = action => {
+    const components = {
+        [ActionTypes.MOVE]: MoveAction,
+        [ActionTypes.SLEEP]: SleepAction,
+        [ActionTypes.TOOL]: ToolAction,
+        [ActionTypes.ACTIONSET]: ActionSet,
+    };
 
-    sleep(duration) {
-        return new Promise(resolve => setTimeout(resolve, duration * 1000));
-    }
-}
+    const Component = components[action.type];
 
-export { MoveActionObj, ToolActionObj, SleepActionObj, ActionTypes, BaseActionObj };
+    return Component ? <Component key={action.id} id={action.id}></Component> : null;
+};
+
+export { ActionTypes, runAction, renderAction };

@@ -1,22 +1,20 @@
+import BaseAction from './BaseAction';
+import TextVariable from '../general/text/TextVariable';
 import { actionListActions } from '@/redux/ActionListSlice';
 import api from '@/utils/api';
 import GamesIcon from '@mui/icons-material/Games';
-
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import TextVariable from '../general/text/TextVariable';
-import BaseAction from './BaseAction';
 const MoveAction = ({ ...props }) => {
     const dispatch = useDispatch();
+    const id = props.id;
 
-    // get index from props
-    const action = useSelector(state => state.actionList.actions[props.index]);
+    const action = useSelector(state => state.actionList.byId[id]);
 
     const [currentPose, setCurrentPose] = useState(action.value);
 
-    console.log(action);
     useEffect(() => {
         const checkValid = async () => {
             let pose = {
@@ -30,32 +28,27 @@ const MoveAction = ({ ...props }) => {
             try {
                 const res = await api.post('/move/pose/validate/', pose);
                 if (res.status === 200) {
-                    dispatch(actionListActions.setValidStatus({ index: props.index, valid: true }));
+                    dispatch(actionListActions.setValidStatus({ actionId: id, valid: true }));
                 }
             } catch (err) {
-                dispatch(actionListActions.setValidStatus({ index: props.index, valid: false }));
+                dispatch(actionListActions.setValidStatus({ actionId: id, valid: false }));
             }
         };
 
         checkValid();
-    }, [currentPose, dispatch, props.index]);
+    }, [currentPose, dispatch, id]);
 
     useEffect(() => {
-        dispatch(
-            actionListActions.updateValueByIndex({
-                index: props.index,
-                value: currentPose,
-            })
-        );
-    }, [currentPose, dispatch, props.index]);
+        dispatch(actionListActions.setActionValue({ actionId: id, value: currentPose }));
+    }, [currentPose, dispatch, id]);
     return (
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}
-            className="h-30 bg-slate-400 "
+            className="h-30 bg-action-move"
             {...props}
         >
             <>
-                <div className="inline-flex flex-1 flex-col items-end justify-center rounded-md bg-slate-200 p-2 text-black shadow">
+                <div className="inline-flex flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow">
                     <div className="inline-flex items-center justify-end  ">
                         <TextVariable
                             label="X"
@@ -82,7 +75,7 @@ const MoveAction = ({ ...props }) => {
                     </div>
                 </div>
 
-                <div className="inline-flex  flex-1 flex-col items-end justify-center rounded-md bg-slate-200 p-2 text-black shadow ">
+                <div className="inline-flex  flex-1 flex-col items-end justify-center rounded-md bg-action-data p-2 text-black shadow ">
                     <div className="inline-flex items-center justify-end">
                         <TextVariable
                             label="Roll"
@@ -114,7 +107,7 @@ const MoveAction = ({ ...props }) => {
 };
 
 MoveAction.propTypes = {
-    index: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired,
 };
 
 export default MoveAction;

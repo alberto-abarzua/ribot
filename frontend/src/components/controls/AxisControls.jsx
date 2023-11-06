@@ -1,7 +1,7 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
-
+import api from '@/utils/api';
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -12,6 +12,20 @@ const AxisControls = () => {
 
     const dispatch = useDispatch();
     const currentPose = useSelector(state => state.armPose);
+
+    const moveArm = (field, amount) => {
+        let base = {
+            x: 0,
+            y: 0,
+            z: 0,
+            roll: 0,
+            pitch: 0,
+            yaw: 0,
+        };
+        base[field] = amount;
+        api.post('/move/pose/relative/', base);
+    };
+
     return (
         <div className="flex flex-wrap items-center gap-4 p-4">
             <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
@@ -30,19 +44,19 @@ const AxisControls = () => {
                     <MoveAxis
                         label="X"
                         value={currentPose.x}
-                        setValue={value => dispatch(armPoseActions.updateX(value))}
+                        setValue={value => moveArm('x', value)}
                         step_amount={coordsStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Y"
                         value={currentPose.y}
-                        setValue={value => dispatch(armPoseActions.updateY(value))}
+                        setValue={value => moveArm('y', value)}
                         step_amount={coordsStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Z"
                         value={currentPose.z}
-                        setValue={value => dispatch(armPoseActions.updateZ(value))}
+                        setValue={value => moveArm('z', value)}
                         step_amount={coordsStep}
                     ></MoveAxis>
                 </div>
@@ -65,19 +79,19 @@ const AxisControls = () => {
                     <MoveAxis
                         label="Roll"
                         value={currentPose.roll}
-                        setValue={value => dispatch(armPoseActions.updateRoll(value))}
+                        setValue={value => moveArm('roll', value)}
                         step_amount={anglesStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Pitch"
                         value={currentPose.pitch}
-                        setValue={value => dispatch(armPoseActions.updatePitch(value))}
+                        setValue={value => moveArm('pitch', value)}
                         step_amount={anglesStep}
                     ></MoveAxis>
                     <MoveAxis
                         label="Yaw"
                         value={currentPose.yaw}
-                        setValue={value => dispatch(armPoseActions.updateYaw(value))}
+                        setValue={value => moveArm('yaw', value)}
                         step_amount={anglesStep}
                     ></MoveAxis>
                 </div>
