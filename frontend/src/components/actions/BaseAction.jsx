@@ -73,8 +73,8 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
         running ? (
             <AutorenewIcon className="animate-spin text-4xl transition-all duration-300 group-hover:text-gray-600" />
         ) : (
-            <div onMouseDown={e => e.stopPropagation()} ref={drag}>
-                <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-slate-300" />
+            <div className="p-3" onMouseDown={e => e.stopPropagation()} ref={drag}>
+                <DragIndicatorIcon className="mx-3 scale-150 transform transition-all duration-300 hover:text-slate-300" />
             </div>
         )
     ) : (

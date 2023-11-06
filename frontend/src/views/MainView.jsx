@@ -9,11 +9,11 @@ export default function Home() {
     return (
         <Providers>
             <div className="box-border flex h-screen">
-                <div className="relative flex h-full w-full flex-col lg:w-1/12 ">
+                <div className="relative flex h-full flex-col lg:w-16 ">
                     <SideNav></SideNav>
                 </div>
 
-                <div className="flex h-full w-full flex-col items-center lg:w-5/12 ">
+                <div className="flex h-full w-full flex-col items-center lg:w-6/12 ">
                     <ActionsPanel></ActionsPanel>
                 </div>
                 <div className="relative box-border flex h-full w-full flex-col items-start justify-start bg-slate-50 lg:w-6/12">

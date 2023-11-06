@@ -51,7 +51,7 @@ const ActionSet = ({ action, ...props }) => {
             </div>
         ) : (
             <div className="w-full px-2">
-                <Accordion type="single" collapsible>
+                <Accordion type="single" collapsible defaultValue="item-1">
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Sub Actions</AccordionTrigger>
                         <AccordionContent>
@@ -63,7 +63,7 @@ const ActionSet = ({ action, ...props }) => {
         );
     return (
         <BaseAction
-            className={' bg-action-set'}
+            className={' bg-action-set opacity-90'}
             icon={<DashboardCustomizeIcon className="text-6xl"></DashboardCustomizeIcon>}
             action={action}
             {...props}

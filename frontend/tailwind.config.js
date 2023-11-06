@@ -59,18 +59,18 @@ module.exports = {
                 'action-tool-hover': colors.amber[600],
                 'action-sleep': {
                     ...colors.indigo,
-                    DEFAULT: colors.indigo[700],
+                    DEFAULT: colors.sky[700],
                 },
-                'action-sleep-hover': colors.indigo[800],
+                'action-sleep-hover': colors.sky[800],
 
                 'action-set': {
-                    ...colors.red,
-                    DEFAULT: colors.red[500],
+                    ...colors.pink,
+                    DEFAULT: colors.pink[700],
                 },
 
-                'action-set-hover': colors.red[600],
+                'action-set-hover': colors.pink[800],
 
-                'action-data': colors.slate[100],
+                'action-data': colors.sky[50],
             },
             borderRadius: {
                 lg: 'var(--radius)',
