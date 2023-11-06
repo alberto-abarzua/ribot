@@ -3,7 +3,7 @@ import MoveAction from '@/components/actions/MoveAction';
 import SleepAction from '@/components/actions/SleepAction';
 import ToolAction from '@/components/actions/ToolAction';
 import api from '@/utils/api';
-import { generateUniqueId } from '@/utils/idManager';
+import { actionListActions } from '@/redux/ActionListSlice';
 
 const ActionTypes = {
     MOVE: 'move',
@@ -23,11 +23,13 @@ const actionHandlers = {
             yaw: action.value.yaw,
             wait: true,
         };
-        await api.post('/move/pose/move/', pose);
+        await api.post('/move/pose/', pose);
     },
     [ActionTypes.SLEEP]: async action => {
         let duration = action.value.duration;
-        await action.sleep(duration);
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const duration_ms = duration * 1000;
+        await sleep(duration_ms);
     },
     [ActionTypes.TOOL]: async action => {
         let target = {
@@ -36,17 +38,23 @@ const actionHandlers = {
         };
         await api.post('/move/tool/move/', target);
     },
-    [ActionTypes.ACTIONSET]: async action => {
+    [ActionTypes.ACTIONSET]: async (action, dispatch) => {
+        console.log('running actionset', action);
         for (let subAction of action.value) {
-            await subAction.run();
+            console.log('running subaction', subAction);
+            dispatch(actionListActions.setRunningStatus({ actionId: subAction.id, running: true }));
+            await runAction(subAction);
+            dispatch(
+                actionListActions.setRunningStatus({ actionId: subAction.id, running: false })
+            );
         }
     },
 };
 
-const runAction = async action => {
+const runAction = async (action, dispatch) => {
     const handler = actionHandlers[action.type];
     if (handler) {
-        await handler(action);
+        await handler(action, dispatch);
     } else {
         throw new Error('Invalid action type');
     }

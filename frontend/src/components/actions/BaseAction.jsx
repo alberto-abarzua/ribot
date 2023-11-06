@@ -29,41 +29,30 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
         },
         hover(item, monitor) {
             const dragPos = dragLocation(ref, monitor);
-
-            if (id === item.id) {
+            if (id === item.id || item.id == action.parentId || dragPos === PositionTypes.OUT)
                 return;
-            }
-
-            if (item.id == action.parentId) {
-                return;
-            }
-
-            if (dragPos === PositionTypes.OUT) {
-                return;
-            }
 
             const before = dragPos === PositionTypes.TOP;
-            console.log('hovering on action', id % 1000, dragPos);
             dispatch(
                 actionListActions.moveAction({
-                    refActionId: item.id, // action to be moved
-                    targetActionId: id, // neighbor action to place before or after
+                    refActionId: item.id,
+                    targetActionId: id,
                     before: before,
                 })
             );
         },
     });
 
-    const [{ isDragging }, drag] = useDrag({
+    const [{ isDragging }, drag, dragPreview] = useDrag({
         type: ItemTypes.ACTION,
         item: { id },
         collect: monitor => ({
             isDragging: monitor.isDragging(),
         }),
+        isDragging: monitor => id === monitor.getItem().id,
     });
-    if (isDragging) {
-        console.log('dragging', id % 1000);
-    }
+
+    dragPreview(drop(ref));
 
     const onDelete = () => {
         dispatch(actionListActions.deleteAction({ actionId: id }));
@@ -73,30 +62,24 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
         dispatch(actionListActions.duplicateAction({ actionId: id }));
     };
 
-    drag(drop(ref));
+    let indicator = valid ? (
+        running ? (
+            <AutorenewIcon className="animate-spin text-4xl transition-all duration-300 group-hover:text-gray-600" />
+        ) : (
+            <div onMouseDown={e => e.stopPropagation()} ref={drag}>
+                <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-slate-300" />
+            </div>
+        )
+    ) : (
+        <ErrorIcon className="text-5xl text-orange-500 transition-all duration-300 group-hover:text-gray-600" />
+    );
 
-    let indicator = null;
-
-    if (valid) {
-        if (running) {
-            indicator = (
-                <AutorenewIcon className="animate-spin text-4xl transition-all duration-300 group-hover:text-gray-600" />
-            );
-        } else {
-            indicator = (
-                <DragIndicatorIcon className="text-4xl transition-all duration-300 group-hover:text-gray-600" />
-            );
-        }
-    } else {
-        indicator = (
-            <ErrorIcon className="text-5xl text-orange-500 transition-all duration-300 group-hover:text-gray-600" />
-        );
-    }
+    console.log('isDragging action ', id % 1000, isDragging);
 
     if (!isDragging) {
         return (
             <div
-                className={`transform transition-all duration-100  ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow   `}
+                className={`transform transition-all duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow`}
                 {...props}
                 ref={ref}
                 style={{ opacity: isDragging ? 0 : 1 }}
@@ -106,16 +89,16 @@ const BaseAction = ({ icon, children, className, id, ...props }) => {
                 {children}
                 <div className="flex cursor-grab items-center justify-start ">{indicator}</div>
                 <div
-                    className="absolute right-0 top-0 flex cursor-pointer items-center justify-center rounded-bl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
+                    className="absolute right-0 top-0 flex cursor-pointer items-center justify-center rounded-bl-md p-1 text-gray-300 transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
                     onClick={onDelete}
                 >
-                    <CloseIcon className="text-xl"></CloseIcon>
+                    <CloseIcon className="text-xl" />
                 </div>
                 <div
-                    className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center rounded-tl-md p-1 text-gray-300  transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
+                    className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center rounded-tl-md p-1 text-gray-300 transition-all duration-300 hover:bg-gray-100 hover:text-gray-500"
                     onClick={onDuplicate}
                 >
-                    <ContentCopyIcon className="text-xl"></ContentCopyIcon>
+                    <ContentCopyIcon className="text-xl" />
                 </div>
                 <p>{id % 1000}</p>
             </div>

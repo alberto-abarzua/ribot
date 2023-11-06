@@ -7,10 +7,14 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { ActionTypes, runAction } from '@/utils/actions';
 
 const ActionPanel = () => {
     const dispatch = useDispatch();
     const actionList = useSelector(state => state.actionList.actions);
+    const byId = useSelector(state => state.actionList.byId);
+    console.log('byId', byId);
+    console.log('actionList', actionList);
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
@@ -22,15 +26,22 @@ const ActionPanel = () => {
     }, [running]);
 
     const runActions = async () => {
-        actionList.forEach(action => {
+        for (let action of actionList) {
             if (!runningRef.current) return;
-            dispatch(actionListActions.setRunningStatus(action.index));
-        });
+            dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: true }));
+            console.log('running action', action);
+            if (action.type === ActionTypes.ACTIONSET) {
+                action = byId[action.id];
+            }
+            await runAction(action, dispatch);
+            console.log('finished running action', action);
 
-        dispatch(actionListActions.cleanRunningStatus());
+            dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: false }));
+        }
+        console.log('finished running all actions');
+
         setRunning(false);
     };
-
     console.log('rendering ActionPanel');
 
     const handleClickPlayStop = () => {

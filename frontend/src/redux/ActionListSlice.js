@@ -68,6 +68,7 @@ const actionListSlice = createSlice({
             if (targetActionParentList !== refActionParentList) {
                 refAction.parentId = targetAction.parentId;
             }
+            state.byId[refActionId] = refAction;
         },
 
         addAction: (state, action) => {
@@ -82,6 +83,7 @@ const actionListSlice = createSlice({
                 running: false,
             };
             state.byId[newAction.id] = newAction;
+
             if (parentId !== null) {
                 state.byId[parentId].value.push(newAction);
             } else {
@@ -149,11 +151,6 @@ const actionListSlice = createSlice({
             // update parentId
 
             ActionToAdd.parentId = targetAction.id;
-        },
-
-        setActionRunning: (state, action) => {
-            const { actionId, running } = action.payload;
-            state.byId[actionId].running = running;
         },
 
         clearActionList: (state, _) => {
