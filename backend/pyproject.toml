@@ -29,5 +29,3 @@ type_check = "mypy src"
 format = {composite = ["isort", "black"]}
 lint = {composite = ["pure_lint", "type_check"]}
 
-[tool.pdm.overrides]
-use_venv = false
