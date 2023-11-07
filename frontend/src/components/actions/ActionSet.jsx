@@ -6,7 +6,6 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Label } from '@/components/ui/label';
 import { actionListActions } from '@/redux/ActionListSlice';
 import { ItemTypes } from '@/utils/ItemTypes';
 import AddIcon from '@mui/icons-material/Add';
@@ -21,6 +20,7 @@ const ActionSet = ({ action, ...props }) => {
 
     const id = action.id;
     const [isOver, setIsOver] = useState(false);
+    const name = action.name ? action.name : '';
 
     const actionList = action.value;
 
@@ -60,7 +60,7 @@ const ActionSet = ({ action, ...props }) => {
                                 autoComplete="off"
                                 className="focus:border-blue-3 w-2/3 rounded-md border-none bg-slate-300 px-2 py-1 text-lg italic text-gray-900 hover:border-blue-300 "
                                 placeholder="Change Action Set Name"
-                                value={action.name}
+                                value={name}
                                 name="actionsetlabel"
                                 onChange={e =>
                                     dispatch(

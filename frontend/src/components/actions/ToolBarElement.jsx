@@ -60,7 +60,7 @@ ToolBarElement.propTypes = {
         icon: PropTypes.object.isRequired,
         bgColor: PropTypes.string.isRequired,
         value: PropTypes.any.isRequired,
-        hoverColor: PropTypes.string.isRequired,
+        hovercolor: PropTypes.string.isRequired,
         helpText: PropTypes.string.isRequired,
     }).isRequired,
 };

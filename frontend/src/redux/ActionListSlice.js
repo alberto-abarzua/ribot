@@ -138,7 +138,6 @@ const actionListSlice = createSlice({
                 actionToUpdate.parentId = newParentId;
                 state.byId[newId] = actionToUpdate;
                 if (actionToUpdate.type === ActionTypes.ACTIONSET) {
-                    console.log(actionToUpdate);
                     for (let subactionToUpdate of actionToUpdate.value) {
                         updateHelper(subactionToUpdate, newId);
                     }
@@ -146,8 +145,6 @@ const actionListSlice = createSlice({
             };
 
             updateHelper(newAction, actionToDuplicate.parentId);
-            console.log(newAction);
-            console.log(actionToDuplicate);
 
             actionList.splice(actionIndex + 1, 0, newAction);
         },

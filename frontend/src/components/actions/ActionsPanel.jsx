@@ -52,7 +52,7 @@ const ActionPanel = () => {
     let play_or_stop = {
         icon: null,
         color: null,
-        hoverColor: null,
+        hovercolor: null,
         text: null,
     };
 
@@ -60,18 +60,18 @@ const ActionPanel = () => {
         if (running) {
             play_or_stop.icon = <StopIcon className="text-3xl text-white" />;
             play_or_stop.color = 'bg-red-400';
-            play_or_stop.hoverColor = 'hover:bg-red-500';
+            play_or_stop.hovercolor = 'hover:bg-red-500';
             play_or_stop.text = 'Stop';
         } else {
             play_or_stop.icon = <PlayArrowIcon className="text-3xl text-white" />;
             play_or_stop.color = 'bg-green-400';
-            play_or_stop.hoverColor = 'hover:bg-green-500';
+            play_or_stop.hovercolor = 'hover:bg-green-500';
             play_or_stop.text = 'Run';
         }
     } else {
         play_or_stop.icon = <ErrorIcon className="text-3xl text-white" />;
         play_or_stop.color = 'bg-orange-400';
-        play_or_stop.hoverColor = 'hover:bg-orange-500';
+        play_or_stop.hovercolor = 'hover:bg-orange-500';
         play_or_stop.text = 'Errors';
     }
 
@@ -85,7 +85,7 @@ const ActionPanel = () => {
                 <div className="absolute bottom-10 right-8 z-20">
                     <Button
                         color={play_or_stop.color}
-                        hoverColor={play_or_stop.hoverColor}
+                        hovercolor={play_or_stop.hoverColor}
                         onClick={handleClickPlayStop}
                         disabled={!valid}
                     >
