@@ -1,3 +1,5 @@
+from typing import List, Union
+
 import numpy as np
 
 __author__ = "Alberto Abarzua"
@@ -9,6 +11,17 @@ def rad2degree(angle: float) -> float:
 
 def degree2rad(angle: float) -> float:
     return (np.pi / 180) * angle
+
+
+def allclose(
+    a: Union[float, int, List[Union[float, int]]],
+    b: Union[float, int, List[Union[float, int]]],
+    rtol: float = 1e-03,
+    atol: float = 1e-03,
+) -> bool:
+    a_array = np.array(a)
+    b_array = np.array(b)
+    return np.allclose(a_array, b_array, rtol=rtol, atol=atol)
 
 
 def x_rotation_matrix(angle: float) -> np.ndarray:

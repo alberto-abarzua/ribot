@@ -6,6 +6,7 @@ import numpy as np
 from robot_arm_controller.control.arm_kinematics import ArmParameters, ArmPose
 from robot_arm_controller.controller import ArmController
 from robot_arm_controller.utils.algebra import (
+    allclose,
     create_rotation_matrix_from_euler_angles,
     degree2rad,
     extract_euler_angles,
@@ -22,16 +23,16 @@ class TestArmKinematics(unittest.TestCase):
         current_pose = self.controller.kinematics.angles_to_pose(angles)
         curren_pose_list = current_pose.as_list
         expected_pose_list = expected_pose.as_list
-        all_close = np.allclose(curren_pose_list, expected_pose_list, rtol=self.EPSILON)
+        all_close = allclose(curren_pose_list, expected_pose_list, rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {expected_pose_list} actual: {curren_pose_list}")
 
     def helper_pose_to_angles(self, expected_angles: List[float], pose: ArmPose) -> None:
         angles = self.controller.kinematics.pose_to_angles(pose, self.controller.current_angles)
         expected_angles = [degree2rad(angle) for angle in expected_angles]
-        # convert to np.array of float
-        all_close = np.allclose(
-            np.array(angles, dtype=np.float64), np.array(expected_angles, dtype=np.float64), rtol=self.EPSILON
-        )
+        self.assertIsNotNone(angles)
+        if angles is None:
+            return
+        all_close = allclose(angles, expected_angles, rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {expected_angles} actual: {angles}")
 
     @classmethod
@@ -86,7 +87,10 @@ class TestArmKinematics(unittest.TestCase):
         angles = [np.pi / 2 for _ in range(6)]
         pose = self.controller.kinematics.angles_to_pose(angles)
         angles2 = self.controller.kinematics.pose_to_angles(pose, self.controller.current_angles)
-        all_close = np.allclose(angles, np.array(angles2, dtype=np.float64), rtol=self.EPSILON)
+
+        if angles2 is None:
+            self.fail("angles2 is None")
+        all_close = allclose(angles, angles2, rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {angles} actual: {angles2}")
 
     @disable_console
@@ -94,7 +98,9 @@ class TestArmKinematics(unittest.TestCase):
         R1 = create_rotation_matrix_from_euler_angles(90, 100, 20)
 
         roll, pitch, yaw = extract_euler_angles(R1)
+
         R2 = create_rotation_matrix_from_euler_angles(roll, pitch, yaw)
+
         all_close = np.allclose(R1, R2, rtol=self.EPSILON)
         self.assertTrue(all_close, f"expected: {R1} actual: {R2}")
 
@@ -113,5 +119,5 @@ class TestArmKinematics(unittest.TestCase):
             self.assertIsNotNone(angles)
             if angles is not None:
                 pose2 = self.controller.kinematics.angles_to_pose(angles)
-                all_close = np.allclose(pose.as_list, pose2.as_list, rtol=self.EPSILON)
+                all_close = allclose(pose.as_list, pose2.as_list, rtol=self.EPSILON)
                 self.assertTrue(all_close, f"expected: {pose.as_list} actual: {pose2.as_list}")

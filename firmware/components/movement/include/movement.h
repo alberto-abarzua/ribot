@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <cstdint>
+
 #include "utils.h"
 
 #ifdef ESP_PLATFORM
@@ -46,6 +48,15 @@ class DummyEndStop : public EndStop {
     bool hardware_read_state() override;
 };
 
+class NoneEndStop : public EndStop {
+   private:
+   public:
+    NoneEndStop();
+    ~NoneEndStop();
+    void hardware_setup() override;
+    bool hardware_read_state() override;
+};
+
 class MovementDriver {
    protected:
     float epsilon = 0.1;
@@ -63,6 +74,7 @@ class MovementDriver {
     int8_t homing_direction = 1;
     float homing_offset = 0;
     float homing_speed = 0.25;
+    int8_t dir_inverted = 1;
 
     EndStop* end_stop = nullptr;
 
@@ -78,6 +90,8 @@ class MovementDriver {
     float get_speed();
     int64_t angle_to_steps(float angle);
     float steps_to_angle(int64_t steps);
+    int8_t get_dir_inverted();
+    void set_dir_inverted(int8_t dir_inverted);
 
     void set_steps_per_revolution(uint32_t steps_per_revolution);
     uint32_t get_steps_per_revolution();

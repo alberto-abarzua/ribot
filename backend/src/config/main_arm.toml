@@ -7,6 +7,7 @@ title = "Robot arm configuration"
     min_angle_rad = -7.0
     conversion_rate_axis_joint = 1.0 
     homing_offset_rad = 0.0 # Offset from homing position
+    dir_inverted = 1 # 1 or -1 
     # Settings can be overwritten for each joint
 
 [arm_parameters]
@@ -41,6 +42,7 @@ title = "Robot arm configuration"
     conversion_rate_axis_joint = 9.3 # Gear ratio
     homing_offset_rad = 0 # Offset from home position
     speed_rad_per_s = 0.5
+    dir_inverted = -1
     [joints.driver]
         type = "stepper"
         dir_pin = 14
@@ -65,7 +67,7 @@ title = "Robot arm configuration"
         dir_pin = 5
         step_pin = 4
     [joints.endstop]
-        type = "hall"
+        type = "none"
         pin = 25
         
 [[joints]]
