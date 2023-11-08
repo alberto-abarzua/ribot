@@ -1,3 +1,7 @@
 *.ipynb linguist-vendored
 unity_arm_simulation/**  linguist-vendored
 \!unity_arm_simulation/unity_project/arm_sim/Assets/scripts/** linguist-vendored
+
+# shadcn/ui
+frontend/src/components/ui/** linguist-vendored
+frontend/src/lib/** linguist-vendored
