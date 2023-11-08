@@ -34,7 +34,7 @@ const ToolBarElement = ({ element }) => {
                 <Tooltip delayDuration={300}>
                     <TooltipTrigger>
                         <div
-                            className={`flex h-14 w-20 shrink grow basis-0 items-center justify-center gap-2.5 ${element.bgColor} ${element.hoverColor}`}
+                            className={`flex h-14 w-20 shrink grow basis-0 items-center justify-center gap-2.5 ${element.bgColor} ${element.hovercolor}`}
                             ref={dragRef}
                             onClick={addToActionList}
                         >
