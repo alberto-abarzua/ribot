@@ -56,6 +56,8 @@ void HallEffectSensor::hardware_setup() {}
 
 bool HallEffectSensor::hardware_read_state() { return true; }
 
+#endif
+
 NoneEndStop::NoneEndStop() : EndStop(-1) {}
 
 NoneEndStop::~NoneEndStop() {}
@@ -63,4 +65,3 @@ NoneEndStop::~NoneEndStop() {}
 void NoneEndStop::hardware_setup() {}
 
 bool NoneEndStop::hardware_read_state() { return true; }
-#endif

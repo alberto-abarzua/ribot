@@ -1,0 +1,65 @@
+# General
+*.git
+*.gitignore
+*.dockerignore
+*.md
+*.pdf
+*.gz
+*.zip
+
+# Specific to C/C++/CMake
+*.o
+*.a
+*.lo
+*.la
+*.so
+*.so.*
+*.dylib
+*.lib
+*.dll
+*.exe
+*.out
+*.app
+CMakeCache.txt
+CMakeFiles
+cmake-build-*
+build
+Debug
+Release
+*.log
+*.tlog
+*.idb
+*.pdb
+*.opendb
+*.ilk
+*.deps
+*.suo
+*.user
+*.user.*
+*.aps
+*.ncb
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+.vs
+.DS_Store
+
+# ESP-IDF specific
+build/
+flash_project_args.json
+partition_table/
+*.elf
+*.bin
+*.map
+
+# Dependency directories (uncomment if not needed)
+# components/
+# build/
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+
