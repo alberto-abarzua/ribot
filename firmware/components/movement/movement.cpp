@@ -62,6 +62,8 @@ void MovementDriver::print_state() {
     std::cout << "homing_direction: "
               << static_cast<int>(this->homing_direction) << std::endl;
     std::cout << "homing_offset: " << this->homing_offset << std::endl;
+    std::cout << "dir_inverted: " << static_cast<int>(this->dir_inverted)
+              << std::endl;
     std::cout << "end_stop: " << this->end_stop << std::endl;
 }
 
@@ -151,11 +153,12 @@ bool MovementDriver::step() {
     }
 
     int8_t step_dir = this->target_angle > this->current_angle ? 1 : -1;
+    int8_t dir_inverted = this->get_dir_inverted();
 
     for (uint16_t i = 0; i < steps_to_take; i++) {
         this->current_steps += step_dir;
 
-        this->hardware_step(step_dir > 0 ? 1 : 0);
+        this->hardware_step((step_dir * dir_inverted) > 0 ? 1 : 0);
 
         if (!this->homed && this->end_stop != nullptr) {
             this->current_angle = this->steps_to_angle(this->current_steps);
@@ -191,3 +194,9 @@ float MovementDriver::steps_to_angle(int64_t steps) {
 }
 
 float* MovementDriver::get_current_angle_ptr() { return &this->current_angle; }
+
+int8_t MovementDriver::get_dir_inverted() { return this->dir_inverted; }
+
+void MovementDriver::set_dir_inverted(int8_t dir_inverted) {
+    this->dir_inverted = dir_inverted > 0 ? 1 : -1;
+}

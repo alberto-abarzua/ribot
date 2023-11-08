@@ -152,17 +152,20 @@ def down(**kwargs):
 
 def build(**kwargs):
     no_cache = kwargs['no_cache']
+    files = ['firmware.yaml', 'controller.yaml',
+             'backend.yaml', 'frontend.yaml', 'unity_webgl_server.yaml','esp_idf.yaml']
     if no_cache:
-        dcb(['firmware.yaml', 'controller.yaml',
-            'backend.yaml', 'frontend.yaml'], no_cache=True)
+        dcb(files, no_cache=True)
     else:
-        dcb(['firmware.yaml', 'controller.yaml', 'backend.yaml', 'frontend.yaml'])
+        dcb(files)
 
 
 def build_esp(**kwargs):
-    os.environ['CONTROLLER_SERVER_HOST'] = get_ip()
+    os.environ['ESP_CONTROLLER_SERVER_HOST'] = get_ip()
+    os.environ['VERBOSE'] = '1'
     source_env('.env')
-    subprocess.check_call(['./firmware/entrypoint_esp.sh'])
+    # subprocess.check_call(['./firmware/entrypoint_esp.sh'])
+    dcr('esp_idf.yaml', 'esp_idf')
 
 
 def format_code(**kwargs):

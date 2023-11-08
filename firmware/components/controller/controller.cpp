@@ -524,7 +524,7 @@ void Controller::message_handler_config(Message *message) {
             this->arm_client.send_message(config_message);
             delete config_message;
         } break;
-        case 21: {
+        case 21: {  // set stepper for joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint8_t step_pin = static_cast<uint8_t>(args[1]);
             uint8_t dir_pin = static_cast<uint8_t>(args[2]);
@@ -550,7 +550,7 @@ void Controller::message_handler_config(Message *message) {
             delete movement_driver;
 
         } break;
-        case 23: {
+        case 23: {  // set servo for joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint8_t pin = static_cast<uint8_t>(args[1]);
 
@@ -570,11 +570,10 @@ void Controller::message_handler_config(Message *message) {
             delete movement_driver;
 
         } break;
-        case 25: {
+        case 25: {  // set hall effect sensor for joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             uint8_t pin = static_cast<uint8_t>(args[1]);
 
-            // Sets the joints end stop as a hall effect HallEffectSensor
             EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
             EndStop *new_end_stop = new HallEffectSensor(pin);
             this->joints[joint_idx]->register_end_stop(new_end_stop);
@@ -584,7 +583,7 @@ void Controller::message_handler_config(Message *message) {
             delete end_stop;
 
         } break;
-        case 27: {
+        case 27: {  // set dummy end stop for joint
             uint8_t joint_idx = static_cast<uint8_t>(args[0]);
             EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
             MovementDriver *movement_driver =
@@ -593,6 +592,47 @@ void Controller::message_handler_config(Message *message) {
                 new DummyEndStop(0, movement_driver->get_current_angle_ptr());
             this->joints[joint_idx]->register_end_stop(new_end_stop);
             delete end_stop;
+
+        } break;
+        case 29: {  // set none end stop for joint
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
+            EndStop *new_end_stop = new NoneEndStop();
+            this->joints[joint_idx]->register_end_stop(new_end_stop);
+            delete end_stop;
+
+        } break;
+
+        case 31: {  // set dir_inverted
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            int8_t inverted = static_cast<int8_t>(args[1]);
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            std::cout << "\t Setting dir_inverted to " << (int)inverted
+                      << std::endl;
+
+            movement_driver->set_dir_inverted(inverted);
+
+        } break;
+        case 33: {  // get dir_inverted
+            uint8_t joint_idx = static_cast<uint8_t>(args[0]);
+            MovementDriver *movement_driver =
+                this->joints[joint_idx]->get_movement_driver();
+
+            int8_t dir_inverted = movement_driver->get_dir_inverted();
+
+            float dir_inverted_float = static_cast<float>(dir_inverted);
+
+            float *args_buff = static_cast<float *>(malloc(2 * sizeof(float)));
+            args_buff[0] = args[0];
+
+            args_buff[1] = dir_inverted_float;
+
+            Message *config_message =
+                new Message(MessageOp::CONFIG, 34, 2, args_buff);
+            this->arm_client.send_message(config_message);
+            delete config_message;
 
         } break;
 

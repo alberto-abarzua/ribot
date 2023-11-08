@@ -1,6 +1,7 @@
-FROM debian:latest  
+FROM ubuntu:jammy
 
-RUN apt-get update && apt-get install -y \
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     make \
     clang \
@@ -15,9 +16,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY . .
 
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh && \
+    rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
 
-RUN rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
