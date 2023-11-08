@@ -42,7 +42,7 @@ const ToolBar = () => {
             bgColor: 'bg-action-move',
             type: ActionTypes.MOVE,
             value: moveValue,
-            hoverColor: 'hover:bg-action-move-hover',
+            hovercolor: 'hover:bg-action-move-hover',
             helpText: 'Move Addction: Move to a pose',
         },
         {
@@ -51,7 +51,7 @@ const ToolBar = () => {
             bgColor: 'bg-action-sleep',
             type: ActionTypes.SLEEP,
             value: { duration: 2 },
-            hoverColor: 'hover:bg-action-sleep-hover',
+            hovercolor: 'hover:bg-action-sleep-hover',
             helpText: 'Sleep Action: Pause movement',
         },
         {
@@ -60,7 +60,7 @@ const ToolBar = () => {
             bgColor: 'bg-action-tool',
             type: ActionTypes.TOOL,
             value: { toolValue: 0 },
-            hoverColor: 'hover:bg-action-tool-hover',
+            hovercolor: 'hover:bg-action-tool-hover',
             helpText: 'Tool Action: Change tool value',
         },
         {
@@ -69,7 +69,7 @@ const ToolBar = () => {
             bgColor: 'bg-action-set',
             type: ActionTypes.ACTIONSET,
             value: [],
-            hoverColor: 'hover:bg-action-set-hover',
+            hovercolor: 'hover:bg-action-set-hover',
             helpText: 'Action Set: Set of actions',
         },
     ];

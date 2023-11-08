@@ -23,7 +23,13 @@ const main = () => {
         }
     );
 
+   if (!window.console) window.console = {};
+            const noop = () => {};
+            console.log = noop;
+            console.error = noop;
+            console.warn = noop;
+            console.info = noop;
+            console.debug = noop;
 
     };
-// <script src = "../utils.js"> </script>
 main();

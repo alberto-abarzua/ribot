@@ -1,7 +1,4 @@
 const ArmSimulation = () => {
-    // const simulation_url = process.env.NEXT_PUBLIC_ARM_SIMULATION_URL;
-    // const websocket_port = process.env.NEXT_PUBLIC_ARM_SIMULATION_WEBSOCKET_PORT;
-    // const websocket_host = process.env.NEXT_PUBLIC_ARM_SIMULATION_WEBSOCKET_HOST;
     const simulation_url = import.meta.env.VITE_ARM_SIMULATION_URL;
     const websocket_port = import.meta.env.VITE_ARM_SIMULATION_WEBSOCKET_PORT;
     const websocket_host = import.meta.env.VITE_ARM_SIMULATION_WEBSOCKET_HOST;
