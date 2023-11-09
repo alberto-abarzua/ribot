@@ -43,7 +43,7 @@ const ToolBar = () => {
             type: ActionTypes.MOVE,
             value: moveValue,
             hovercolor: 'hover:bg-action-move-hover',
-            helpText: 'Move Addction: Move to a pose',
+            helpText: 'Move Addction: Move to a pose (Uses current pose as base)',
         },
         {
             name: 'Sleep',
@@ -59,9 +59,9 @@ const ToolBar = () => {
             icon: BuildIcon,
             bgColor: 'bg-action-tool',
             type: ActionTypes.TOOL,
-            value: { toolValue: 0 },
+            value: { toolValue: currentPose.toolValue },
             hovercolor: 'hover:bg-action-tool-hover',
-            helpText: 'Tool Action: Change tool value',
+            helpText: 'Tool Action: Will use current tool value',
         },
         {
             name: 'Custom',

@@ -44,6 +44,8 @@ class Joint {
     bool home_joint();
     bool set_home();
 
+    void print_state();
+
     void step();
 };
 

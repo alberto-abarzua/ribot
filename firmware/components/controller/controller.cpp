@@ -395,6 +395,19 @@ void Controller::message_handler_status(Message *message) {
 
         } break;
 
+        case 7: {  // print current status
+            for (uint8_t i = 0; i < this->joints.size(); i++) {
+                Joint *joint = this->joints[i];
+                std::cout << "\n\n State of joint" << static_cast<int>(i)
+                          << "\n";
+                joint->print_state();
+            }
+
+            std::cout << "\n\n State of tool \n";
+            this->tool->print_state();
+
+        } break;
+
         default:
             break;
     }
@@ -502,10 +515,6 @@ void Controller::message_handler_config(Message *message) {
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
             movement_driver->set_homing_offset(homing_offset);
-            std::cout << "\n\n State of joint " << static_cast<int>(joint_idx)
-                      << "\n";
-            movement_driver->print_state();
-            std::cout << "\n\n";
 
         } break;
 
@@ -540,12 +549,6 @@ void Controller::message_handler_config(Message *message) {
             this->joints[joint_idx]->set_movement_driver(new_movement_driver);
             this->joints[joint_idx]->register_end_stop(end_stop);
             new_movement_driver->hardware_setup();
-            std::cout << "Stepper driver created" << std::endl;
-            std::cout << "step pin: " << static_cast<int>(step_pin)
-                      << std::endl;
-            std::cout << "dir pin: " << static_cast<int>(dir_pin) << std::endl;
-            std::cout << "joint idx: " << static_cast<int>(joint_idx)
-                      << std::endl;
 
             delete movement_driver;
 
@@ -577,8 +580,6 @@ void Controller::message_handler_config(Message *message) {
             EndStop *end_stop = this->joints[joint_idx]->get_end_stop();
             EndStop *new_end_stop = new HallEffectSensor(pin);
             this->joints[joint_idx]->register_end_stop(new_end_stop);
-            std::cout << "Hall effect sensor created" << std::endl;
-            std::cout << "pin: " << static_cast<int>(pin) << std::endl;
             new_end_stop->hardware_setup();
             delete end_stop;
 
@@ -609,9 +610,6 @@ void Controller::message_handler_config(Message *message) {
             MovementDriver *movement_driver =
                 this->joints[joint_idx]->get_movement_driver();
 
-            std::cout << "\t Setting dir_inverted to " << (int)inverted
-                      << std::endl;
-
             movement_driver->set_dir_inverted(inverted);
 
         } break;
@@ -633,6 +631,21 @@ void Controller::message_handler_config(Message *message) {
                 new Message(MessageOp::CONFIG, 34, 2, args_buff);
             this->arm_client.send_message(config_message);
             delete config_message;
+
+        } break;
+
+        case 35: {  // set tool servo
+            uint8_t pin = static_cast<uint8_t>(args[0]);
+
+            MovementDriver *movement_driver = this->tool->get_movement_driver();
+
+            MovementDriver *new_movement_driver = new Servo(pin);
+
+            this->tool->set_movement_driver(new_movement_driver);
+
+            new_movement_driver->hardware_setup();
+
+            delete movement_driver;
 
         } break;
 

@@ -1,16 +1,14 @@
 import MoveAxis from '@/components/controls/MoveAxis';
+import ToolControls from '@/components/controls/ToolControls';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
-import { armPoseActions } from '@/redux/ArmPoseSlice';
 import api from '@/utils/api';
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const AxisControls = () => {
     const [coordsStep, setCoordsStep] = useState(10);
-    const [anglesStep, setAnglesStep] = useState(0.1);
-    const [toolStep, setToolStep] = useState(0.1);
+    const [anglesStep, setAnglesStep] = useState(10);
 
-    const dispatch = useDispatch();
     const currentPose = useSelector(state => state.armPose);
 
     const moveArm = (field, amount) => {
@@ -96,27 +94,9 @@ const AxisControls = () => {
                     ></MoveAxis>
                 </div>
             </div>
-            <div className="flex flex-col  rounded-md bg-slate-200 p-4 shadow-md ">
-                <div>
-                    <h3 className="mb-2 text-lg font-medium">Tool Control</h3>
-                </div>
-                <div className="w-2/3">
-                    <TextVariableInfo
-                        label="Step Size"
-                        value={toolStep}
-                        setValue={setToolStep}
-                        infoText={'The amount the arm moves for coordinate changes'}
-                    ></TextVariableInfo>
-                </div>
 
-                <div className="flex flex-row justify-center">
-                    <MoveAxis
-                        label="Tool Value"
-                        value={currentPose.toolValue}
-                        setValue={value => dispatch(armPoseActions.updateToolValue(value))}
-                        step_amount={toolStep}
-                    ></MoveAxis>
-                </div>
+            <div className="flex flex-row justify-center">
+                <ToolControls></ToolControls>
             </div>
         </div>
     );

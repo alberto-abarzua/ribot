@@ -1,11 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from routers.move import router as move_router
 from routers.settings import router as settings_router
 from utils.general import start_controller, stop_controller
 
-app = FastAPI()
+
+@asynccontextmanager
+async def controller_lifespan(_: FastAPI):
+    start_controller()
+
+    yield
+
+    stop_controller()
+
+app = FastAPI(lifespan=controller_lifespan)
 
 app.add_middleware(
     CORSMiddleware,

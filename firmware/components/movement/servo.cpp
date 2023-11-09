@@ -92,6 +92,8 @@ void Servo::hardware_step(int8_t) {}
 Servo::Servo(int8_t pin) {
     this->homed = true;
     this->pin = pin;
+    this->set_speed(0.5);
+    this->set_steps_per_revolution(720);
 }
 Servo::~Servo() {
     if (this->end_stop != nullptr) {

@@ -66,7 +66,7 @@ const ControlPanel = () => {
                 <div className="flex items-center gap-x-3 rounded-lg bg-white px-4 py-2">
                     <Label htmlFor="control-toggle " className="mr-4 whitespace-nowrap text-lg">
                         <InfoHover text="Toggle between Axis and Joint controls" />
-                        Axis-Joint Controls{' '}
+                        Axis-Joint Controls
                     </Label>
                     <Switch
                         className="scale-125 transform"

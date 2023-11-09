@@ -1,13 +1,43 @@
-#include "movement.h"
+#include "endstops.h"
+
+#include <cstring>
 
 #ifdef ESP_PLATFORM
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 
 #endif
+
+// ================
+// EndStop
+// ================
+
 EndStop::EndStop(int8_t pin) { this->pin = pin; }
 
-DummyEndStop::DummyEndStop(int8_t pin, float* current_angle) : EndStop(pin) {
+EndStop::EndStop(int8_t pin, const char* name) {
+    this->pin = pin;
+    this->name = new char[strlen(name) + 1];
+    strcpy(this->name, name);
+}
+
+EndStop::~EndStop() {
+    if (this->name != nullptr) {
+        delete[] this->name;
+    }
+}
+
+void EndStop::print_state() {
+    std::cout << "-----------------------------------------" << std::endl;
+    std::cout << "EndStop: " << std::endl;
+    std::cout << "\t Pin: " << this->pin << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+}
+
+// ================
+// DummyEndStop
+// ================
+DummyEndStop::DummyEndStop(int8_t pin, float* current_angle)
+    : EndStop(pin, "dummyEndstop") {
     this->current_angle = current_angle;
 }
 
@@ -29,7 +59,11 @@ bool DummyEndStop::hardware_read_state() {
     // pinMode(this->pin, INPUT_PULLUP);
 }
 
-HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin) {}
+// ================
+// HallEffectSensor
+// ================
+
+HallEffectSensor::HallEffectSensor(int8_t pin) : EndStop(pin, "HallSensor") {}
 
 HallEffectSensor::~HallEffectSensor() {}
 
@@ -58,7 +92,11 @@ bool HallEffectSensor::hardware_read_state() { return true; }
 
 #endif
 
-NoneEndStop::NoneEndStop() : EndStop(-1) {}
+// ================
+// NoneEndStop
+// ================
+
+NoneEndStop::NoneEndStop() : EndStop(-1, "noneEndstop") {}
 
 NoneEndStop::~NoneEndStop() {}
 
