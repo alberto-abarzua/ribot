@@ -42,8 +42,10 @@ def get_items(
 
 
 @router.get("/status/")
-def status(controller: ArmController = controller_dependency,
-           degrees: bool = Query(True, description="Return angles in degrees")) -> Dict[Any, Any]:
+def status(
+    controller: ArmController = controller_dependency,
+    degrees: bool = Query(True, description="Return angles in degrees"),
+) -> Dict[Any, Any]:
     pose = controller.current_pose
     status_dict: Dict[str, Any] = deepcopy(pose.get_dict(degrees=degrees))
 

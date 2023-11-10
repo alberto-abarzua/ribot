@@ -159,19 +159,19 @@ class ArmController:
     def current_pose(self) -> ArmPose:
         return self.kinematics.angles_to_pose(self.current_angles)
 
-    @ property
+    @property
     def current_angles(self) -> List[float]:
         with self.current_angles_lock:
             return self._current_angles
 
-    @ current_angles.setter
+    @current_angles.setter
     def current_angles(self, angles: List[float]) -> None:
         if len(angles) != self.num_joints:
             raise ValueError(f"Angles must be a list of length {self.num_joints}")
         with self.current_angles_lock:
             self._current_angles = angles
 
-    @ property
+    @property
     def is_ready(self) -> bool:
         if self.websocket_server is None:
             websocket_server_up = True
@@ -550,7 +550,7 @@ class SingletonArmController:
     print_status: bool = False
     config_file: Optional[Path] = None
 
-    @ classmethod
+    @classmethod
     def create_instance(
         cls,
         arm_parameters: ArmParameters,
@@ -565,13 +565,12 @@ class SingletonArmController:
         cls.print_status = print_status
         cls.config_file = config_file
 
-        cls._instance = ArmController(arm_parameters=arm_parameters,
-                                      websocket_port=websocket_port, server_port=server_port)
+        cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
         cls._instance.print_status = print_status
         if config_file is not None:
             cls._instance.set_config_file(config_file)
 
-    @ classmethod
+    @classmethod
     def get_instance(cls) -> ArmController:
         if cls._instance is not None:
             if cls._instance.status == ControllerStatus.STOPPED:
@@ -594,6 +593,6 @@ class SingletonArmController:
                 return cls._instance
         raise ValueError("Arm Controller not initialized")
 
-    @ classmethod
+    @classmethod
     def was_initialized(cls) -> bool:
         return cls._instance is not None
