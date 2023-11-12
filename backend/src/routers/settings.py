@@ -2,9 +2,10 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from robot_arm_controller.controller import ArmController, ControllerStatus, Settings
+from robot_arm_controller.utils.algebra import rad2degree
 
 from utils.general import controller_dependency
 
@@ -41,13 +42,27 @@ def get_items(
 
 
 @router.get("/status/")
-def status(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
+def status(
+    controller: ArmController = controller_dependency,
+    degrees: bool = Query(True, description="Return angles in degrees"),
+) -> Dict[Any, Any]:
     pose = controller.current_pose
-    status_dict: Dict[str, Any] = deepcopy(pose.as_dict)
+    status_dict: Dict[str, Any] = deepcopy(pose.get_dict(degrees=degrees))
+
     status_dict["toolValue"] = controller.tool_value
+    if degrees:
+        status_dict["toolValue"] = rad2degree(status_dict["toolValue"])
+
     status_dict["isHomed"] = controller.is_homed
     status_dict["moveQueueSize"] = controller.move_queue_size
-    status_dict["currentAngles"] = controller.current_angles
+    controller_angles = controller.current_angles
+    if degrees:
+        currentAngles = []
+        for angle in controller_angles:
+            currentAngles.append(rad2degree(angle))
+        status_dict["currentAngles"] = currentAngles
+    else:
+        status_dict["currentAngles"] = controller_angles
 
     status_dict["connected"] = controller.status == ControllerStatus.RUNNING
     status_dict["status"] = controller.status

@@ -78,3 +78,13 @@ uint32_t Joint::get_steps_per_revolution_motor_axis() {
 float Joint::get_conversion_rate_axis_joint() {
     return this->conversion_rate_axis_joint;
 }
+
+void Joint::print_state() {
+    std::cout << "-----------------------------------------" << std::endl;
+    std::cout << "Joint: " << std::endl;
+    std::cout << "\t Movement Driver: " << std::endl;
+    this->movement_driver->print_state();
+    std::cout << "\t End Stop: " << std::endl;
+    this->end_stop->print_state();
+    std::cout << "-----------------------------------------" << std::endl;
+}

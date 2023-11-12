@@ -6,7 +6,7 @@ function* fetchApiData() {
     try {
         // if in the server return
 
-        const response = yield call(api.get, '/settings/status/');
+        const response = yield call(api.get, '/settings/status/?degrees=true');
         yield put(armPoseActions.updateCurrent(response.data));
     } catch (error) {
         console.error('Error fetching data:', error);

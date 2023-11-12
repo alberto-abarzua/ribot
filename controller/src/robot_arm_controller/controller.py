@@ -196,6 +196,14 @@ class ArmController:
         for key, value in arm_params.items():
             self.arm_params.__setattr__(key, value)
 
+        # Tool settings
+
+        tool = contents["tool"]
+        tool_driver = tool["driver"]
+        if tool_driver["type"] == "servo":
+            pin = int(tool_driver["pin"])
+            self.set_tool_driver_servo(pin)
+
         default_speed = joint_configuration["speed_rad_per_s"]
         default_homing_direction = joint_configuration["homing_direction"]
         default_steps_per_rev_motor_axis = joint_configuration["steps_per_rev_motor_axis"]
@@ -263,8 +271,10 @@ class ArmController:
             self.set_setting_joint(Settings.CONVERSION_RATE_AXIS_JOINTS, conversion_rate_axis_joint, i)
             self.set_setting_joint(Settings.HOMING_OFFSET_RADS, homing_offset_rads, i)
             self.set_setting_joint(Settings.DIR_INVERTED, dir_inverted, i)
+
             self.arm_params.joints[i].set_bounds(min_angle_rad, max_angle_rad)
 
+        self.print_state()
         if reload:
             self.file_reload_thread = threading.Thread(target=self.check_and_reload_config, args=(file,))
             self.file_reload_thread.start()
@@ -416,6 +426,10 @@ class ArmController:
         if self.print_status:
             console.log(f"Setting tool value to: {angle}", style="set_tool")
 
+    def set_tool_value_relative(self, angle: float) -> None:
+        target_angle = self.tool_value + angle
+        self.set_tool_value(target_angle)
+
     def wait_until_angles_at_target(self, target_angles: List[float], epsilon: float = 0.01) -> None:
         while not allclose(self.current_angles, target_angles, atol=epsilon) and not self.stop_event.is_set():
             time.sleep(0.2)
@@ -445,6 +459,12 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
             console.log("Stopping arm", style="info")
+
+    def print_state(self) -> None:
+        message = Message(MessageOp.STATUS, 7)
+        self.controller_server.send_message(message, mutex=True)
+        if self.print_status:
+            console.log("Printing arm state", style="info")
 
     """
     ----------------------------------------
@@ -514,6 +534,12 @@ class ArmController:
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
             console.log(f"Setting endstop none for joint {joint_idx}", style="set_settings")
+
+    def set_tool_driver_servo(self, pin: int) -> None:
+        message = Message(MessageOp.CONFIG, 35, [float(pin)])
+        self.controller_server.send_message(message, mutex=True)
+        if self.print_status:
+            console.log(f"Setting servo driver for tool on pin {pin}", style="set_settings")
 
 
 class SingletonArmController:

@@ -43,6 +43,7 @@ void Stepper::hardware_step(int8_t) {}
 Stepper::Stepper(int8_t step_pin, int8_t dir_pin) {
     this->step_pin = step_pin;
     this->dir_pin = dir_pin;
+    this->set_speed(0.5);
 }
 
 Stepper::~Stepper() {

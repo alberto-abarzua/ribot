@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from robot_arm_controller.control.arm_kinematics import ArmPose
 from robot_arm_controller.controller import ArmController
+from robot_arm_controller.utils.algebra import degree2rad
 
 from utils.general import controller_dependency
 
@@ -23,17 +24,20 @@ class Move(BaseModel):
     pitch: float
     yaw: float
     wait: Optional[bool] = False
+    degrees: Optional[bool] = True
 
 
 class Tool(BaseModel):
     toolValue: float
     wait: Optional[bool] = False
+    degrees: Optional[bool] = True
 
 
 class MoveJoint(BaseModel):
     joint_idx: int
     joint_value: float
     wait: Optional[bool] = False
+    degrees: Optional[bool] = True
 
 
 class HomeJoint(BaseModel):
@@ -44,6 +48,7 @@ class HomeJoint(BaseModel):
 class MoveJoints(BaseModel):
     joint_values: list
     wait: Optional[bool] = False
+    degrees: Optional[bool] = True
 
 
 # --------
@@ -76,8 +81,9 @@ def home_joint(
 def move(move: Move, controller: ArmController = controller_dependency) -> JSONResponse:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
+    degrees = move_dict.pop("degrees")
 
-    pose = ArmPose(**move_dict)
+    pose = ArmPose(**move_dict, degree=degrees)
 
     move_is_possible = controller.move_to(pose)
 
@@ -95,8 +101,9 @@ def move_relative(
 ) -> JSONResponse:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
+    degrees = move_dict.pop("degrees")
 
-    pose = ArmPose(**move_dict)
+    pose = ArmPose(**move_dict, degree=degrees)
 
     move_is_possible = controller.move_to_relative(pose)
 
@@ -114,7 +121,9 @@ def valid_pose(
 ) -> JSONResponse:
     move_dict = move.model_dump()
     move_dict.pop("wait")
-    pose = ArmPose(**move_dict)
+    degrees = move_dict.pop("degrees")
+    pose = ArmPose(**move_dict, degree=degrees)
+
     move_is_possible = controller.valid_pose(pose)
     if move_is_possible:
         return JSONResponse(content={"message": "Pose is valid"}, status_code=200)
@@ -133,9 +142,14 @@ def move_joint(
 ) -> Dict[Any, Any]:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
+    degrees = move_dict.pop("degrees")
 
     joint_idx = move_dict.pop("joint_idx")
     joint_value = move_dict.pop("joint_value")
+
+    if degrees:
+        joint_value = degree2rad(joint_value)
+
     controller.move_joint_to(joint_idx, joint_value)
     if wait:
         controller.wait_done_moving()
@@ -148,9 +162,13 @@ def move_joint_to_relative(
 ) -> Dict[Any, Any]:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
+    degrees = move_dict.pop("degrees")
 
     joint_idx = move_dict.pop("joint_idx")
     joint_value = move_dict.pop("joint_value")
+    if degrees:
+        joint_value = degree2rad(joint_value)
+
     controller.move_joint_to_relative(joint_idx, joint_value)
     if wait:
         controller.wait_done_moving()
@@ -163,8 +181,12 @@ def move_joints_to_relative(
 ) -> Dict[Any, Any]:
     move_dict = move.model_dump()
     wait = move_dict.pop("wait")
+    degrees = move_dict.pop("degrees")
 
     joint_values = move_dict.pop("joint_values")
+    if degrees:
+        joint_values = [degree2rad(joint_value) for joint_value in joint_values]
+
     controller.move_joints_to_relative(joint_values)
     if wait:
         controller.wait_done_moving()
@@ -176,14 +198,36 @@ def move_joints_to_relative(
 # --------
 
 
-@router.post("/tool/move/")
+@router.post("/tool/")
 def tool_post(
     tool: Tool, controller: ArmController = controller_dependency
 ) -> Dict[Any, Any]:
     tool_dict = tool.model_dump()
     tool_value = tool_dict["toolValue"]
     wait = tool_dict["wait"]
+    degrees = tool_dict["degrees"]
+    if degrees:
+        tool_value = degree2rad(tool_value)
+
     controller.set_tool_value(tool_value)
+    if wait:
+        controller.wait_done_moving()
+    return {"message": "Moved"}
+
+
+@router.post("/tool/relative/")
+def tool_relative(
+    tool: Tool, controller: ArmController = controller_dependency
+) -> Dict[Any, Any]:
+    tool_dict = tool.model_dump()
+    tool_value = tool_dict["toolValue"]
+    wait = tool_dict["wait"]
+    degrees = tool_dict["degrees"]
+    if degrees:
+        tool_value = degree2rad(tool_value)
+
+    print("\n\n\ntool_value", tool_value)
+    controller.set_tool_value_relative(tool_value)
     if wait:
         controller.wait_done_moving()
     return {"message": "Moved"}
@@ -192,5 +236,4 @@ def tool_post(
 @router.get("/tool/current/")
 def tool_get(controller: ArmController = controller_dependency) -> Dict[Any, Any]:
     tool_value = controller.tool_value
-
     return {"toolValue": tool_value}

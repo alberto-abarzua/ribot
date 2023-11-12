@@ -149,6 +149,26 @@ class ArmPose:
             "yaw": self.yaw,
         }
 
+    def get_dict(self, degrees: bool = False) -> Dict[str, float]:
+        if not degrees:
+            return {
+                "x": self.x,
+                "y": self.y,
+                "z": self.z,
+                "roll": self.roll,
+                "pitch": self.pitch,
+                "yaw": self.yaw,
+            }
+        else:
+            return {
+                "x": self.x,
+                "y": self.y,
+                "z": self.z,
+                "roll": np.rad2deg(self.roll),
+                "pitch": np.rad2deg(self.pitch),
+                "yaw": np.rad2deg(self.yaw),
+            }
+
     def __add__(self, other: "ArmPose") -> "ArmPose":
         if not isinstance(other, ArmPose):
             raise ValueError("Can only add two ArmPose instances")

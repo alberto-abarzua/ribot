@@ -14,12 +14,14 @@ class Tool {
     ~Tool();
 
     MovementDriver *get_movement_driver();
+    void set_movement_driver(MovementDriver *movement_driver);
 
     float set_target_value(float target_value);
     float get_target_value();
     float get_current_value();
 
     bool at_target();
+    void print_state();
 
     void step();
 };

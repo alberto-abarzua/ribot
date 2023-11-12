@@ -20,7 +20,7 @@ float MovementDriver::get_target_angle() { return this->target_angle; }
 
 void MovementDriver::set_steps_per_revolution(uint32_t steps_per_revolution) {
     this->steps_per_revolution = steps_per_revolution;
-    this->epsilon = this->steps_to_angle(3);
+    this->epsilon = this->steps_to_angle(2);
     this->update_speed();
 }
 

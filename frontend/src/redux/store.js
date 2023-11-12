@@ -6,7 +6,6 @@ import createSagaMiddleware from 'redux-saga';
 
 const saveState = state => {
     try {
-        console.log('Saving state:', state);
         const serializedState = JSON.stringify(state);
         localStorage.setItem('state', serializedState);
     } catch (e) {
