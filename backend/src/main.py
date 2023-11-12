@@ -9,7 +9,7 @@ from utils.general import start_controller, stop_controller
 
 
 @asynccontextmanager
-async def controller_lifespan(_: FastAPI):
+async def controller_lifespan(_: FastAPI):  # type: ignore # noqa: ANN201
     start_controller()
 
     yield
@@ -32,11 +32,3 @@ app.include_router(move_router, prefix="/move")
 app.include_router(settings_router, prefix="/settings")
 
 
-@app.on_event("startup")
-async def startup_event() -> None:
-    start_controller()
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    stop_controller()

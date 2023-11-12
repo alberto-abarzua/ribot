@@ -2,7 +2,6 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from numpy import degrees
 from pydantic import BaseModel
 from robot_arm_controller.control.arm_kinematics import ArmPose
 from robot_arm_controller.controller import ArmController

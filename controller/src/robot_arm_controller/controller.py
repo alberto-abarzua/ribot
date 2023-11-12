@@ -539,7 +539,7 @@ class ArmController:
         message = Message(MessageOp.CONFIG, 35, [float(pin)])
         self.controller_server.send_message(message, mutex=True)
         if self.print_status:
-            console.log(f"Setting servo driver for tool", style="set_settings")
+            console.log(f"Setting servo driver for tool on pin {pin}", style="set_settings")
 
 
 class SingletonArmController:
