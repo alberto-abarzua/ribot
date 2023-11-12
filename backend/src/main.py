@@ -30,5 +30,3 @@ app.add_middleware(
 
 app.include_router(move_router, prefix="/move")
 app.include_router(settings_router, prefix="/settings")
-
-
