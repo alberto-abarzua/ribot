@@ -169,6 +169,52 @@ const actionListSlice = createSlice({
             state.byId[actionId].name = name;
         },
 
+        addFromJson: (state, action) => {
+            let { actionId, actionToAdd } = action.payload;
+
+            console.log('in addFromJson', actionId, actionToAdd);
+
+            let id_offset = 0;
+            const addHelper = (actionToUpdate, newParentId) => {
+                const newId = Date.now() + id_offset;
+                id_offset++;
+                actionToUpdate.id = newId;
+                actionToUpdate.parentId = newParentId;
+                state.byId[newId] = actionToUpdate;
+                actionToUpdate.running = false;
+                actionToUpdate.valid = true;
+                if (actionToUpdate.type === ActionTypes.ACTIONSET) {
+                    for (let subactionToUpdate of actionToUpdate.value) {
+                        addHelper(subactionToUpdate, newId);
+                    }
+                }
+            };
+
+            // if base is in key of object, then it is action list
+
+            if (actionToAdd.base) {
+                for (let actionInList of actionToAdd.base) {
+                    addHelper(actionInList, actionId || null);
+                    if (actionId) {
+                        const actionList = getParentList(state, actionInList);
+                        actionList.push(actionInList);
+                    } else {
+                        state.actions.push(actionInList);
+                    }
+                }
+            } else {
+                addHelper(actionToAdd, actionId || null);
+
+                if (actionId) {
+                    const actionList = getParentList(state, actionToAdd);
+                    console.log(actionList);
+                    actionList.push(actionToAdd);
+                } else {
+                    state.actions.push(actionToAdd);
+                }
+            }
+        },
+
         pushActionToValue: (state, action) => {
             let { actionId, actionToAddId } = action.payload;
 

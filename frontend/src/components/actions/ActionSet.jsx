@@ -7,78 +7,46 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import { actionListActions } from '@/redux/ActionListSlice';
-import { ItemTypes } from '@/utils/ItemTypes';
-import AddIcon from '@mui/icons-material/Add';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { useDrop } from 'react-dnd';
 import { useDispatch } from 'react-redux';
 
 const ActionSet = ({ action, ...props }) => {
     const dispatch = useDispatch();
 
-    const id = action.id;
-    const [isOver, setIsOver] = useState(false);
     const name = action.name ? action.name : '';
 
     const actionList = action.value;
 
-    const [, drop] = useDrop({
-        accept: ItemTypes.ACTION,
-        collect(monitor) {
-            setIsOver(monitor.isOver());
-            return {
-                handlerId: monitor.getHandlerId(),
-            };
-        },
-        drop(item) {
-            if (item.id === id) {
-                return;
-            }
-            dispatch(actionListActions.pushActionToValue({ actionId: id, actionToAddId: item.id }));
-        },
-    });
-
-    const dropAreaStyles = isOver ? 'bg-blue-300 ' : '';
-
-    const body =
-        actionList.length === 0 ? (
-            <div
-                className={`flex h-24 w-full items-center justify-center rounded-md ${dropAreaStyles}`}
-                ref={drop}
-            >
-                <AddIcon className="scale-[2.0] transform text-gray-500"></AddIcon>
-            </div>
-        ) : (
-            <div className="w-full px-2">
-                <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger>
-                            <input
-                                type="search"
-                                autoComplete="off"
-                                className="focus:border-blue-3 w-2/3 rounded-md border-none bg-slate-300 px-2 py-1 text-lg italic text-gray-900 hover:border-blue-300 "
-                                placeholder="Change Action Set Name"
-                                value={name}
-                                name="actionsetlabel"
-                                onChange={e =>
-                                    dispatch(
-                                        actionListActions.setActionName({
-                                            actionId: action.id,
-                                            name: e.target.value,
-                                        })
-                                    )
-                                }
-                            />
-                        </AccordionTrigger>
-                        <AccordionContent>
-                            <ActionContainer actionList={actionList}></ActionContainer>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-            </div>
-        );
+    const body = (
+        <div className="w-full px-2">
+            <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger>
+                        <input
+                            type="search"
+                            autoComplete="off"
+                            className="focus:border-blue-3 w-2/3 rounded-md border-none bg-slate-300 px-2 py-1 text-lg italic text-gray-900 hover:border-blue-300 "
+                            placeholder="Name This Action Set"
+                            value={name}
+                            name="actionsetlabel"
+                            onChange={e =>
+                                dispatch(
+                                    actionListActions.setActionName({
+                                        actionId: action.id,
+                                        name: e.target.value,
+                                    })
+                                )
+                            }
+                        />
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <ActionContainer actionList={actionList} action={action}></ActionContainer>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </div>
+    );
     return (
         <BaseAction
             className={' bg-action-set opacity-90'}

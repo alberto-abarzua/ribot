@@ -19,7 +19,7 @@ const ToolAction = ({ action, ...props }) => {
 
     return (
         <BaseAction
-            className={'h-20 bg-action-tool'}
+            className={' bg-action-tool'}
             icon={<BuildIcon className="text-6xl"></BuildIcon>}
             action={action}
             {...props}

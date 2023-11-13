@@ -44,7 +44,7 @@ const MoveAction = ({ action, ...props }) => {
         <BaseAction
             icon={<GamesIcon className="text-6xl"></GamesIcon>}
             action={action}
-            className="h-30 bg-action-move"
+            className=" bg-action-move"
             {...props}
         >
             <div className="flex flex-1 items-center justify-end gap-x-4">
