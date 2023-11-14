@@ -2,6 +2,11 @@ name: General Arm Ci
 
 on:
   push:
+    paths:
+      - 'firmware/**'
+      - 'controller/**'
+      - 'backend/**'
+      - 'frontend/**'
 
 jobs:
   build-test:
