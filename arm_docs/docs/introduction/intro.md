@@ -1,8 +1,7 @@
 ---
 sidebar_position: 1
 ---
-
-# QuickStart
+# Getting Started with RiBot
 
 
 _Coming soon_

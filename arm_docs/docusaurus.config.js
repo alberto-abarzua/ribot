@@ -106,8 +106,8 @@ const config = {
             title: "Docs",
             items: [
               {
-                label: "Introduction",
-                to: "/docs/intro",
+                label: "Getting Started",
+                to: "/docs/introduction/intro",
               },
             ],
           },
@@ -118,14 +118,14 @@ const config = {
                 label: "GitHub",
                 href: "https://github.com/alberto-abarzua/robot-arm-control",
               },
-              {
-                label: "Docker Hub",
-                href: "https://hub.docker.com/r/albertoabarzua/robot-arm-control",
-              },
+              // {
+              //   label: "Docker Hub",
+              //   href: "https://hub.docker.com/r/albertoabarzua/robot-arm-control",
+              // },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} RiBot docs Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} alberto-abarzua, Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,
