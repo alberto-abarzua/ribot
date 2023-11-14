@@ -11,7 +11,7 @@ function HomepageHeader() {
         <h1 className="text-5xl font-bold text-gray-800">{siteConfig.title}</h1>
         <h3 className="mt-4 text-xl  text-gray-800">{siteConfig.tagline}</h3>
         <div className="flex gap-5 mt-5">
-        <Link className='mt-5 button button--secondary button--lg' to='/docs/intro'>Get Started</Link>
+        <Link className='mt-5 button button--secondary button--lg' to='/docs/introduction/intro'>Get Started</Link>
       </div>
 
       </div>
