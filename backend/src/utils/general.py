@@ -9,7 +9,7 @@ PARENT_DIR = Path(__file__).parent.parent
 CONFIG_FILE = PARENT_DIR / "config" / "main_arm.toml"
 
 
-PRINT_DEBUG = True
+PRINT_DEBUG = False
 
 
 def get_controller() -> ArmController:

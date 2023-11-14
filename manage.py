@@ -172,6 +172,11 @@ class Manager:
         else:
             self.docker_manager.dc_down(self.serivice_names)
 
+    def up(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        if container_name is not None:
+            self.docker_manager.dc_up([container_name])
+
     def build(self, **kwargs):
         container_name = kwargs.get('container', None)
         no_cache = kwargs.get('no_cache', False)
@@ -413,6 +418,20 @@ class Manager:
         parser_shell.add_argument(
             'container', choices=self.serivice_names, help='Container to run shell in')
 
+        # ------------
+        # Up
+        # ------------
+
+        parser_up = subparsers.add_parser(
+            'up', help='Start certain container')
+
+        parser_up.set_defaults(func=self.up)
+
+        parser_up.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to start')
+
+
+
         parsed_args, remaining_args = parser.parse_known_args()
         command_map = {
             'build': self.build,
@@ -420,10 +439,12 @@ class Manager:
             'build-esp': self.build_esp,
             'format': self.format_code,
             'lint': self.lint,
+            'up': self.up,
             'test': self.test,
             'runserver': self.runserver,
             'down': self.down,
             'shell': self.shell
+
         }
 
         command_map[parsed_args.command](**vars(parsed_args))

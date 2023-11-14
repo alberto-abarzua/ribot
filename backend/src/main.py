@@ -6,6 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.move import router as move_router
 from routers.settings import router as settings_router
 from utils.general import start_controller, stop_controller
+import logging
+
+class IgnoreEndpointFilter(logging.Filter):
+    def filter(self, record):
+        return '/settings/status/' not in record.getMessage()
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('uvicorn.access').addFilter(IgnoreEndpointFilter())
 
 
 @asynccontextmanager

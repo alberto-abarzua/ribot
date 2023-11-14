@@ -8,23 +8,36 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { actionListActions } from '@/redux/ActionListSlice';
-import { ActionTypes } from '@/utils/actions';
+import { ActionTypes, getActionForDownload } from '@/utils/actions';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import BuildIcon from '@mui/icons-material/Build';
 import DashboardCustomizeIcon from '@mui/icons-material/DashboardCustomize';
+import DownloadIcon from '@mui/icons-material/Download';
 import GamesIcon from '@mui/icons-material/Games';
 import LayersClearIcon from '@mui/icons-material/LayersClear';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 const ToolBar = () => {
     const dispatch = useDispatch();
+    const actionList = useSelector(state => state.actionList.actions);
+    const byId = useSelector(state => state.actionList.byId);
+    const [url, setUrl] = useState(null);
+
+    useEffect(() => {
+        let actionsForDownload = [];
+        for (let action of actionList) {
+            let updatedAction = byId[action.id];
+            const actionForDownload = getActionForDownload(updatedAction);
+            actionsForDownload.push(actionForDownload);
+        }
+        const stringified = JSON.stringify({ base: actionsForDownload });
+        const blob = new Blob([stringified], { type: 'application/json' });
+        setUrl(window.URL.createObjectURL(blob));
+    }, [actionList, byId]);
 
     const currentPose = useSelector(state => state.armPose);
-
-    const clearActionList = () => {
-        dispatch(actionListActions.clearActionList());
-    };
 
     const moveValue = {
         x: currentPose.x,
@@ -74,6 +87,23 @@ const ToolBar = () => {
         },
     ];
 
+    const clearActionList = () => {
+        dispatch(actionListActions.clearActionList());
+    };
+
+    const menuItems = [
+        {
+            label: (
+                <a className="w-full" href={url} download={`complete_list.json`}>
+                    Download
+                </a>
+            ),
+            icon: <DownloadIcon />,
+            onClick: () => {},
+        },
+        { label: 'Clear All Actions', icon: <LayersClearIcon />, onClick: clearActionList },
+    ];
+
     return (
         <div className="fixed  z-40 mx-auto inline-flex h-14  items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
             {elements.map((element, index) => (
@@ -89,20 +119,19 @@ const ToolBar = () => {
                         <MoreVertIcon className="text-3xl" />
                     </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-slate-50">
+                <DropdownMenuContent className="w-40 bg-slate-50">
                     <DropdownMenuLabel> More Options </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => {
-                            clearActionList();
-                        }}
-                    >
-                        <div className="flex items-center justify-center gap-2.5">
-                            <LayersClearIcon className="text-xl text-red-700" />
-                            <p className="text-lg">Clear all actions</p>
-                        </div>
-                    </DropdownMenuItem>
+                    {menuItems.map((item, index) => {
+                        return (
+                            <DropdownMenuItem onClick={item.onClick} key={index}>
+                                <div className="flex w-full cursor-pointer items-center justify-between">
+                                    {item.label}
+                                    <div className="">{item.icon}</div>
+                                </div>
+                            </DropdownMenuItem>
+                        );
+                    })}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>

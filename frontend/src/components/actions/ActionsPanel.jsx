@@ -17,6 +17,8 @@ const ActionPanel = () => {
 
     const actionList = actionSlice.actions;
     const byId = actionSlice.byId;
+    console.log(byId);
+    console.log(actionList);
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);

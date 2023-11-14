@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  arm_docs:
+    build: ../arm_docs/ 
+    stop_grace_period: 5s
+    volumes:
+      - ../arm_docs/src:/app/src
+      - ../arm_docs/package.json:/app/package.json
+      - ../arm_docs/package-lock.json:/app/package-lock.json
+      - ../arm_docs/blog:/app/blog
+      - ../arm_docs/static/:/app/static/
+      - ../arm_docs/blog/:/app/blog/
+      - ../arm_docs/docs/:/app/docs/
+      - ../arm_docs/docusaurus.config.js:/app/docusaurus.config.js
+
+    ports:
+      - "3200:3000"

@@ -23,7 +23,11 @@ const actionHandlers = {
             yaw: action.value.yaw,
             wait: true,
         };
-        await api.post('/move/pose/', pose);
+        try {
+            await api.post('/move/pose/', pose);
+        } catch (err) {
+            console.log(err);
+        }
     },
     [ActionTypes.SLEEP]: async action => {
         let duration = action.value.duration;
@@ -36,7 +40,11 @@ const actionHandlers = {
             toolValue: action.value.toolValue,
             wait: true,
         };
-        await api.post('/move/tool/move/', target);
+        try {
+            await api.post('/move/tool/', target);
+        } catch (err) {
+            console.log(err);
+        }
     },
     [ActionTypes.ACTIONSET]: async (action, dispatch) => {
         for (let subAction of action.value) {
@@ -73,4 +81,22 @@ const renderAction = action => {
     ) : null;
 };
 
-export { ActionTypes, runAction, renderAction };
+const getActionForDownload = action => {
+    const stringifiedAction = JSON.stringify(action);
+    const newAction = JSON.parse(stringifiedAction);
+    const remover_helper = action => {
+        delete action.id;
+        delete action.parentId;
+        delete action.running;
+        delete action.valid;
+        if (action.type === ActionTypes.ACTIONSET) {
+            action.value.forEach(subAction => {
+                remover_helper(subAction);
+            });
+        }
+    };
+    remover_helper(newAction);
+    return newAction;
+};
+
+export { ActionTypes, getActionForDownload, runAction, renderAction };

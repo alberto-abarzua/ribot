@@ -1,18 +1,32 @@
+import Tutorial from '@/components/general/layout/Tutorial';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { useState } from 'react';
+
 const SideNav = () => {
+    const [showTutorial, setShowTutorial] = useState(false);
+
+    const toggleTutorial = () => {
+        setShowTutorial(prev => !prev);
+    };
+
     return (
-        <div className="fixed h-full w-16 bg-gray-100">
-            <div className="relative left-0 top-0 mx-auto mt-8 flex h-12 w-14 items-center justify-center rounded-full bg-slate-700">
-                <PrecisionManufacturingIcon className="scale-125 transform text-white"></PrecisionManufacturingIcon>
+        <>
+            <div className="fixed z-40 h-full w-16 bg-gray-100">
+                <div className="relative left-0 top-0 mx-auto mt-8 flex h-12 w-14 items-center justify-center rounded-full bg-slate-700">
+                    <PrecisionManufacturingIcon className="scale-125 transform text-white"></PrecisionManufacturingIcon>
+                </div>
+
+                <div
+                    onClick={toggleTutorial}
+                    className="absolute bottom-10 flex w-full flex-col items-center space-y-10 pb-3"
+                >
+                    <InfoOutlinedIcon className="scale-[2] transform cursor-pointer text-sky-700 hover:scale-[2.1] hover:text-sky-800"></InfoOutlinedIcon>
+                </div>
             </div>
 
-            <div className="absolute bottom-4 flex w-full flex-col items-center space-y-10 pb-3">
-                <InfoOutlinedIcon className="scale-150 transform cursor-pointer text-slate-900"></InfoOutlinedIcon>
-                <SettingsIcon className="scale-150 transform"></SettingsIcon>
-            </div>
-        </div>
+            {showTutorial && <Tutorial toggleShow={toggleTutorial}></Tutorial>}
+        </>
     );
 };
 
