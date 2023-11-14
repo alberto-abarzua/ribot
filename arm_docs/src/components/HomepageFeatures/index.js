@@ -33,11 +33,11 @@ const FeatureList = [
 
 function Feature({ Svg, title, description }) {
   return (
-    <div className="flex flex-col w-10/12 rounded-md shadow-gray-300 shadow-sm border  border-gray-400 px-4 py-3 m-4">
+    <div className="flex flex-col w-4/5 lg:w-1/4 my-4 rounded-md shadow-gray-300 shadow-sm border  border-gray-400 px-4 py-3">
       <div className="flex items-center justify-center">
         <Svg className="h-40 w-full" role="img" />
       </div>
-      <div className="text-center flex-wrap">
+      <div className="text-center">
         <h3 className="text-xl font-bold">{title}</h3>
         <p>{description}</p>
       </div>
@@ -48,7 +48,7 @@ function Feature({ Svg, title, description }) {
 export default function HomepageFeatures() {
   return (
     <section>
-      <div className="flex gap-5 w-full">
+      <div className="flex gap-x-3 items-center justify-center w-full flex-wrap">
         {FeatureList.map((props, idx) => (
           <Feature key={idx} {...props} />
         ))}

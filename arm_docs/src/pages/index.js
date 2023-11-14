@@ -9,7 +9,7 @@ function HomepageHeader() {
     <header className="w-full bg-orange-400 h-60">
       <div className="w-full flex flex-col items-center h-full justify-center">
         <h1 className="text-5xl font-bold text-gray-800">{siteConfig.title}</h1>
-        <h3 className="mt-4 text-xl  text-gray-800">{siteConfig.tagline}</h3>
+        <h3 className="mt-4 text-xl  text-gray-800 px-5">{siteConfig.tagline}</h3>
         <div className="flex gap-5 mt-5">
         <Link className='mt-5 button button--secondary button--lg' to='/docs/introduction/intro'>Get Started</Link>
       </div>
