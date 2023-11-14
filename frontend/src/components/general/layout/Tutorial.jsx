@@ -1,13 +1,6 @@
 import MoveAxis from '@/assets/move_axis.gif';
 import MoveJoints from '@/assets/move_joints.gif';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 
