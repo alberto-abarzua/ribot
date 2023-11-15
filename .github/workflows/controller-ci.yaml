@@ -1,11 +1,16 @@
 
+<<<<<<< HEAD
 name: General Arm Ci
+=======
+name: Controller and Firmware tests CI
+>>>>>>> 52c974d (chore: update ci)
 
 on:
   push:
     paths:
       - 'firmware/**'
       - 'controller/**'
+  workflow_dispatch:
 
 jobs:
   build-test:

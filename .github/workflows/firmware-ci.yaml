@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - 'firmware/**'
+  workflow_dispatch:
+    
 
 jobs:
   linux-build:
