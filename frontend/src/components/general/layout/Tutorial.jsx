@@ -1,5 +1,9 @@
+import Actions from '@/assets/actions.gif';
+import Controls from '@/assets/controls.png';
+import HomeStop from '@/assets/home_stop.png';
 import MoveAxis from '@/assets/move_axis.gif';
 import MoveJoints from '@/assets/move_joints.gif';
+import RunActions from '@/assets/run_actions.gif';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
@@ -39,40 +43,86 @@ const Tutorial = ({ toggleShow }) => {
                 </button>
 
                 <div className="flex h-full items-center">
-                    <div className="relative h-full w-1/3  px-4">
-                        <Card>
+                    <div className="relative h-full w-1/3  px-2">
+                        <Card className="h-full">
+                            <CardHeader>
+                                <CardTitle>Getting Started</CardTitle>
+                                <CardDescription>The first steps</CardDescription>
+                            </CardHeader>
+                            <CardContent className=" flex h-full flex-col gap-y-2">
+                                <p className="text-lg font-bold">Home the arm to get started.</p>
+                                <p className="text-md text-gray-600">
+                                    Press the home button to home the arm to start.
+                                </p>
+                                <img
+                                    src={HomeStop}
+                                    alt="Home the arm"
+                                    className="h-10 overflow-hidden rounded-md object-contain"
+                                />
+
+                                <p className="mt-5 text-lg font-bold">
+                                    Move around using the controls!
+                                </p>
+
+                                <p className="text-md text-gray-600">
+                                    Press the home button to home the arm to start.
+                                </p>
+
+                                <img
+                                    src={Controls}
+                                    alt="Home the arm"
+                                    className=" overflow-hidden rounded-md object-contain"
+                                />
+
+                                <p className="text-md text-gray-600"></p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="relative h-full w-1/3  px-2">
+                        <Card className="h-full">
                             <CardHeader>
                                 <CardTitle>Free Move</CardTitle>
                                 <CardDescription>You can move the arm freely</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className=" flex h-full flex-col gap-y-2">
                                 <p className="text-lg font-bold">
                                     Using Axis (X,Y,Z,Roll,Pitch and Yaw)
+                                </p>
+                                <p className="text-md text-gray-600">
+                                    You can move the arm using coordinate and orientation angles
                                 </p>
                                 <img src={MoveAxis} alt="Move Axis" />
 
                                 <p className="mt-5 text-lg font-bold">Moving individual joints</p>
+
+                                <p className="text-md text-gray-600">
+                                    Each joint can be moved individually.
+                                </p>
                                 <img src={MoveJoints} alt="Move Joints" />
                             </CardContent>
                         </Card>
                     </div>
-                    <div className="relative h-full w-1/3  px-4">
-                        <Card>
+                    <div className="relative h-full w-1/3  px-2">
+                        <Card className="h-full">
                             <CardHeader>
                                 <CardTitle>Add and move Actions</CardTitle>
-                                <CardDescription>
-                                    Drag and drop actions from the list or toolbar, each new action
-                                    gets the current state of the arm.
-                                </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-lg font-bold">
-                                    Using Axis (X,Y,Z,Roll,Pitch and Yaw)
-                                </p>
-                                <img src={MoveAxis} alt="Move Axis" />
+                            <CardContent className=" flex h-full flex-col gap-y-2">
+                                <p className="text-lg font-bold">Grab an action from the toolbar</p>
 
-                                <p className="mt-5 text-lg font-bold">Moving individual joints</p>
-                                <img src={MoveJoints} alt="Move Joints" />
+                                <p className="text-md text-gray-600">
+                                    You can drag and drop actions from the toolbar to the list, move
+                                    them around to change the order, download them as a JSON file or
+                                    delete them.
+                                </p>
+                                <img src={Actions} alt="Grab and drop Actions" />
+
+                                <p className=" text-lg font-bold">Run your actions!</p>
+                                <p className="text-md text-gray-600">
+                                    Run individual actions by right clicking on them, or run all of
+                                    them at once by clicking the play button.
+                                </p>
+                                <img src={RunActions} alt="Run Actions" />
                             </CardContent>
                         </Card>
                     </div>

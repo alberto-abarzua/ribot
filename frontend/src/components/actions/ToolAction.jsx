@@ -14,6 +14,9 @@ const ToolAction = ({ action, ...props }) => {
     const [toolValue, setToolValue] = useState(action.value);
 
     useEffect(() => {
+        let valid = toolValue.toolValue >= -100 && toolValue.toolValue <= 100;
+        dispatch(actionListActions.setValidStatus({ actionId: id, valid: valid }));
+
         dispatch(actionListActions.setActionValue({ actionId: id, value: toolValue }));
     }, [toolValue, dispatch, id]);
 

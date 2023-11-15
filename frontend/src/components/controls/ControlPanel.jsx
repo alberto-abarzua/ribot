@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
 import InfoHover from '@/components/general/text/InfoHover';
@@ -26,7 +27,7 @@ const ControlPanel = () => {
     const status = useSelector(state => state.armPose.status);
     const isHomed = useSelector(state => state.armPose.isHomed);
 
-    const [showAxisControls, setShowAxisControls] = useState(true);
+    const [showAxisControls, setShowAxisControls] = useState(false);
     let controlContent = null;
     if (status == ControllerStatus.NOT_STARTED || status == ControllerStatus.WAITING_CONNECTION) {
         controlContent = (
@@ -77,12 +78,33 @@ const ControlPanel = () => {
                 </div>
 
                 <div className="ml-auto flex w-fit items-center gap-x-3">
-                    <Button onClick={call_home}>
-                        <HomeIcon className=" text-xl" /> Home Arm
-                    </Button>
-                    <Button onClick={call_stop_movement} variant="destructive">
-                        <DangerousIcon className="text" /> Stop
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip delayDuration={300}>
+                            <TooltipTrigger>
+                                <Button onClick={call_home}>
+                                    <HomeIcon className=" text-xl" /> Home Arm
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Sets the default position </p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip delayDuration={300}>
+                            <TooltipTrigger>
+                                <Button onClick={call_stop_movement} variant="destructive">
+                                    <DangerousIcon className="text" /> Stop
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Stop all movements</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
             </div>
             {controlContent}

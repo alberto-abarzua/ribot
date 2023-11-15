@@ -127,7 +127,7 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
             </div>
         )
     ) : (
-        <ErrorIcon className="text-5xl text-orange-500 transition-all duration-300 group-hover:text-gray-600" />
+        <ErrorIcon className="scale-150 transform text-red-500 transition-all duration-300 group-hover:text-gray-600" />
     );
 
     if (!isDragging) {
@@ -135,7 +135,9 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
             <ContextMenu>
                 <ContextMenuTrigger>
                     <div
-                        className={`transform transition-all duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow`}
+                        className={`transform transition-all ${
+                            valid ? '' : 'bg-red-900'
+                        } duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow`}
                         {...props}
                         ref={ref}
                         data-handler-id={handlerId}

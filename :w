@@ -1,7 +1,8 @@
 import Tutorial from '@/components/general/layout/Tutorial';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import { useState } from 'react';
-import LogoSVG from '@/assets/logo.svg';
+import {ReactComponent as LogoSVG} from '@/assets/logo.svg';
 
 const SideNav = () => {
     const [showTutorial, setShowTutorial] = useState(false);
@@ -14,7 +15,8 @@ const SideNav = () => {
         <>
             <div className="fixed z-40 h-full w-16 bg-gray-100">
                 <div className="relative left-0 top-0 mx-auto mt-8 flex h-12 w-14 items-center justify-center rounded-full bg-slate-700">
-                    <img src={LogoSVG} alt="logo" className="w-20"></img>
+                    <PrecisionManufacturingIcon className="scale-125 transform text-white"></PrecisionManufacturingIcon>
+                    <LogoSVG></LogoSVG>
                 </div>
 
                 <div
