@@ -24,8 +24,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Set Env File
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
-      - name: Build all containers
-        run: ./manage.py build
+      - name: Build Controller Container
+        run: |
+          ./manage.py build --container controller
+      - name: Build Firmware Container
+        run: |
+          ./manage.py build --container firmware
       
       - name: Lint Controller
         run: ./manage.py lint --container controller

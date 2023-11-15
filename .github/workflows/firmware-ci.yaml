@@ -21,8 +21,8 @@ jobs:
       - name: Set Env File
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
 
-      - name: Build all containers
-        run: ./manage.py build
+      - name: Build Firmware Container for Linux
+        run: ./manage.py build --container firmware
     
       - name: Build Firmware for Linux
         run: ./manage.py buildf
@@ -43,8 +43,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+
       - name: Set Env File
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
+
+      - name: Build ESP-IDF Container
+        run: ./manage.py build --container esp-idf
 
       - name: Build firmware for ESP32 using ESP-IDF
         run: ./manage.py build-esp
