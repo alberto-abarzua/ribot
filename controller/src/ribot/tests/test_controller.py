@@ -35,7 +35,7 @@ class TestController(unittest.TestCase):
         cls.controller = ArmController(arm_parameters=arm_params)
         cls.controller.start(websocket_server=False, wait=True)
 
-        cls.controller.print_status = os.environ.get("PRINT_STATUS", "False").upper() == "TRUE"
+        cls.controller.print_status = os.environ.get("CONTROLLER_PRINT_STATUS", "False").upper() == "TRUE"
         console.log("Runing with print_status:", cls.controller.print_status, style="bold green")
 
         cls.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)

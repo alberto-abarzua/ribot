@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:49aa40d4c9b7c0aa30adffc3bcc982330ea2d639c7ca99b011938d5d736cd2e2"
+content_hash = "sha256:0982048b03e8627771ac84e1ca83d0cd6a9e1d1d48f98eb5e6cadd88752ca494"
 
 [[package]]
 name = "annotated-types"
@@ -404,11 +404,9 @@ files = [
 ]
 
 [[package]]
-name = "ribot"
-version = "0.1"
-requires_python = ">=3.11"
-editable = true
-path = "./controller"
+name = "ribot-controller"
+version = "0.3.5"
+requires_python = ">=3.9"
 summary = "Ribot arm controller library"
 dependencies = [
     "asyncio>=3.4.3",
@@ -416,6 +414,10 @@ dependencies = [
     "rich>=13.4.2",
     "toml>=0.10.2",
     "websockets>=11.0.3",
+]
+files = [
+    {file = "ribot_controller-0.3.5-py3-none-any.whl", hash = "sha256:b03fb7c2d1b2c4ca002e8aa1de67beb1602fb5c386f015ea410f0aaa2b0c9f77"},
+    {file = "ribot_controller-0.3.5.tar.gz", hash = "sha256:65884cf1525be0fdbecaf9c7227c18c253c5ea6c9442a71c0d003b924330cb20"},
 ]
 
 [[package]]

@@ -5,14 +5,16 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install --no-cache-dir pdm==2.10
+RUN pip install --no-cache-dir pdm==2.10.1
 
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 
 COPY pyproject.toml .
 COPY pdm.lock .
+
+COPY . .
+
 RUN pdm install
 
 
-COPY . .
 

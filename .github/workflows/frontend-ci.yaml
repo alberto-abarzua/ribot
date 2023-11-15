@@ -5,10 +5,11 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - 'unity_arm_simulation/**'
   workflow_dispatch:
 
 jobs:
-  build-test:
+  build-lint:
     runs-on: ubuntu-latest
     environment: general
     env:
@@ -28,30 +29,27 @@ jobs:
       - name: Build frontend container
         run: ./manage.py build --container frontend
 
+      - name: Build Unity Webgl
+        run: ./manage.py build --container unity_webgl_server
+
       - name: Lint Frontend
         run: ./manage.py lint --container frontend  
     
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Frontend Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container frontend --op push
+
+      - name: Push Unity Webgl Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container unity_webgl_server --op push
+
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down
+        run: ./manage.py down --container frontend
     
-  esp-idf-build: 
-    runs-on: ubuntu-latest
-    environment: general
-    env:
-      ESP_CONTROLLER_SERVER_HOST: ${{ vars.ESP_CONTROLLER_SERVER_HOST }}
-      ESP_CONTROLLER_SERVER_PORT: ${{ vars.ESP_CONTROLLER_SERVER_PORT }}
-      ESP_WIFI_SSID: ${{ vars.ESP_WIFI_SSID }}
-      ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-      - name: Set Env File
-        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
-
-      - name: Esp-idf Build
-        run: ./manage.py build-esp
-
-         
-
-         

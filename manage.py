@@ -7,10 +7,10 @@ import re
 import os
 import signal
 import socket
-from sys import stdout
 from typing import List
 from pathlib import Path
 import serial.tools.list_ports
+from concurrent.futures import ThreadPoolExecutor
 
 CURRENT_FILE_PATH = Path(__file__).parent.absolute()
 DOCKER_SERVICES = CURRENT_FILE_PATH/'docker_services'
@@ -71,7 +71,7 @@ class DockerManger:
             file_list.extend(['-f', self.get_service_from_name(service).full_path])
         return file_list
 
-    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False):
+    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False, mute=False):
         command_list = command.split(' ')
         service = self.get_service_from_name(service_name)
 
@@ -85,7 +85,18 @@ class DockerManger:
             new_command.extend(['--service-ports', '--use-aliases'])
 
         new_command.extend(command_list)
-        return subprocess.check_call(new_command, env={**os.environ, **env})
+
+        try:
+            if mute:
+                return subprocess.run(new_command, env={**os.environ, **env}, check=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            else:
+                return subprocess.check_call(new_command, env={**os.environ, **env})
+        except subprocess.CalledProcessError as e:
+            if mute:
+                print("Command failed with the following output:")
+                print(e.stdout.decode('utf-8'))
+            raise
 
     def dc_up(self, files: List[str], env: dict = {}, detached=False):
 
@@ -109,6 +120,11 @@ class DockerManger:
     def dc_logs(self, files: List[str]):
         file_list = self.get_file_list(files)
         return subprocess.check_call(['docker', 'compose', *file_list, 'logs', '--follow'])
+
+    def dc_command(self,files:List[str],command: str):
+        file_list = self.get_file_list(files)
+        command_list = command.split(' ')
+        return subprocess.check_call(['docker', 'compose', *file_list]+ command_list, env={**os.environ})
 
 
 class Manager:
@@ -197,6 +213,14 @@ class Manager:
                 return port.device
         return None
 
+    def dc_command(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        command = kwargs.get('op', None)
+        if container_name is not None:
+            self.docker_manager.dc_command([container_name], command)
+        else:
+            self.docker_manager.dc_command(self.serivice_names, command)
+
     def build_flash_esp(self, **kwargs):
         usb_port = kwargs.get('usb_port', None)
 
@@ -220,7 +244,6 @@ class Manager:
 
             time.sleep(2)
 
-
             if process.poll() is not None:
                 print("Error starting ESP32 server")
                 exit(1)
@@ -234,7 +257,8 @@ class Manager:
             if process:
                 # send sigint to stop server
                 process.send_signal(signal.SIGINT)
-    def build_esp_locally(self,**kwargs):
+
+    def build_esp_locally(self, **kwargs):
         print("Requires idf.py to be installed and environment variables to be set")
         print("Also requires to export variables from .env file -->\n\t source .env")
         if 'IDF_PATH' not in os.environ:
@@ -243,7 +267,8 @@ class Manager:
 
         flash = kwargs.get('flash', False)
 
-        delete_command = ['rm', '-rf', 'build', 'CMakeFiles','CMakeCache.txt', 'cmake_install.cmake', 'Makefile', 'compile_commands.json']
+        delete_command = ['rm', '-rf', 'build', 'CMakeFiles', 'CMakeCache.txt',
+                          'cmake_install.cmake', 'Makefile', 'compile_commands.json']
         subprocess.check_call(delete_command, cwd='firmware')
 
         command = ['idf.py', 'build']
@@ -254,7 +279,24 @@ class Manager:
         subprocess.check_call(command,
                               cwd='firmware', env=os.environ)
 
+    def publish_controller(self, **kwargs):
+        if 'CONTROLLER_PDM_PUBLISH_USERNAME' not in os.environ:
+            print("CONTROLLER_PDM_PUBLISH_USERNAME is not set")
+            exit(1)
 
+        if 'CONTROLLER_PDM_PUBLISH_PASSWORD' not in os.environ:
+            print("CONTROLLER_PDM_PUBLISH_PASSWORD is not set")
+            exit(1)
+
+        version = kwargs.get('version', None)
+
+        if version is not None:
+            os.environ['CONTROLLER_PDM_OVERRIDE_VERSION'] = version
+
+        else:
+            os.environ['CONTROLLER_PDM_INCREMENT_VERSION'] = 'true'
+
+        self.docker_manager.dc_run('controller.yaml', 'controller pdm publish')
 
     def build_esp(self, **kwargs):
 
@@ -266,7 +308,7 @@ class Manager:
 
         if locally:
             self.build_esp_locally(**kwargs)
-                
+
         else:
             if flash:
                 self.build_flash_esp(**kwargs)
@@ -274,17 +316,33 @@ class Manager:
             else:
                 self.docker_manager.dc_run('esp_idf.yaml', 'esp_idf idf.py build')
 
+    def run_command(self, args):
+        container, cmd = args
+        try:
+            self.docker_manager.dc_run(container, cmd, mute=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running command: {e}")
+
     def format_code(self, **kwargs):
         container_name = kwargs.get('container', None)
-        
-        
-        if container_name is None:
-            self.docker_manager.dc_run('firmware.yaml', 'firmware format')
-            self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
-            self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
-            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
-            return
 
+        if container_name is None:
+            commands = [
+                ('firmware.yaml', 'firmware format'),
+                ('controller.yaml', 'controller pdm run format'),
+                ('backend.yaml', 'backend pdm run format'),
+                ('frontend.yaml', 'frontend npm run format')
+            ]
+            with ThreadPoolExecutor(max_workers=len(commands)) as executor:
+
+                futures = []
+                for cmd in commands:
+                    print('Formatting', cmd[0])
+                    time.sleep(1)
+                    futures.append(executor.submit(self.run_command, cmd))
+                for future in futures:
+                    future.result()
+            return
         if 'firmware' in container_name:
             self.docker_manager.dc_run('firmware.yaml', 'firmware format')
             return
@@ -301,21 +359,33 @@ class Manager:
             self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
             return
 
-
     def lint(self, **kwargs):
         container_name = kwargs.get('container', None)
-        print (container_name)
+
 
         if container_name is None:
-            self.docker_manager.dc_run('firmware.yaml', 'firmware lint')
-            self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
-            self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
+
+            os.environ['BACKEND_UPDATE_RIBOT_CONTROLLER'] = 'true'
+            commands = [
+                ('controller.yaml', 'controller pdm run lint'),
+                ('backend.yaml', 'backend pdm run lint'),
+                ('frontend.yaml', 'frontend npm run lint')
+            ]
+            with ThreadPoolExecutor(max_workers=len(commands)) as executor:
+
+                futures = []
+                for cmd in commands:
+                    print('Linting', cmd[0])
+                    time.sleep(1)
+                    futures.append(executor.submit(self.run_command, cmd))
+                for future in futures:
+                    future.result()
             return
 
         if 'frontend' in container_name:
             self.docker_manager.dc_run('frontend.yaml', 'frontend npm run lint')
             return
-        
+
         if 'controller' in container_name:
             self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
             return
@@ -324,9 +394,8 @@ class Manager:
             self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
             return
 
-
-
     def test_debug(self, **_):
+        os.environ["CONTROLLER_PRINT_STATUS"] = "true"
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
         self.docker_manager.dc_down(['controller.yaml', 'firmware.yaml'])
@@ -337,6 +406,8 @@ class Manager:
             "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
         exit_code = self.docker_manager.dc_run('controller.yaml', 'controller pdm run test',
                                                service_ports_and_aliases=True)
+
+        print(exit_code)
 
         self.docker_manager.dc_down(['firmware.yaml'])
         if exit_code == 0:
@@ -371,6 +442,8 @@ class Manager:
     def runserver(self, **kwargs):
         esp = kwargs.get('esp', False)
         detached = kwargs.get('detached', False)
+        os.environ['BACKEND_UPDATE_RIBOT_CONTROLLER'] = 'true'
+
         service_list = ['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml']
         if not esp:
             service_list.append('firmware.yaml')
@@ -397,6 +470,21 @@ class Manager:
             formatter_class=argparse.RawTextHelpFormatter
         )
         subparsers = parser.add_subparsers(dest='command')
+        # --------------
+        # Docker compose command
+        # --------------
+
+        parser_dc = subparsers.add_parser(
+            'docker-compose', help='Run docker compose command')
+
+        parser_dc.set_defaults(func=self.dc_command)
+
+        parser_dc.add_argument(
+            '--op', help='Command to run')
+
+        parser_dc.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to run command in')
+
 
         # --------------
         # Build firmware
@@ -493,6 +581,18 @@ class Manager:
             '--detached', '-d', action='store_true', help='Run server in detached mode')
 
         # --------------
+        #  Publish controller
+        # --------------
+
+        parser_publish_controller = subparsers.add_parser(
+            'publish-controller', help='Publish controller to PyPi')
+
+        parser_publish_controller.set_defaults(func=self.publish_controller)
+
+        parser_publish_controller.add_argument(
+            '--version', '-v', help='Version to publish')
+
+        # --------------
         # Stop containers
         # --------------
 
@@ -539,22 +639,19 @@ class Manager:
             'test': self.test,
             'runserver': self.runserver,
             'down': self.down,
-            'shell': self.shell
+            'shell': self.shell,
+            'publish-controller': self.publish_controller,
+            'docker-compose': self.dc_command
 
         }
 
+        if parsed_args.command is None:
+            parser.print_help()
+            exit(1)
+
         command_map[parsed_args.command](**vars(parsed_args))
 
-        while remaining_args:
-            next_command = remaining_args.pop(0)
-            if next_command in command_map:
-                args_for_command = vars(
-                    subparsers.choices[next_command].parse_args(remaining_args))
-                command_map[next_command](**args_for_command)
-                break
-            else:
-                print(f"Unknown command: {next_command}")
-                exit(1)
+
 
 
 if __name__ == "__main__":

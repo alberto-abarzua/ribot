@@ -20,6 +20,9 @@ jobs:
       CONTROLLER_WEBSOCKET_PORT: ${{ vars.CONTROLLER_WEBSOCKET_PORT }}
       CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
       BACKEND_HTTP_PORT: ${{ vars.BACKEND_HTTP_PORT }}
+      CONTROLLER_PDM_PUBLISH_PASSWORD: ${{ secrets.CONTROLLER_PDM_PUBLISH_PASSWORD }}
+      CONTROLLER_PDM_PUBLISH_USERNAME: ${{ secrets.CONTROLLER_PDM_PUBLISH_USERNAME }}
+      CONTROLLER_PDM_OVERRIDE_VERSION: 'none'
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -37,10 +40,26 @@ jobs:
 
       - name: Run Firmware and Controller Tests
         run: ./manage.py test
+
+      - name: Publish Controller Package
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py publish-controller
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Controller Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container controller --op push
     
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down
+        run: |
+          ./manage.py down --container controller
+          ./manage.py down --container firmware
     
          
 

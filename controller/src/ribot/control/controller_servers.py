@@ -237,7 +237,7 @@ class WebsocketServer(ControllerDependencies):
             self.controller.stop()
             return
         console.log(f"Starting websocket server on port {self.port}", style="setup")
-        self.server = asyncio.get_event_loop().run_until_complete(start_server)
+        self.server = asyncio.get_event_loop().run_until_complete(start_server)  # type: ignore
 
         asyncio.get_event_loop().run_forever()
 
