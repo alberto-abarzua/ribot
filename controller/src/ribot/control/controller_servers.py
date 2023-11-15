@@ -9,10 +9,10 @@ from typing import Any, Optional, Union
 
 import websockets
 
-from robot_arm_controller.utils.fifo_lock import FIFOLock
-from robot_arm_controller.utils.general import no_self_call
-from robot_arm_controller.utils.messages import Message, MessageOp
-from robot_arm_controller.utils.prints import console
+from ribot.utils.fifo_lock import FIFOLock
+from ribot.utils.general import no_self_call
+from ribot.utils.messages import Message, MessageOp
+from ribot.utils.prints import console
 
 
 class ControllerDependencies(ABC):

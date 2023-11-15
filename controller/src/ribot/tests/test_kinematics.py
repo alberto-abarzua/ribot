@@ -3,15 +3,15 @@ from typing import List
 
 import numpy as np
 
-from robot_arm_controller.control.arm_kinematics import ArmParameters, ArmPose
-from robot_arm_controller.controller import ArmController
-from robot_arm_controller.utils.algebra import (
+from ribot.control.arm_kinematics import ArmParameters, ArmPose
+from ribot.controller import ArmController
+from ribot.utils.algebra import (
     allclose,
     create_rotation_matrix_from_euler_angles,
     degree2rad,
     extract_euler_angles,
 )
-from robot_arm_controller.utils.prints import disable_console
+from ribot.utils.prints import disable_console
 
 
 class TestArmKinematics(unittest.TestCase):

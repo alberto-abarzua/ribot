@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from robot_arm_controller.utils.algebra import (
+from ribot.utils.algebra import (
     create_rotation_matrix_from_euler_angles,
     degree2rad,
     extract_euler_angles,
@@ -15,7 +15,7 @@ from robot_arm_controller.utils.algebra import (
     y_rotation_matrix,
     z_rotation_matrix,
 )
-from robot_arm_controller.utils.prints import console
+from ribot.utils.prints import console
 
 """
     ----------------------------------------

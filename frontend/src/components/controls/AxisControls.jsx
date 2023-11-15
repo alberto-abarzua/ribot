@@ -1,10 +1,10 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import ToolControls from '@/components/controls/ToolControls';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
+import { useToast } from '@/components/ui/use-toast';
 import api from '@/utils/api';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useToast } from '@/components/ui/use-toast';
 
 const AxisControls = () => {
     const { toast } = useToast();

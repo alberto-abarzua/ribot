@@ -1,0 +1,42 @@
+
+name: General Arm Ci
+
+on:
+  push:
+    paths:
+      - 'firmware/**'
+      - 'controller/**'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    environment: general
+    env:
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.ESP_CONTROLLER_SERVER_PORT }}
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.ESP_CONTROLLER_SERVER_HOST }}
+      ESP_WIFI_SSID: ${{ vars.ESP_WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
+      CONTROLLER_WEBSOCKET_PORT: ${{ vars.CONTROLLER_WEBSOCKET_PORT }}
+      CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
+      BACKEND_HTTP_PORT: ${{ vars.BACKEND_HTTP_PORT }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set Env File
+        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
+      - name: Build all containers
+        run: ./manage.py build
+      
+      - name: Lint Controller
+        run: ./manage.py lint --container controller
+
+      - name: Run Firmware and Controller Tests
+        run: ./manage.py test
+    
+      - name: Stop and remove containers
+        if: always()
+        run: ./manage.py down
+    
+         
+
+         

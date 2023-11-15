@@ -1,36 +1,52 @@
 
 [project]
-name = "robot-arm-controller"
-version = "0.1.9"
-description = "Robot arm controller"
+name = "ribot"
+version = "0.1"
+description = "Ribot arm controller library"
 authors = [
-    {name = "alberto-abarzua", email = "aabarzua@palvi.cl"},
+    {name = "alberto-abarzua"},
 ]
 readme = "README.md"
+
 keywords = ["robot", "arm", "controller"]
 
 
 
 
 dependencies = [
+    "toml>=0.10.2",
     "websockets>=11.0.3",
+    "numpy>=1.25.0",
     "asyncio>=3.4.3",
     "rich>=13.4.2",
-    "black>=23.3.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
-    "numpy>=1.25.0",
-    "flake8-annotations>=3.0.1",
-    "mypy>=1.4.1",
-    "toml>=0.10.2",
 ]
 requires-python = ">=3.11"
 license = {text = "MIT"}
 
+[tool.pdm]
 [tool.pdm.files]
-"robot_arm_controller/py.typed" = "src/robot_arm_controller/py.typed"
+"ribot/py.typed" = "src/ribot/py.typed"
 
 
+
+[tool.pdm.scripts]
+isort = "isort src"
+black = "black src"
+pure_lint = "flake8 src"
+type_check = "mypy src"
+test = "python -m unittest discover -s src/ribot/tests -p 'test_*.py'"
+format = {composite = ["isort", "black"]}
+lint = {composite = ["pure_lint", "type_check"]}
+main = "python src/ribot/sample_main.py"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "flake8-annotations>=3.0.1",
+    "mypy>=1.4.1",
+]
 
 [tool.isort]
 profile = "black"
@@ -39,19 +55,10 @@ profile = "black"
 line-length = 130
 
 [project.urls]
-"Source Code" = "https://github.com/alberto-abarzua/Robot-Arm-Control"
+"Source Code" = "https://github.com/alberto-abarzua/ribot"
 
 [mypy]
 ignore_missing_imports = "True"
 disallow_untyped_defs = "True"
 mypy_path = "src"
 
-[tool.pdm.scripts]
-isort = "isort src"
-black = "black src"
-pure_lint = "flake8 src"
-type_check = "mypy src"
-test = "python -m unittest discover -s src/robot_arm_controller/tests -p 'test_*.py'"
-format = {composite = ["isort", "black"]}
-lint = {composite = ["pure_lint", "type_check"]}
-main = "python src/robot_arm_controller/sample_main.py"

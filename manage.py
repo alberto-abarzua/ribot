@@ -274,16 +274,57 @@ class Manager:
             else:
                 self.docker_manager.dc_run('esp_idf.yaml', 'esp_idf idf.py build')
 
-    def format_code(self, **_):
-        self.docker_manager.dc_run('firmware.yaml', 'firmware format')
-        self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
-        self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
-        self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+    def format_code(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        
+        
+        if container_name is None:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware format')
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+            return
 
-    def lint(self, **_):
-        self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
-        self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
-        self.docker_manager.dc_run('frontend.yaml', 'frontend npm run lint')
+        if 'firmware' in container_name:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware format')
+            return
+
+        if 'controller' in container_name:
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
+            return
+
+        if 'backend' in container_name:
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
+            return
+
+        if 'frontend' in container_name:
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+            return
+
+
+    def lint(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        print (container_name)
+
+        if container_name is None:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware lint')
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
+            return
+
+        if 'frontend' in container_name:
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run lint')
+            return
+        
+        if 'controller' in container_name:
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
+            return
+
+        if 'backend' in container_name:
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
+            return
+
+
 
     def test_debug(self, **_):
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
@@ -409,6 +450,9 @@ class Manager:
 
         parser_format.set_defaults(func=self.format_code)
 
+        parser_format.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to format')
+
         # --------------
         # Lint code
         # --------------
@@ -416,6 +460,9 @@ class Manager:
         parser_lint = subparsers.add_parser('lint', help='Lint all code')
 
         parser_lint.set_defaults(func=self.lint)
+
+        parser_lint.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to lint')
 
         # --------------
         # Test code

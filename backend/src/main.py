@@ -8,7 +8,6 @@ from routers.move import router as move_router
 from routers.settings import router as settings_router
 from utils.general import start_controller, stop_controller
 
-
 # class IgnoreEndpointFilter(logging.Filter):
 #     def filter(self, record: logging.LogRecord) -> bool:
 #         return "/settings/status/" not in record.getMessage()

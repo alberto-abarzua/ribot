@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
-from robot_arm_controller.controller import ArmController, ControllerStatus, Settings
-from robot_arm_controller.utils.algebra import rad2degree
+from ribot.controller import ArmController, ControllerStatus, Settings
+from ribot.utils.algebra import rad2degree
 
 from utils.general import controller_dependency
 

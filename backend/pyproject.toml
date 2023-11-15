@@ -16,7 +16,12 @@ license = {text = "MIT"}
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "-e file:///${PROJECT_ROOT}/controller#egg=robot-arm-controller",
+    "-e file:///${PROJECT_ROOT}/controller#egg=ribot",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "flake8-annotations>=3.0.1",
+    "mypy>=1.4.1",
 ]
 
 

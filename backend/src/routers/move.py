@@ -3,9 +3,9 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from robot_arm_controller.control.arm_kinematics import ArmPose
-from robot_arm_controller.controller import ArmController
-from robot_arm_controller.utils.algebra import degree2rad
+from ribot.control.arm_kinematics import ArmPose
+from ribot.controller import ArmController
+from ribot.utils.algebra import degree2rad
 
 from utils.general import controller_dependency
 

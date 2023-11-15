@@ -8,19 +8,19 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import toml  # type: ignore
 
-from robot_arm_controller.control.arm_kinematics import (
+from ribot.control.arm_kinematics import (
     ArmKinematics,
     ArmParameters,
     ArmPose,
 )
-from robot_arm_controller.control.controller_servers import (
+from ribot.control.controller_servers import (
     ControllerServer,
     WebsocketServer,
 )
-from robot_arm_controller.utils.algebra import allclose
-from robot_arm_controller.utils.fifo_lock import FIFOLock
-from robot_arm_controller.utils.messages import Message, MessageOp
-from robot_arm_controller.utils.prints import console
+from ribot.utils.algebra import allclose
+from ribot.utils.fifo_lock import FIFOLock
+from ribot.utils.messages import Message, MessageOp
+from ribot.utils.prints import console
 
 
 class Settings(Enum):

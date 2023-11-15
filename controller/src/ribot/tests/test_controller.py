@@ -5,10 +5,10 @@ from typing import Tuple
 
 import numpy as np
 
-from robot_arm_controller.control.arm_kinematics import ArmParameters
-from robot_arm_controller.controller import ArmController, Settings
-from robot_arm_controller.utils.algebra import allclose
-from robot_arm_controller.utils.prints import console
+from ribot.control.arm_kinematics import ArmParameters
+from ribot.controller import ArmController, Settings
+from ribot.utils.algebra import allclose
+from ribot.utils.prints import console
 
 
 class TestController(unittest.TestCase):
