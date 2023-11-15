@@ -6,6 +6,7 @@ services:
     build:
       context: ../firmware
       dockerfile: Dockerfile
+    image: "uintuser/ribot-linux-firmware"
     volumes:
       - ../firmware/main:/app/main
       - ../firmware/CMakeLists.txt:/app/CMakeLists.txt

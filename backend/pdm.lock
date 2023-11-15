@@ -405,7 +405,7 @@ files = [
 
 [[package]]
 name = "ribot-controller"
-version = "0.3.4"
+version = "0.3.5"
 requires_python = ">=3.9"
 summary = "Ribot arm controller library"
 dependencies = [
@@ -416,8 +416,8 @@ dependencies = [
     "websockets>=11.0.3",
 ]
 files = [
-    {file = "ribot_controller-0.3.4-py3-none-any.whl", hash = "sha256:ce991ebc1f17a0ac3b56c7ea0d1a72e8166d014b3868370776c2dee1cdd95b08"},
-    {file = "ribot_controller-0.3.4.tar.gz", hash = "sha256:e1ac32665aa72c9516fb2220c5744065881e910455d134fcc914b1ac1d6d69ff"},
+    {file = "ribot_controller-0.3.5-py3-none-any.whl", hash = "sha256:b03fb7c2d1b2c4ca002e8aa1de67beb1602fb5c386f015ea410f0aaa2b0c9f77"},
+    {file = "ribot_controller-0.3.5.tar.gz", hash = "sha256:65884cf1525be0fdbecaf9c7227c18c253c5ea6c9442a71c0d003b924330cb20"},
 ]
 
 [[package]]

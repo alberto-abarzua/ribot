@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - 'unity_arm_simulation/**'
   workflow_dispatch:
 
 jobs:
@@ -28,9 +29,26 @@ jobs:
       - name: Build frontend container
         run: ./manage.py build --container frontend
 
+      - name: Build Unity Webgl
+        run: ./manage.py build --container unity_webgl_server
+
       - name: Lint Frontend
         run: ./manage.py lint --container frontend  
     
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Frontend Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container frontend --op push
+
+      - name: Push Unity Webgl Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container unity_webgl_server --op push
+
       - name: Stop and remove containers
         if: always()
         run: ./manage.py down --container frontend

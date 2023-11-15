@@ -88,9 +88,10 @@ class DockerManger:
 
         try:
             if mute:
-                subprocess.run(new_command, env={**os.environ, **env}, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                return subprocess.run(new_command, env={**os.environ, **env}, check=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             else:
-                subprocess.run(new_command, env={**os.environ, **env}, check=True)
+                return subprocess.check_call(new_command, env={**os.environ, **env})
         except subprocess.CalledProcessError as e:
             if mute:
                 print("Command failed with the following output:")
@@ -119,6 +120,11 @@ class DockerManger:
     def dc_logs(self, files: List[str]):
         file_list = self.get_file_list(files)
         return subprocess.check_call(['docker', 'compose', *file_list, 'logs', '--follow'])
+
+    def dc_command(self,files:List[str],command: str):
+        file_list = self.get_file_list(files)
+        command_list = command.split(' ')
+        return subprocess.check_call(['docker', 'compose', *file_list]+ command_list, env={**os.environ})
 
 
 class Manager:
@@ -207,6 +213,14 @@ class Manager:
                 return port.device
         return None
 
+    def dc_command(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        command = kwargs.get('op', None)
+        if container_name is not None:
+            self.docker_manager.dc_command([container_name], command)
+        else:
+            self.docker_manager.dc_command(self.serivice_names, command)
+
     def build_flash_esp(self, **kwargs):
         usb_port = kwargs.get('usb_port', None)
 
@@ -279,6 +293,9 @@ class Manager:
         if version is not None:
             os.environ['CONTROLLER_PDM_OVERRIDE_VERSION'] = version
 
+        else:
+            os.environ['CONTROLLER_PDM_INCREMENT_VERSION'] = 'true'
+
         self.docker_manager.dc_run('controller.yaml', 'controller pdm publish')
 
     def build_esp(self, **kwargs):
@@ -306,7 +323,6 @@ class Manager:
         except subprocess.CalledProcessError as e:
             print(f"Error running command: {e}")
 
-
     def format_code(self, **kwargs):
         container_name = kwargs.get('container', None)
 
@@ -322,6 +338,7 @@ class Manager:
                 futures = []
                 for cmd in commands:
                     print('Formatting', cmd[0])
+                    time.sleep(1)
                     futures.append(executor.submit(self.run_command, cmd))
                 for future in futures:
                     future.result()
@@ -347,6 +364,8 @@ class Manager:
 
 
         if container_name is None:
+
+            os.environ['BACKEND_UPDATE_RIBOT_CONTROLLER'] = 'true'
             commands = [
                 ('controller.yaml', 'controller pdm run lint'),
                 ('backend.yaml', 'backend pdm run lint'),
@@ -357,6 +376,7 @@ class Manager:
                 futures = []
                 for cmd in commands:
                     print('Linting', cmd[0])
+                    time.sleep(1)
                     futures.append(executor.submit(self.run_command, cmd))
                 for future in futures:
                     future.result()
@@ -375,6 +395,7 @@ class Manager:
             return
 
     def test_debug(self, **_):
+        os.environ["CONTROLLER_PRINT_STATUS"] = "true"
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
         self.docker_manager.dc_down(['controller.yaml', 'firmware.yaml'])
@@ -385,6 +406,8 @@ class Manager:
             "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
         exit_code = self.docker_manager.dc_run('controller.yaml', 'controller pdm run test',
                                                service_ports_and_aliases=True)
+
+        print(exit_code)
 
         self.docker_manager.dc_down(['firmware.yaml'])
         if exit_code == 0:
@@ -447,6 +470,21 @@ class Manager:
             formatter_class=argparse.RawTextHelpFormatter
         )
         subparsers = parser.add_subparsers(dest='command')
+        # --------------
+        # Docker compose command
+        # --------------
+
+        parser_dc = subparsers.add_parser(
+            'docker-compose', help='Run docker compose command')
+
+        parser_dc.set_defaults(func=self.dc_command)
+
+        parser_dc.add_argument(
+            '--op', help='Command to run')
+
+        parser_dc.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to run command in')
+
 
         # --------------
         # Build firmware
@@ -603,21 +641,17 @@ class Manager:
             'down': self.down,
             'shell': self.shell,
             'publish-controller': self.publish_controller,
+            'docker-compose': self.dc_command
 
         }
 
+        if parsed_args.command is None:
+            parser.print_help()
+            exit(1)
+
         command_map[parsed_args.command](**vars(parsed_args))
 
-        while remaining_args:
-            next_command = remaining_args.pop(0)
-            if next_command in command_map:
-                args_for_command = vars(
-                    subparsers.choices[next_command].parse_args(remaining_args))
-                command_map[next_command](**args_for_command)
-                break
-            else:
-                print(f"Unknown command: {next_command}")
-                exit(1)
+
 
 
 if __name__ == "__main__":

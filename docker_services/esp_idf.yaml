@@ -4,6 +4,9 @@ services:
     build:
       context: ../firmware
       dockerfile: Dockerfile.espidf
+
+    
+    image: "uintuser/ribot-espidf-firmware"
     network_mode: host
     volumes:
       - ../firmware/main:/app/main

@@ -30,7 +30,17 @@ jobs:
 
       - name: Lint Backend
         run: ./manage.py lint --container backend
-    
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Backend Container
+        if: github.ref == 'refs/heads/main'
+        run: ./manage.py docker-compose --container backend --op push
+
       - name: Stop and remove containers
         if: always()
         run: ./manage.py down --container backend

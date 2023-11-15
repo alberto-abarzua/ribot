@@ -4,6 +4,7 @@ services:
     build:
       context: "../backend"
       dockerfile: "Dockerfile"
+    image: "uintuser/ribot-backend"
     volumes:
       - ../backend/src:/app/src
       - ../backend/pyproject.toml:/app/pyproject.toml

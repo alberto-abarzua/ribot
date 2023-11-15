@@ -3,17 +3,21 @@
 requires = ["pdm-backend","requests>=2.31","packaging>=23.2"]
 build-backend = "pdm.backend"
 
+
 [project]
 name = "ribot-controller"
 dynamic = ["version"]
+
 description = "Ribot arm controller library"
 
 authors = [
     {name = "alberto-abarzua"},
 ]
-readme = "README.md"
+license = {text = "MIT"}
 
 keywords = ["robot", "arm", "controller"]
+
+readme = "README.md"
 
 
 
@@ -25,12 +29,13 @@ dependencies = [
     "asyncio>=3.4.3",
     "rich>=13.4.2",
 ]
+
 requires-python = ">=3.9"
-license = {text = "MIT"}
 
 [tool.pdm.version]
 source = "call"
 getter = "src.ribot.utils.version:get_version"
+
 
 [tool.pdm]
 [tool.pdm.files]
