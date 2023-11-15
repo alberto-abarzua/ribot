@@ -1,6 +1,6 @@
 const FeatureList = [
   {
-    title: "Easy to Use",
+    title: "Easy to Use Interface",
     Svg: require("@site/static/img/exp.svg").default,
     description: (
       <>

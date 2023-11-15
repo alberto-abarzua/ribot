@@ -11,7 +11,7 @@ const ToolControls = () => {
         api.post('/move/tool/relative/', { toolValue: amount });
     };
 
-    const [toolStep, setToolStep] = useState(10);
+    const [toolStep, setToolStep] = useState(20);
 
     return (
         <div className="flex flex-col  rounded-md bg-slate-200 p-4 shadow-md ">

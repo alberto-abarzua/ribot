@@ -4,6 +4,7 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import ControlPanel from '@/components/controls/ControlPanel';
 import SideNav from '@/components/general/layout/SideNav';
 import Providers from '@/components/general/providers/Providers';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function Home() {
     return (
@@ -27,6 +28,7 @@ export default function Home() {
                     <ControlPanel></ControlPanel>
                 </div>
             </div>
+            <Toaster></Toaster>
         </Providers>
     );
 }
