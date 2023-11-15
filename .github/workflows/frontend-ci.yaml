@@ -1,10 +1,11 @@
 
-name: General Arm Ci
+name: Frontend CI
 
 on:
   push:
     paths:
       - 'frontend/**'
+  workflow_dispatch:
 
 jobs:
   build-test:

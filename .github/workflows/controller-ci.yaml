@@ -1,11 +1,12 @@
 
-name: General Arm Ci
+name: Controller and Firmware tests CI
 
 on:
   push:
     paths:
       - 'firmware/**'
       - 'controller/**'
+  workflow_dispatch:
 
 jobs:
   build-test:
