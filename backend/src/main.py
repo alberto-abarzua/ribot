@@ -8,7 +8,6 @@ from routers.settings import router as settings_router
 from utils.general import start_controller, stop_controller
 
 
-
 @asynccontextmanager
 async def controller_lifespan(_: FastAPI):  # type: ignore # noqa: ANN201
     start_controller()

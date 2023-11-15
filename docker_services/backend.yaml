@@ -16,6 +16,7 @@ services:
     environment:
       - BACKEND_HTTP_PORT
       - CONTROLLER_WEBSOCKET_PORT
+      - BACKEND_UPDATE_RIBOT_CONTROLLER
       - CONTROLLER_SERVER_PORT
 
 volumes:

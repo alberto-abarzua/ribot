@@ -21,6 +21,7 @@ COPY ./pdm.lock ./pdm.lock
 
 COPY . .
 
+RUN pdm install
 
 RUN chmod +x ./entrypoint.sh
 
