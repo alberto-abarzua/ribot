@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import time
 import argparse
 import subprocess
 import re
 import os
 import signal
 import socket
+from sys import stdout
 from typing import List
 from pathlib import Path
 import serial.tools.list_ports
@@ -200,6 +202,7 @@ class Manager:
 
         if usb_port is None:
             usb_port = self.get_usb_port()
+            print(usb_port)
             if usb_port is None:
                 print("No ESP32 found")
                 exit(1)
@@ -208,37 +211,120 @@ class Manager:
 
         print(f"Flashing ESP32 on port {usb_port}")
 
-        subprocess.Popen(['esp_rfc2217_server.py', '-p', '4000', usb_port],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = None
+        try:
+            command_server = ['esp_rfc2217_server.py', '-p', '4000', usb_port]
 
-        print("Waiting for ESP32 to connect...")
+            # run in background but still keep output
+            process = subprocess.Popen(command_server)
 
-        self.docker_manager.dc_run(
-            'esp_idf.yaml', 'esp_idf idf.py build flash -p rfc2217://host.docker.internal:4000?ign_set_control monitor')
+            time.sleep(2)
+
+
+            if process.poll() is not None:
+                print("Error starting ESP32 server")
+                exit(1)
+
+            print("Waiting for ESP32 to connect...")
+
+            self.docker_manager.dc_run(
+                'esp_idf.yaml', 'esp_idf idf.py build flash -p rfc2217://host.docker.internal:4000?ign_set_control monitor')
+
+        finally:
+            if process:
+                # send sigint to stop server
+                process.send_signal(signal.SIGINT)
+    def build_esp_locally(self,**kwargs):
+        print("Requires idf.py to be installed and environment variables to be set")
+        print("Also requires to export variables from .env file -->\n\t source .env")
+        if 'IDF_PATH' not in os.environ:
+            print("IDF_PATH is not set")
+            exit(1)
+
+        flash = kwargs.get('flash', False)
+
+        delete_command = ['rm', '-rf', 'build', 'CMakeFiles','CMakeCache.txt', 'cmake_install.cmake', 'Makefile', 'compile_commands.json']
+        subprocess.check_call(delete_command, cwd='firmware')
+
+        command = ['idf.py', 'build']
+        if flash:
+            command.append('flash')
+
+        subprocess.check_call(['rm', '-rf', 'build'], cwd='firmware')
+        subprocess.check_call(command,
+                              cwd='firmware', env=os.environ)
+
+
 
     def build_esp(self, **kwargs):
 
         flash = kwargs.get('flash', False)
+        locally = kwargs.get('locally', False)
 
         os.environ['ESP_CONTROLLER_SERVER_HOST'] = self.current_host_ip
         os.environ['VERBOSE'] = '1'
 
-        if flash:
-            self.build_flash_esp(**kwargs)
-
+        if locally:
+            self.build_esp_locally(**kwargs)
+                
         else:
-            self.docker_manager.dc_run('esp_idf.yaml', 'esp_idf idf.py build')
+            if flash:
+                self.build_flash_esp(**kwargs)
 
-    def format_code(self, **_):
-        self.docker_manager.dc_run('firmware.yaml', 'firmware format')
-        self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
-        self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
-        self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+            else:
+                self.docker_manager.dc_run('esp_idf.yaml', 'esp_idf idf.py build')
 
-    def lint(self, **_):
-        self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
-        self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
-        self.docker_manager.dc_run('frontend.yaml', 'frontend npm run lint')
+    def format_code(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        
+        
+        if container_name is None:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware format')
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+            return
+
+        if 'firmware' in container_name:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware format')
+            return
+
+        if 'controller' in container_name:
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run format')
+            return
+
+        if 'backend' in container_name:
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run format')
+            return
+
+        if 'frontend' in container_name:
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run format')
+            return
+
+
+    def lint(self, **kwargs):
+        container_name = kwargs.get('container', None)
+        print (container_name)
+
+        if container_name is None:
+            self.docker_manager.dc_run('firmware.yaml', 'firmware lint')
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
+            return
+
+        if 'frontend' in container_name:
+            self.docker_manager.dc_run('frontend.yaml', 'frontend npm run lint')
+            return
+        
+        if 'controller' in container_name:
+            self.docker_manager.dc_run('controller.yaml', 'controller pdm run lint')
+            return
+
+        if 'backend' in container_name:
+            self.docker_manager.dc_run('backend.yaml', 'backend pdm run lint')
+            return
+
+
 
     def test_debug(self, **_):
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
@@ -262,8 +348,14 @@ class Manager:
             exit(1)
 
     def test_esp(self, **_):
-        self.docker_manager.dc_up(['controller'],  env={"CONTROLLER_COMMAND": "test"})
-        self.docker_manager.dc_down(['controller'])
+        exit_code = self.docker_manager.dc_run('controller.yaml', 'controller pdm run test',
+                                               service_ports_and_aliases=True)
+        if exit_code == 0:
+            print("Tests passed")
+            exit(0)
+        else:
+            print("Tests failed")
+            exit(1)
 
     def test(self, **kwargs):
         debug = kwargs['debug']
@@ -358,6 +450,9 @@ class Manager:
 
         parser_format.set_defaults(func=self.format_code)
 
+        parser_format.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to format')
+
         # --------------
         # Lint code
         # --------------
@@ -365,6 +460,9 @@ class Manager:
         parser_lint = subparsers.add_parser('lint', help='Lint all code')
 
         parser_lint.set_defaults(func=self.lint)
+
+        parser_lint.add_argument(
+            '--container', '-c', choices=self.serivice_names, help='Container to lint')
 
         # --------------
         # Test code
@@ -429,8 +527,6 @@ class Manager:
 
         parser_up.add_argument(
             '--container', '-c', choices=self.serivice_names, help='Container to start')
-
-
 
         parsed_args, remaining_args = parser.parse_known_args()
         command_map = {

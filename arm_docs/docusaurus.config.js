@@ -9,7 +9,8 @@ import { themes as prismThemes } from "prism-react-renderer";
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "RiBot",
-  tagline: "Navigate Robotics with Ease: Simple Software and Interface for Your Robot DIY Robot Arm",
+  tagline:
+    "Navigate Robotics with Ease: Simple Software and Interface for Your Robot DIY Robot Arm",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
@@ -21,7 +22,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "alberto-abarzua", // Usually your GitHub org/user name.
-  projectName: "robot-arm-control", // Usually your repo name.
+  projectName: "ribot", // Usually your repo name.
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -93,7 +94,7 @@ const config = {
             label: "Docs",
           },
           {
-            href: "https://github.com/alberto-abarzua/robot-arm-control",
+            href: "https://github.com/alberto-abarzua/ribot",
             label: "GitHub",
             position: "right",
           },
@@ -116,12 +117,8 @@ const config = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/alberto-abarzua/robot-arm-control",
+                href: "https://github.com/alberto-abarzua/ribot",
               },
-              // {
-              //   label: "Docker Hub",
-              //   href: "https://hub.docker.com/r/albertoabarzua/robot-arm-control",
-              // },
             ],
           },
         ],

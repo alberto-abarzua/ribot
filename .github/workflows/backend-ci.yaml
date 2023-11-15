@@ -1,0 +1,37 @@
+
+name: Backend Arm Ci
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    environment: general
+    env:
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.ESP_CONTROLLER_SERVER_PORT }}
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.ESP_CONTROLLER_SERVER_HOST }}
+      ESP_WIFI_SSID: ${{ vars.ESP_WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
+      CONTROLLER_WEBSOCKET_PORT: ${{ vars.CONTROLLER_WEBSOCKET_PORT }}
+      CONTROLLER_SERVER_PORT: ${{ vars.CONTROLLER_SERVER_PORT }}
+      BACKEND_HTTP_PORT: ${{ vars.BACKEND_HTTP_PORT }}
+      NEXT_PUBLIC_BACKEND_URL: ${{ vars.NEXT_PUBLIC_BACKEND_URL }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set Env File
+        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
+      - name: Build backend container
+        run: ./manage.py build --container backend
+
+      - name: Lint Backend
+        run: ./manage.py lint --container backend
+    
+      - name: Stop and remove containers
+        if: always()
+        run: ./manage.py down
+    
+         

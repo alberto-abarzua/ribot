@@ -1,0 +1,58 @@
+
+name: Firmware CI
+
+on:
+  push:
+    paths:
+      - 'firmware/**'
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    environment: general
+    env:
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.ESP_CONTROLLER_SERVER_PORT }}
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.ESP_CONTROLLER_SERVER_HOST }}
+      ESP_WIFI_SSID: ${{ vars.ESP_WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set Env File
+        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
+
+      - name: Build Firmware Container for Linux
+        run: ./manage.py build --container firmware
+    
+      - name: Build Firmware for Linux
+        run: ./manage.py buildf
+
+      - name: Stop and remove containers
+        if: always()
+        run: ./manage.py down
+
+  esp-idf-build: 
+    runs-on: ubuntu-latest
+    environment: general
+    env:
+      ESP_CONTROLLER_SERVER_HOST: ${{ vars.ESP_CONTROLLER_SERVER_HOST }}
+      ESP_CONTROLLER_SERVER_PORT: ${{ vars.ESP_CONTROLLER_SERVER_PORT }}
+      ESP_WIFI_SSID: ${{ vars.ESP_WIFI_SSID }}
+      ESP_WIFI_PASSWORD: ${{ vars.ESP_WIFI_PASSWORD }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+
+      - name: Set Env File
+        run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
+
+      - name: Build ESP-IDF Container
+        run: ./manage.py build --container esp-idf
+
+      - name: Build firmware for ESP32 using ESP-IDF
+        run: ./manage.py build-esp
+
+         
+
+         

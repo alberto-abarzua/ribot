@@ -1,17 +1,19 @@
 import MoveAxis from '@/components/controls/MoveAxis';
 import ToolControls from '@/components/controls/ToolControls';
 import TextVariableInfo from '@/components/general/text/TextVariableInfo';
+import { useToast } from '@/components/ui/use-toast';
 import api from '@/utils/api';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const AxisControls = () => {
-    const [coordsStep, setCoordsStep] = useState(10);
-    const [anglesStep, setAnglesStep] = useState(10);
+    const { toast } = useToast();
+    const [coordsStep, setCoordsStep] = useState(20);
+    const [anglesStep, setAnglesStep] = useState(20);
 
     const currentPose = useSelector(state => state.armPose);
 
-    const moveArm = (field, amount) => {
+    const moveArm = async (field, amount) => {
         let base = {
             x: 0,
             y: 0,
@@ -21,7 +23,16 @@ const AxisControls = () => {
             yaw: 0,
         };
         base[field] = amount;
-        api.post('/move/pose/relative/', base);
+        try {
+            await api.post('/move/pose/relative/', base);
+        } catch (e) {
+            console.log(e);
+            toast({
+                variant: 'destructive',
+                title: 'Position out of bounds!',
+                description: 'The position you are trying to move to is out of bounds.',
+            });
+        }
     };
 
     return (

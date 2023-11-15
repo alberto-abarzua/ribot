@@ -8,6 +8,7 @@ services:
     volumes:
       - ../firmware/main:/app/main
       - ../firmware/CMakeLists.txt:/app/CMakeLists.txt
+      - ../firmware/sdkconfig.defaults:/app/sdkconfig.defaults
       - ../firmware/components:/app/components
     environment:
       - ESP_WIFI_SSID

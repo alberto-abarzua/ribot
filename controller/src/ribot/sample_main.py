@@ -1,8 +1,8 @@
 import time
 
-from robot_arm_controller.control.arm_kinematics import ArmParameters
-from robot_arm_controller.controller import ArmController, Settings
-from robot_arm_controller.utils.prints import console
+from ribot.control.arm_kinematics import ArmParameters
+from ribot.controller import ArmController, Settings
+from ribot.utils.prints import console
 
 if __name__ == "__main__":
     console.log("Starting sample_main.py!", style="bold green")

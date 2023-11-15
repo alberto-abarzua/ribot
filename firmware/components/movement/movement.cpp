@@ -158,7 +158,7 @@ bool MovementDriver::step() {
     for (uint16_t i = 0; i < steps_to_take; i++) {
         this->current_steps += step_dir;
 
-        this->hardware_step((step_dir * dir_inverted) > 0 ? 1 : 0);
+        this->hardware_step((step_dir * dir_inverted) > 0 ? 1 : -1);
 
         if (!this->homed && this->end_stop != nullptr) {
             this->current_angle = this->steps_to_angle(this->current_steps);

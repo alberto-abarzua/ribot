@@ -16,7 +16,7 @@ function* fetchApiData() {
 function* watchFetchApiData() {
     while (true) {
         yield call(fetchApiData);
-        yield delay(150); // Wait for 200ms before the next loop iteration
+        yield delay(400); // Wait for 200ms before the next loop iteration
     }
 }
 

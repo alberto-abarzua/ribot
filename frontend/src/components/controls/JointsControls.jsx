@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 const JointsControls = () => {
     const currentAngles = useSelector(state => state.armPose.currentAngles);
-    const [angleStep, setAngleStep] = useState(10);
+    const [angleStep, setAngleStep] = useState(15);
 
     const callSetAngle = (index, value) => {
         api.post('/move/joint/relative/', { joint_idx: index, joint_value: value });
