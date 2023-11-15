@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-test:
+  build-lint:
     runs-on: ubuntu-latest
     environment: general
     env:
@@ -33,6 +33,6 @@ jobs:
     
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down
+        run: ./manage.py down --container backend
     
          

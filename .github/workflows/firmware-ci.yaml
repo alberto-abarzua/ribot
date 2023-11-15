@@ -31,7 +31,7 @@ jobs:
 
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down
+        run: ./manage.py down --container firmware
 
   esp-idf-build: 
     runs-on: ubuntu-latest
@@ -50,10 +50,14 @@ jobs:
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
 
       - name: Build ESP-IDF Container
-        run: ./manage.py build --container esp-idf
+        run: ./manage.py build --container esp_idf
 
       - name: Build firmware for ESP32 using ESP-IDF
         run: ./manage.py build-esp
+
+      - name: Stop and remove containers
+        if: always()
+        run: ./manage.py down --container esp_idf
 
          
 

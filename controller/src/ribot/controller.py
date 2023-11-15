@@ -8,15 +8,8 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import toml  # type: ignore
 
-from ribot.control.arm_kinematics import (
-    ArmKinematics,
-    ArmParameters,
-    ArmPose,
-)
-from ribot.control.controller_servers import (
-    ControllerServer,
-    WebsocketServer,
-)
+from ribot.control.arm_kinematics import ArmKinematics, ArmParameters, ArmPose
+from ribot.control.controller_servers import ControllerServer, WebsocketServer
 from ribot.utils.algebra import allclose
 from ribot.utils.fifo_lock import FIFOLock
 from ribot.utils.messages import Message, MessageOp

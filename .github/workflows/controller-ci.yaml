@@ -40,7 +40,9 @@ jobs:
     
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down
+        run: |
+          ./manage.py down --container controller
+          ./manage.py down --container firmware
     
          
 

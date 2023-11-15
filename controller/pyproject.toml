@@ -1,8 +1,9 @@
 
 [project]
-name = "ribot"
-version = "0.1"
+name = "ribot-controller"
+dynamic = ["version"]
 description = "Ribot arm controller library"
+
 authors = [
     {name = "alberto-abarzua"},
 ]
@@ -27,6 +28,9 @@ license = {text = "MIT"}
 [tool.pdm.files]
 "ribot/py.typed" = "src/ribot/py.typed"
 
+[tool.pdm.version]
+source = "call"
+getter = "ribot.utils.version.get_version()"
 
 
 [tool.pdm.scripts]
