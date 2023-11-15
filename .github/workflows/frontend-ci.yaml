@@ -1,9 +1,5 @@
 
-<<<<<<< HEAD
-name: General Arm Ci
-=======
 name: Frontend CI
->>>>>>> 52c974d (chore: update ci)
 
 on:
   push:
