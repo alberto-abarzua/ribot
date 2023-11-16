@@ -211,7 +211,6 @@ class Manager:
 
         finally:
             subprocess.check_call(['rm', '-rf', 'controller'], cwd='backend')
-            raise
 
     def get_usb_port(self):
         ports = serial.tools.list_ports.comports()
