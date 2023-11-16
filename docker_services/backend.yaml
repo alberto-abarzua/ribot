@@ -9,7 +9,6 @@ services:
       - ../backend/src:/app/src
       - ../backend/pyproject.toml:/app/pyproject.toml
       - ../backend/pdm.lock:/app/pdm.lock
-      - ../controller:/app/controller
     ports:
       - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
       - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller
