@@ -1,18 +1,11 @@
-version: "3.8"
+
+version: '3.8'
 services:
   backend:
-    build:
-      context: "../backend"
-      dockerfile: "Dockerfile"
-      args:
-        - EDITABLE_PACKAGES=$BACKEND_EDITABLE_PACKAGES
     image: "uintuser/ribot-backend"
+    command: pdm run  uvicorn src.main:app --host 0.0.0.0 --port ${BACKEND_HTTP_PORT} --reload
     volumes:
-      - ../backend/src:/app/src
-      - ../backend/pyproject.toml:/app/pyproject.toml
-      - ../backend/src/config/main_arm.toml:/app/src/config/main_arm.toml
-      - ../backend/pdm.lock:/app/pdm.lock
-      - ../controller:/app/controller
+      - ./config/web_arm.toml:/app/src/config/main_arm.toml 
     ports:
       - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
       - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller
@@ -22,3 +15,10 @@ services:
       - CONTROLLER_WEBSOCKET_PORT
       - CONTROLLER_SERVER_PORT
 
+  firmware:
+    image: "uintuser/ribot-linux-firmware"
+    environment:
+      - ESP_WIFI_SSID=ssid
+      - ESP_WIFI_PASSWORD=password
+      - ESP_CONTROLLER_SERVER_HOST=backend
+      - ESP_CONTROLLER_SERVER_PORT

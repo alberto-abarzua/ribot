@@ -2,8 +2,7 @@
 dependencies = [
     "fastapi>=0.101.1",
     "uvicorn>=0.23.2",
-    "numpy>=1.20",
-    "ribot-controller>=0.3.4",
+    "redis>=5.0.1",
 ]
 requires-python = ">=3.11"
 
@@ -18,7 +17,7 @@ dev = [
 
 
 [tool.pdm.scripts]
-start = "pdm run uvicorn src.main:app  --host 0.0.0.0"
+start = "pdm run uvicorn src.main:app  --host 0.0.0.0 --port 7400"
 isort = "isort src"
 black = "black src"
 pure_lint = "flake8 src"

@@ -2,26 +2,41 @@ version: '3.8'
 
 services:
   nginx:
-    build: .
-    ports:
-      - "80:80"
-      - "443:443"
+    build: ./nginx/
     volumes:
-      - ./certs:/etc/letsencrypt
-      - ./site:/var/www/html
-    depends_on:
-      - certbot
+      - ./nginx//certs:/etc/letsencrypt
+      - ./nginx/site:/var/www/html
+    # depends_on:
+    #   - certbot
+    network_mode: host
 
   certbot:
     image: certbot/certbot
     volumes:
-      - ./certs:/etc/letsencrypt
-      - ./site:/var/www/html
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/site:/var/www/html # used to serve the challenge
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     entrypoint: /bin/sh -c
     command: >
       'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
 
-  fastapi:
-    image: your-fastapi-image
-    # Define your FastAPI service configuration here
+  unity_webgl_server:
+    image: uintuser/ribot-unity-webgl-server
+    ports:
+      - 8080:80
 
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
+    volumes:
+      - redis-data:/data
+  router:
+    build: ./router/ 
+    ports:
+      - 3320:3320
+    stop_grace_period: 3s
+
+volumes:
+  redis-data:

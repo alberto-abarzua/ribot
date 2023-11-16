@@ -19,4 +19,12 @@ mergeInto(LibraryManager.library, {
             return port;
         }
     },
+    GetWebSocketProtocol: function () {
+        const params = new URLSearchParams(window.location.search);
+        const protocol = params.get("protocol");
+        if (protocol) {
+            console.log("SetWebSocketInfo: " + protocol);
+            return protocol;
+        }
+    },
 });

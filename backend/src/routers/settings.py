@@ -109,3 +109,13 @@ def config_from_file(
 def list_configs() -> Dict[Any, Any]:
     CONFIG_PATH = Path(__file__).parent.parent / "config"
     return {"configs": [str(f) for f in CONFIG_PATH.iterdir() if f.is_file()]}
+
+
+@router.get("/websocket_info")
+def websocket_info(
+    controller: ArmController = controller_dependency,
+) -> Dict[Any, Any]:
+
+    return {
+        "websocket_port": controller.websocket_port,
+    }

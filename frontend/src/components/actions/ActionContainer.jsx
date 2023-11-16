@@ -13,7 +13,6 @@ const ActionContainer = ({ actionList, action = null }) => {
     const dispatch = useDispatch();
     const byId = useContext(byIdContext);
     const [isOver, setIsOver] = useState(false);
-    console.log('IN action container', action);
 
     actionList = actionList.map(action => byId[action.id]);
     const [, drop] = useDrop({
@@ -30,7 +29,6 @@ const ActionContainer = ({ actionList, action = null }) => {
                 const reader = new FileReader();
                 reader.onload = event => {
                     const actionToAdd = JSON.parse(event.target.result);
-                    console.log('action container drop', action);
                     dispatch(
                         actionListActions.addFromJson({
                             actionId: action ? action.id : null,

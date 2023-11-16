@@ -22,7 +22,6 @@ COPY ./pdm.lock ./pdm.lock
 
 COPY . .
 
-RUN ls -la && sleep 5
 RUN pdm remove ribot-controller || true && \
     pdm remove ribot-controller --dev || true
 

@@ -15,6 +15,10 @@ public class Controller: MonoBehaviour {
     private static extern int GetWebSocketPort();
     [DllImport("__Internal")]
     private static extern string GetWebSocketIp();
+    [DllImport("__Internal")]
+    private static extern string GetWebSocketProtocol();
+
+    private static extern void SetWebSocketPort(int port);
 
     [DllImport("__Internal")]
     private static extern void PrintToConsole(string str);
@@ -22,6 +26,7 @@ public class Controller: MonoBehaviour {
     private WebSocket websocket = null;
     private int web_socket_port;
     private string web_socket_ip ;
+    private string web_socket_protocol = "ws";
     private float call_interval = 1f/40f; // 40 Hz
     // last call timestamp
     private long last_call =  0;
@@ -70,8 +75,10 @@ public class Controller: MonoBehaviour {
     public void SetWebSocketInfo() {
         string ip = GetWebSocketIp();
         int port = GetWebSocketPort();
+        string protocol = GetWebSocketProtocol();
         web_socket_ip = ip;
         web_socket_port = port;
+        web_socket_protocol = protocol;
         // PrintToConsole("ip: " + web_socket_ip + " port: " + web_socket_port);
     }
 
@@ -140,7 +147,7 @@ public class Controller: MonoBehaviour {
 
     private void SetupWebSocket() {
 
-        this.websocket = new WebSocket(String.Format("ws://{0}:{1}", this.web_socket_ip, this.web_socket_port));
+        this.websocket = new WebSocket(String.Format("{0}://{1}:{2}",this.web_socket_protocol, this.web_socket_ip, this.web_socket_port));
 
         this.websocket.OnOpen += () => {
             // Debug.Log("Connection open!");

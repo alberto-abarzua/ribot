@@ -74,6 +74,7 @@ class ArmController:
 
         self.controller_server: ControllerServer = ControllerServer(self, server_port)
         self.websocket_server: Optional[WebsocketServer] = WebsocketServer(self, websocket_port)
+        self.websocket_port = websocket_port
         self.file_reload_thread: Optional[threading.Thread] = None
 
         self.message_op_handlers: Dict[MessageOp, Callable[[Message], None]] = {

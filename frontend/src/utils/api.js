@@ -1,12 +1,9 @@
 import axios from 'axios';
 
-let backendUrl = import.meta.env.VITE_BACKEND_URL;
-if (backendUrl && backendUrl.startsWith('"') && backendUrl.endsWith('"')) {
-    backendUrl = backendUrl.slice(1, -1);
-}
 
 const api = axios.create({
-    baseURL: backendUrl,
+    withCredentials: true,
+    baseURL: window.localStorage.getItem('backendUrl'),
 });
 
 api.interceptors.request.use(
@@ -17,5 +14,7 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
+
 
 export default api;
