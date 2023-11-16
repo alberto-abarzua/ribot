@@ -3,7 +3,6 @@ dependencies = [
     "fastapi>=0.101.1",
     "uvicorn>=0.23.2",
     "numpy>=1.20",
-    "ribot-controller>=0.3.4",
 ]
 requires-python = ">=3.11"
 
@@ -14,6 +13,7 @@ dev = [
     "flake8>=6.0.0",
     "flake8-annotations>=3.0.1",
     "mypy>=1.4.1",
+    "-e file:///${PROJECT_ROOT}/controller#egg=ribot-controller",
 ]
 
 

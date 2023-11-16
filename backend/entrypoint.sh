@@ -2,12 +2,11 @@
 
 
 # check if BACKEND_UPDATE_RIBOT_CONTROLLER is set to 'true'
-if [ "$BACKEND_UPDATE_RIBOT_CONTROLLER" = "true" ]; then
-    
-    echo "Updating ribot-controller to latest"
-    echo "Updating ribot-controller to latest"
-    pdm update ribot-controller
-fi
+# if [ "$EDITABLE_PACKAGES" = "true" ]; then
+#     pdm remove ribot-controller || true
+#     pdm add -e ./controller --dev
+#     pdm install
+# fi
 
 
 exec "$@"

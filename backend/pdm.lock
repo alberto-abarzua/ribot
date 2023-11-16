@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:0982048b03e8627771ac84e1ca83d0cd6a9e1d1d48f98eb5e6cadd88752ca494"
+content_hash = "sha256:ae75153ad9eccab646f79325a0fcfac18dc155bfd637feca7866ee46df501783"
 
 [[package]]
 name = "annotated-types"
@@ -405,8 +405,10 @@ files = [
 
 [[package]]
 name = "ribot-controller"
-version = "0.3.6"
+version = "0.3.6+editable"
 requires_python = ">=3.9"
+editable = true
+path = "./controller"
 summary = "Ribot arm controller library"
 dependencies = [
     "asyncio>=3.4.3",
@@ -415,14 +417,10 @@ dependencies = [
     "toml>=0.10.2",
     "websockets>=11.0.3",
 ]
-files = [
-    {file = "ribot_controller-0.3.6-py3-none-any.whl", hash = "sha256:b5ca1e8b18cb3f9e20b7d6b3ee82779d1b588dc63f4db8df17f91f0a80147b87"},
-    {file = "ribot_controller-0.3.6.tar.gz", hash = "sha256:8fe0222e6f2f5312131dd2a27d4b5388a974f09ae8bb684247c653790b6155cf"},
-]
 
 [[package]]
 name = "rich"
-version = "13.6.0"
+version = "13.7.0"
 requires_python = ">=3.7.0"
 summary = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 dependencies = [
@@ -430,8 +428,8 @@ dependencies = [
     "pygments<3.0.0,>=2.13.0",
 ]
 files = [
-    {file = "rich-13.6.0-py3-none-any.whl", hash = "sha256:2b38e2fe9ca72c9a00170a1a2d20c63c790d0e10ef1fe35eba76e1e7b1d7d245"},
-    {file = "rich-13.6.0.tar.gz", hash = "sha256:5c14d22737e6d5084ef4771b62d5d4363165b403455a30a1c8ca39dc7b644bef"},
+    {file = "rich-13.7.0-py3-none-any.whl", hash = "sha256:6da14c108c4866ee9520bbffa71f6fe3962e193b7da68720583850cd4548e235"},
+    {file = "rich-13.7.0.tar.gz", hash = "sha256:5cb5123b5cf9ee70584244246816e9114227e0b98ad9176eede6ad54bf5403fa"},
 ]
 
 [[package]]
