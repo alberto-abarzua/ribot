@@ -21,7 +21,4 @@ services:
     command: >
       'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
 
-  fastapi:
-    image: your-fastapi-image
-    # Define your FastAPI service configuration here
 
