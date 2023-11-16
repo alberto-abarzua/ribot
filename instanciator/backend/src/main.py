@@ -3,9 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers.move import router as move_router
-from routers.settings import router as settings_router
-from utils.general import start_controller, stop_controller
 
 
 @asynccontextmanager
@@ -21,12 +18,9 @@ app = FastAPI(lifespan=controller_lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://demo.ribot.dev"],  # Specific domain
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
-
-app.include_router(move_router, prefix="/move")
-app.include_router(settings_router, prefix="/settings")

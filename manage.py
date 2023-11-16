@@ -197,11 +197,21 @@ class Manager:
 
     def build(self, **kwargs):
         container_name = kwargs.get('container', None)
+        no_editable = kwargs.get('no_editable', False)
         no_cache = kwargs.get('no_cache', False)
-        if container_name is not None:
-            self.docker_manager.dc_build([container_name], no_cache=no_cache)
-        else:
-            self.docker_manager.dc_build(self.serivice_names, no_cache=no_cache)
+        os.environ['BACKEND_EDITABLE_PACKAGES'] = 'true' if not no_editable else 'false'
+        try:
+            subprocess.check_call(['rm', '-rf', 'controller'], cwd='backend')
+            subprocess.check_call(['cp', '-r', '../controller', '.'], cwd='backend')
+
+            if container_name is not None:
+                self.docker_manager.dc_build([container_name], no_cache=no_cache)
+            else:
+                self.docker_manager.dc_build(self.serivice_names, no_cache=no_cache)
+
+        finally:
+            subprocess.check_call(['rm', '-rf', 'controller'], cwd='backend')
+            raise
 
     def get_usb_port(self):
         ports = serial.tools.list_ports.comports()
@@ -510,6 +520,9 @@ class Manager:
             '--no-cache', action='store_true', help='Build all docker compose services without cache')
         parser_build.add_argument(
             '--container', '-c', choices=self.serivice_names, help='Container to build')
+        
+        parser_build.add_argument(
+            '--no-editable', action='store_true', help='Build all docker compose services without editable mode')
 
         # --------------
         # Build esp

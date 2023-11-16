@@ -26,7 +26,7 @@ jobs:
       - name: Set Env File
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
       - name: Build backend container
-        run: ./manage.py build --container backend
+        run: ./manage.py build --container backend --no-editable
 
       - name: Lint Backend
         run: ./manage.py lint --container backend
