@@ -31,7 +31,7 @@ const ControlPanel = () => {
     let controlContent = null;
     if (status == ControllerStatus.NOT_STARTED || status == ControllerStatus.WAITING_CONNECTION) {
         controlContent = (
-            <div className="flex h-full items-center justify-center ">
+            <div className="flex  h-full items-center justify-center ">
                 <Card className="m-auto w-fit">
                     <CardHeader>
                         <CardTitle>Waiting for arm!</CardTitle>
@@ -58,7 +58,11 @@ const ControlPanel = () => {
             </div>
         );
     } else {
-        controlContent = showAxisControls ? <AxisControls /> : <JointsControls />;
+        controlContent = (
+            <div className="h-full w-full overflow-scroll">
+                {showAxisControls ? <AxisControls /> : <JointsControls />}
+            </div>
+        );
     }
 
     return (

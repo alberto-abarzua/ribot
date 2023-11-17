@@ -1,10 +1,19 @@
 import ActionContainer from '@/components/actions/ActionContainer';
 import ToolBar from '@/components/actions/ToolBar';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { actionListActions } from '@/redux/ActionListSlice';
 import { runAction } from '@/utils/actions';
 import byIdContext from '@/utils/byIdContext';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import LooksOneIcon from '@mui/icons-material/LooksOne';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState, useEffect, useRef } from 'react';
@@ -16,11 +25,16 @@ const ActionPanel = () => {
 
     const actionSlice = useSelector(state => state.actionList);
 
+    const isHomed = useSelector(state => state.armPose.isHomed);
+
+    const [loop, setLoop] = useState(false);
+
     const actionList = actionSlice.actions;
     const byId = actionSlice.byId;
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
+    console.log(loop);
 
     useEffect(() => {
         runningRef.current = running;
@@ -45,6 +59,10 @@ const ActionPanel = () => {
             dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: false }));
         }
 
+        if (loop) {
+            console.log('looping');
+            await runActions();
+        }
         setRunning(false);
     };
 
@@ -53,6 +71,16 @@ const ActionPanel = () => {
         runningRef.current = !runningRef.current;
         if (!running) {
             runActions();
+        }
+    };
+
+    const playSelectValueChange = value => {
+        console.log(value);
+        if (value === 'loop') {
+            setLoop(true);
+        }
+        if (value === 'once') {
+            setLoop(false);
         }
     };
 
@@ -70,9 +98,29 @@ const ActionPanel = () => {
                             <div className="text-lg text-white"> Stop</div>
                         </Button>
                     ) : (
-                        <Button onClick={handleClickPlayStop}>
+                        <Button onClick={handleClickPlayStop} disabled={!isHomed}>
                             <PlayArrowIcon className="text-3xl text-white" />
                             <div className="text-lg text-white"> Play</div>
+
+                            <Select
+                                onValueChange={playSelectValueChange}
+                                value={loop ? 'loop' : 'once'}
+                                className="border-red border bg-red-100"
+                            >
+                                <SelectTrigger className="relative left-4 border-none border-input bg-transparent  outline-none ring-transparent focus:border-none focus:outline-none  focus:ring-transparent ">
+                                    <SelectValue placeholder="" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="loop">
+                                        Loop
+                                        <AllInclusiveIcon className="ml-1 scale-75 transform"></AllInclusiveIcon>
+                                    </SelectItem>
+                                    <SelectItem value="once">
+                                        Once
+                                        <LooksOneIcon className="ml-1 scale-75 transform"></LooksOneIcon>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                         </Button>
                     )}
                 </div>

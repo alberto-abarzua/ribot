@@ -1,5 +1,5 @@
 import LogoSVG from '@/assets/logo.svg';
-import Tutorial from '@/components/general/layout/Tutorial';
+import Tutorial from '@/components/general/tutorial/Tutorial';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useState } from 'react';
 

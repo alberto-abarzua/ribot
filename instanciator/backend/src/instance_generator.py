@@ -26,6 +26,17 @@ class InstanceGenerator:
         )
         self.start_instance_checker()
 
+    def check_intance_health(self, uuid_str: str) -> bool:
+        project_name = self.get_project_name(uuid_str)
+
+        command = ["docker", "compose", "-f", self.docker_compose_path, '-p', project_name, "ps", "--format", "json"]
+        result = subprocess.check_output(command)
+        result = json.loads(result.decode("utf-8"))
+        for service in result:
+            if service["State"] != "running":
+                return False
+        return True
+
     def instance_checker_target_fun(self) -> None:
         while True:
             instances = self.instances
@@ -35,6 +46,12 @@ class InstanceGenerator:
                 instance_uuid = instance["uuid"]
 
                 if time.time() - instance["time_started"] > 30 * 60:
+                    self.destroy(instance_uuid)
+                    continue
+
+                healthy = self.check_intance_health(instance_uuid)
+
+                if not healthy:
                     self.destroy(instance_uuid)
                     continue
 
@@ -58,7 +75,10 @@ class InstanceGenerator:
         thread.start()
 
     def get_instances(self) -> Dict[str, Any]:
-        return self.instances
+        instances = self.instances
+        for instance in instances.values():
+            instance["healthy"] = self.check_intance_health(instance["uuid"])
+        return instances
 
     @property
     def instances(self) -> Dict[str, Any]:

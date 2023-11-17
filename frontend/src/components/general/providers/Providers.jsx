@@ -1,14 +1,13 @@
 import store from '@/redux/store';
 import PropTypes from 'prop-types';
-import React from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { HTML5toTouch } from 'rdndmb-html5-to-touch';
+import { DndProvider } from 'react-dnd-multi-backend';
 import { Provider } from 'react-redux';
 
 const Providers = ({ children }) => {
     return (
         <Provider store={store}>
-            <DndProvider backend={HTML5Backend}>{children}</DndProvider>
+            <DndProvider options={HTML5toTouch}>{children}</DndProvider>
         </Provider>
     );
 };
