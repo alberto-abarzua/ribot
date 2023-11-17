@@ -155,9 +155,15 @@ public class Controller : MonoBehaviour {
                      " port: " + this.web_socket_port +
                      " protocol: " + this.web_socket_protocol);
 
+      if (this.web_socket_protocol == "wss") {
       this.websocket = new WebSocket(
-          String.Format("{0}://{1}:{2}", this.web_socket_protocol,
-                        this.web_socket_ip, this.web_socket_port));
+          String.Format("{0}://{1}", this.web_socket_protocol,
+                        this.web_socket_ip));
+      }else{
+        this.websocket = new WebSocket(
+            String.Format("{0}://{1}:{2}", this.web_socket_protocol,
+                            this.web_socket_ip, this.web_socket_port));
+      }
 
       this.websocket.OnOpen += () => {
         // Debug.Log("Connection open!");
