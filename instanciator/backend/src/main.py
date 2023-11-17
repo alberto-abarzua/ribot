@@ -82,5 +82,5 @@ async def get_backend_port(request: Request, response: Response):
     print(instance)
     port = instance['ports']['backend_http_port']
     host = HOST
-    return {'backend_url': f'{host}:{port}'}
+    return {'backend_url': f'{host}:{port}','backend_port': port, 'host': host}
 

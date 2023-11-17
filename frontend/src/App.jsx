@@ -15,7 +15,10 @@ function App() {
                 console.log('Fetching backend URL from API'); // Log when fetching from API
                 const response = await instanciatorApi.get('/backend_url/');
                 console.log('Response from API:', response); // Log the response from the API
-                const { backend_url } = response.data;
+                const { backend_port } = response.data;
+
+                const backend_url = `${import.meta.env.VITE_INSTANCIATOR_URL}/s${backend_port}`;
+
                 window.localStorage.setItem('backendUrl', backend_url);
                 console.log('Backend URL saved to local storage from API:', backend_url);
             } else {
