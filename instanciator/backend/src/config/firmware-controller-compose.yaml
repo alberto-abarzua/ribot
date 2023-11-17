@@ -5,7 +5,7 @@ services:
     image: "uintuser/ribot-backend"
     command: pdm run  uvicorn src.main:app --host 0.0.0.0 --port ${BACKEND_HTTP_PORT} --reload
     volumes:
-      - ./config/web_arm.toml:/app/src/config/main_arm.toml 
+      - ./web_arm.toml:/app/src/config/main_arm.toml 
     ports:
       - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
       - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller
