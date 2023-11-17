@@ -15,7 +15,9 @@ const ArmSimulation = () => {
             setWebsocketPort(websocket_port || null);
             setWebsocketHost(import.meta.env.VITE_ARM_SIMULATION_WEBSOCKET_HOST || null);
             setSimulationUrl(import.meta.env.VITE_ARM_SIMULATION_URL || null);
+
             if (window.location.protocol === 'https:') {
+                setWebsocketHost(prev => `${prev}/w${websocket_port}`);
                 setWebsocketProtocol('wss');
             } else {
                 setWebsocketProtocol('ws');

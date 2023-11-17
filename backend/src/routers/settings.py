@@ -115,7 +115,6 @@ def list_configs() -> Dict[Any, Any]:
 def websocket_info(
     controller: ArmController = controller_dependency,
 ) -> Dict[Any, Any]:
-
     return {
         "websocket_port": controller.websocket_port,
     }
