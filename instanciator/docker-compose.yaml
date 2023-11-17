@@ -32,11 +32,6 @@ services:
 
     volumes:
       - redis-data:/data
-  router:
-    build: ./router/ 
-    ports:
-      - 3320:3320
-    stop_grace_period: 3s
 
 volumes:
   redis-data:
