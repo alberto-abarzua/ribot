@@ -6,7 +6,6 @@ import threading
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional, Union
-import time
 
 import websockets
 

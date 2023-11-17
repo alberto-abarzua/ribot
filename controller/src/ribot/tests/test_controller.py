@@ -37,8 +37,9 @@ class TestController(unittest.TestCase):
         print("controller_websocket_port", controller_websocket_port)
         print("controller_server_port", controler_server_port)
 
-        cls.controller = ArmController(arm_parameters=arm_params,
-                                       server_port=controler_server_port, websocket_port=controller_websocket_port)
+        cls.controller = ArmController(
+            arm_parameters=arm_params, server_port=controler_server_port, websocket_port=controller_websocket_port
+        )
         cls.controller.start(websocket_server=False, wait=True)
 
         cls.controller.print_status = os.environ.get("CONTROLLER_PRINT_STATUS", "False").upper() == "TRUE"

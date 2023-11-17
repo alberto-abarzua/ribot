@@ -27,7 +27,6 @@ const ArmSimulation = () => {
         getWebsocketInfo();
     }, [websocketPort, websocketHost, simulationUrl, websocketProtocol]);
 
-
     const srcUrl = `${simulationUrl}/game.html?ip=${websocketHost}&port=${websocketPort}&protocol=${websocketProtocol}`;
     console.log(srcUrl);
 

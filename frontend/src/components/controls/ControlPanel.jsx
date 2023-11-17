@@ -1,4 +1,3 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AxisControls from '@/components/controls/AxisControls';
 import JointsControls from '@/components/controls/JointsControls';
 import InfoHover from '@/components/general/text/InfoHover';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import api from '@/utils/api';
 import { ControllerStatus } from '@/utils/arm_enums';
 import { Bolt } from '@mui/icons-material';

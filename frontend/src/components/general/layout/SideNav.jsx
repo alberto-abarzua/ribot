@@ -1,7 +1,7 @@
+import LogoSVG from '@/assets/logo.svg';
 import Tutorial from '@/components/general/layout/Tutorial';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useState } from 'react';
-import LogoSVG from '@/assets/logo.svg';
 
 const SideNav = () => {
     const [showTutorial, setShowTutorial] = useState(false);
