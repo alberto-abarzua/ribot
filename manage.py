@@ -452,15 +452,18 @@ class Manager:
         use_instanciator = kwargs.get('use_instanciator', False)
         if use_instanciator:
             os.environ['VITE_BACKEND_URL'] = 'no_backend'
-
             service_list = ['frontend.yaml']
         else:
 
             service_list = ['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml']
+
         if not esp and not use_instanciator:
             service_list.append('firmware.yaml')
-        self.docker_manager.dc_up(service_list, env={
-            "ESP_CONTROLLER_SERVER_HOST": self.current_host_ip ,}, detached=detached)
+
+        if esp:
+            os.environ["ESP_CONTROLLER_SERVER_HOST"] = self.current_host_ip
+
+        self.docker_manager.dc_up(service_list, detached=detached)
 
         if not detached:
             self.docker_manager.dc_down(service_list)

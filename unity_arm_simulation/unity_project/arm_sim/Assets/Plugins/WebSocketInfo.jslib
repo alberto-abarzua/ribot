@@ -24,7 +24,10 @@ mergeInto(LibraryManager.library, {
         const protocol = params.get("protocol");
         if (protocol) {
             console.log("SetWebSocketInfo: " + protocol);
-            return protocol;
+            var bufferSize = lengthBytesUTF8(protocol) + 1;
+            var buffer = _malloc(bufferSize);
+            stringToUTF8(protocol, buffer, bufferSize);
+            return buffer;
         }
     },
 });

@@ -4,7 +4,7 @@ const ArmSimulation = () => {
     const [websocketPort, setWebsocketPort] = useState(0);
 
     const simulation_url = import.meta.env.VITE_ARM_SIMULATION_URL;
-    const websocket_host = import.meta.env.VITE_ARM_SIMULATION_WEBSOCKET_HOST;
+    let websocket_host = import.meta.env.VITE_ARM_SIMULATION_WEBSOCKET_HOST;
 
     useEffect(() => {
         const getWebsocketInfo = async () => {
@@ -16,12 +16,16 @@ const ArmSimulation = () => {
 
         console.log('this is the websocket port');
         console.log(websocketPort, simulation_url, websocket_host);
-    }, []);
+    }, [simulation_url, websocketPort, websocket_host]);
 
+    const protocol = websocket_host === 'localhost' ? 'ws' : 'wss';
+    if (websocket_host !== 'localhost') {
+        websocket_host = `${websocket_host}/w${websocketPort}`;
+    }
     return (
         <div className="relative h-full w-full">
             <iframe
-                src={`${simulation_url}/game.html?ip=${websocket_host}&port=${websocketPort}`}
+                src={`${simulation_url}/game.html?ip=${websocket_host}&port=${websocketPort}&protocol=${protocol}`}
                 className="absolute left-0 top-0 h-full w-full cursor-none border-none"
             ></iframe>
             <div className="absolute inset-0 bg-transparent"></div>

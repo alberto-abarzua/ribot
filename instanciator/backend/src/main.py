@@ -10,6 +10,7 @@ instance_generator = InstanceGenerator()
 HOST = os.environ.get('HOST', 'http://localhost')
 
 ORIGIN = os.environ.get('ORIGIN', 'http://localhost:3000')
+
 app = FastAPI()
 
 app.add_middleware(

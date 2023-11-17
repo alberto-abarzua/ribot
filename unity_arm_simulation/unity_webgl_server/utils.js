@@ -23,13 +23,13 @@ const main = () => {
         }
     );
 
-   if (!window.console) window.console = {};
-            const noop = () => {};
-            console.log = noop;
-            console.error = noop;
-            console.warn = noop;
-            console.info = noop;
-            console.debug = noop;
+   // if (!window.console) window.console = {};
+   //          const noop = () => {};
+   //          console.log = noop;
+   //          console.error = noop;
+   //          console.warn = noop;
+   //          console.info = noop;
+   //          console.debug = noop;
 
     };
 main();
