@@ -566,6 +566,7 @@ void Controller::message_handler_config(Message *message) {
 
             EndStop *end_stop = new DummyEndStop(
                 0, new_movement_driver->get_current_angle_ptr());
+
             this->joints[joint_idx]->set_movement_driver(new_movement_driver);
             this->joints[joint_idx]->register_end_stop(end_stop);
             new_movement_driver->hardware_setup();
