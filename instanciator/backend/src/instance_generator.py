@@ -26,28 +26,26 @@ class InstanceGenerator:
         )
         self.start_instance_checker()
 
-    def check_intance_health(self, uuid_str: str) -> bool:
+    def check_instance_health(self, uuid_str: str) -> bool:
         project_name = self.get_project_name(uuid_str)
         instances = self.instances
         instance = instances[uuid_str]
 
         env_vars = {
             "BACKEND_HTTP_PORT": str(instance["ports"]["backend_http_port"]),
-            "CONTROLLER_WEBSOCKET_PORT": str(
-                instance["ports"]["controller_websocket_port"]
-            ),
-            "CONTROLLER_SERVER_PORT": str(
-                instance["ports"]["controller_server_port"]
-            ),
-            "ESP_CONTROLLER_SERVER_PORT": str(
-                instance["ports"]["controller_server_port"]
-            ),
+            "CONTROLLER_WEBSOCKET_PORT": str(instance["ports"]["controller_websocket_port"]),
+            "CONTROLLER_SERVER_PORT": str(instance["ports"]["controller_server_port"]),
+            "ESP_CONTROLLER_SERVER_PORT": str(instance["ports"]["controller_server_port"]),
         }
 
         command = ["docker", "compose", "-f", self.docker_compose_path, '-p', project_name, "ps", "--format", "json"]
         result = subprocess.check_output(command, env={**os.environ, **env_vars})
-        result = json.loads(result.decode("utf-8"))
-        for service in result:
+        
+        # Split the result into separate JSON objects
+        services = result.decode("utf-8").strip().split('\n')
+        
+        for service_str in services:
+            service = json.loads(service_str)
             if service["State"] != "running":
                 return False
         return True
@@ -64,7 +62,7 @@ class InstanceGenerator:
                     self.destroy(instance_uuid)
                     continue
 
-                healthy = self.check_intance_health(instance_uuid)
+                healthy = self.check_instance_health(instance_uuid)
 
                 if not healthy:
                     self.destroy(instance_uuid)
@@ -92,7 +90,7 @@ class InstanceGenerator:
     def get_instances(self) -> Dict[str, Any]:
         instances = self.instances
         for instance in instances.values():
-            instance["healthy"] = self.check_intance_health(instance["uuid"])
+            instance["healthy"] = self.check_instance_health(instance["uuid"])
         return instances
 
     @property
