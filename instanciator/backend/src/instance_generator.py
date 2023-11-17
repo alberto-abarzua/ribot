@@ -126,6 +126,7 @@ class InstanceGenerator:
         for instance in instances.values():
             if instance["free"]:
                 instance["free"] = False
+                self.instances = instances
                 return instance["uuid"]
 
         new_uuid = str(uuid.uuid4())
