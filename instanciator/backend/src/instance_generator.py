@@ -66,7 +66,7 @@ class InstanceGenerator:
 
     def get_or_create(self, uuid_str):
         instances = self.instances
-        
+
         if uuid_str in instances:
             return instances[uuid_str]
 
@@ -75,7 +75,7 @@ class InstanceGenerator:
         controller_websocket_port = self.get_free_port()
         controller_server_port = self.get_free_port()
 
-        # Set environment variables for Docker Compose
+        # Set environment variables for docker ","compose
         env_vars = {
             "BACKEND_HTTP_PORT": str(backend_http_port),
             "CONTROLLER_WEBSOCKET_PORT": str(controller_websocket_port),
@@ -86,16 +86,16 @@ class InstanceGenerator:
         # Define the project name based on UUID
         project_name = self.get_project_name(uuid_str)
 
-        # Launch Docker Compose
+        # Launch docker ","compose
         # result = subprocess.run(
-        #     ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"],
+        #     ["docker ","compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"],
         #     env={**os.environ, **env_vars})
 
-        command = ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"]
+        command = ["docker ", "compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"]
 
         result = subprocess.check_call(command, env={**os.environ, **env_vars})
         if result != 0:
-            raise Exception("Docker Compose failed")
+            raise Exception("docker ", "compose failed")
 
         # Store instance data
         instances[uuid_str] = {
@@ -107,7 +107,6 @@ class InstanceGenerator:
             'time_started': time.time(),
 
         }
-
 
         self.instances = instances
 
@@ -125,11 +124,12 @@ class InstanceGenerator:
                 "CONTROLLER_WEBSOCKET_PORT": str(instance['ports']['controller_websocket_port']),
                 "CONTROLLER_SERVER_PORT": str(instance['ports']['controller_server_port']),
                 "ESP_CONTROLLER_SERVER_PORT": str(instance['ports']['controller_server_port']),
-                    } 
-            command = ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "down","--remove-orphans"]
+            }
+            command = ["docker ", "compose", "-f", self.docker_compose_path,
+                       "-p", project_name, "down", "--remove-orphans"]
             result = subprocess.check_call(command, env={**os.environ, **env_vars})
             if result != 0:
-                raise Exception("Docker Compose failed")
+                raise Exception("docker ", "compose failed")
             instances = self.instances
             del instances[uuid_str]
             self.instances = instances
