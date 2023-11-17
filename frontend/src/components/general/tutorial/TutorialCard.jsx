@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 const TutorialCard = ({ title, description, children }) => {
     return (
-        <Card className="w-full lg:w-[30%] shadow-lg">
+        <Card className="w-full shadow-lg lg:w-[30%]">
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
