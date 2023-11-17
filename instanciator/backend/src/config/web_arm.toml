@@ -1,6 +1,6 @@
 title = "Robot arm configuration"
 [joint_configuration]
-    speed_rad_per_s = 0.35
+    speed_rad_per_s = 2.0
     steps_per_rev_motor_axis = 800 # Microstepping
     homing_direction = 1 # 1 or -1
     max_angle_rad = 7.0
@@ -49,7 +49,6 @@ title = "Robot arm configuration"
     homing_direction = -1 # 1 or -1
     conversion_rate_axis_joint = 9.7 # Gear ratio
     homing_offset_rad = 0 # Offset from home position
-    speed_rad_per_s = 0.4
     [joints.driver]
         type = "stepper"
         dir_pin = 14
@@ -69,7 +68,6 @@ title = "Robot arm configuration"
     dir_inverted = -1
     conversion_rate_axis_joint = 7.0 
     homing_offset_rad = 0.0 
-    speed_rad_per_s = 0.05
     [joints.driver]
         type = "stepper"
         dir_pin = 5
@@ -83,7 +81,6 @@ title = "Robot arm configuration"
     homing_direction = 1 
     conversion_rate_axis_joint = 15.0
     homing_offset_rad = 0.0
-    speed_rad_per_s = 0.2
     steps_per_rev_motor_axis = 400 # Microstepping
     [joints.driver]
         type = "stepper"
@@ -97,7 +94,6 @@ title = "Robot arm configuration"
     name = "joint_4"
     homing_direction = 1
     conversion_rate_axis_joint = 5.0
-    speed_rad_per_s = 0.3
     homing_offset_rad = 0.0 
     dir_inverted = -1
     [joints.driver]
@@ -113,7 +109,6 @@ title = "Robot arm configuration"
     homing_direction = 1 
     conversion_rate_axis_joint = 5.0
     homing_offset_rad = 0.0
-    speed_rad_per_s = 0.4
     dir_inverted = -1
     [joints.driver]
         type = "stepper"
@@ -129,7 +124,6 @@ title = "Robot arm configuration"
     conversion_rate_axis_joint = 1.0
     homing_offset_rad = 0.0
     dir_inverted = -1
-    speed_rad_per_s = 0.4
     [joints.driver]
         type = "stepper"
         dir_pin = 23

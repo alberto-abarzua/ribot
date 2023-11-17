@@ -18,13 +18,13 @@ export default function Home() {
                     <ActionsPanel></ActionsPanel>
                 </div>
                 <div className="relative box-border flex h-full w-full flex-col items-start justify-start bg-slate-50 lg:w-6/12">
-                    <div className="relative flex h-2/5 w-full">
+                    <div className="relative flex h-1/2 w-full">
                         <ArmSimulation></ArmSimulation>
                         <div className="absolute right-0">
                             <ArmStatus></ArmStatus>
                         </div>
                     </div>
-                    <div className="relative flex h-3/5 w-full">
+                    <div className="relative flex h-1/2 w-full">
                         <ControlPanel></ControlPanel>
                     </div>
                 </div>
