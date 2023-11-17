@@ -28,9 +28,24 @@ class InstanceGenerator:
 
     def check_intance_health(self, uuid_str: str) -> bool:
         project_name = self.get_project_name(uuid_str)
+        instances = self.instances
+        instance = instances[uuid_str]
+
+        env_vars = {
+            "BACKEND_HTTP_PORT": str(instance["ports"]["backend_http_port"]),
+            "CONTROLLER_WEBSOCKET_PORT": str(
+                instance["ports"]["controller_websocket_port"]
+            ),
+            "CONTROLLER_SERVER_PORT": str(
+                instance["ports"]["controller_server_port"]
+            ),
+            "ESP_CONTROLLER_SERVER_PORT": str(
+                instance["ports"]["controller_server_port"]
+            ),
+        }
 
         command = ["docker", "compose", "-f", self.docker_compose_path, '-p', project_name, "ps", "--format", "json"]
-        result = subprocess.check_output(command)
+        result = subprocess.check_output(command, env={**os.environ, **env_vars})
         result = json.loads(result.decode("utf-8"))
         for service in result:
             if service["State"] != "running":
