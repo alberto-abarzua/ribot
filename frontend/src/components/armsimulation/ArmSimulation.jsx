@@ -19,6 +19,7 @@ const ArmSimulation = () => {
     }, [simulation_url, websocketPort, websocket_host]);
 
     const protocol = websocket_host === 'localhost' ? 'ws' : 'wss';
+    console.log('USING PROTOCOL', protocol);
     if (websocket_host !== 'localhost') {
         websocket_host = `${websocket_host}/w${websocketPort}`;
     }

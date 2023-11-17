@@ -53,18 +53,13 @@ class InstanceGenerator:
         thread = threading.Thread(target=self.isntance_checker_target_fun)
         thread.start()
 
-    def get_free_port(self,start, end):
-        for _ in range(start, end):
-            port = random.randint(start, end)
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.bind(('', port))
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    return s.getsockname()[1]
-            except OSError:
-                continue
-        raise IOError("No free ports available in the specified range")
-
+    def get_free_port(self):
+        while True:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('', 0))  # Bind to port 0 to let the OS choose an available port
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                port = s.getsockname()[1]
+                return port
 
     def get_project_name(self, uuid_str):
         return f"rtwin_instance_{uuid_str}"
