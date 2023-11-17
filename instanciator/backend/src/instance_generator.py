@@ -88,10 +88,10 @@ class InstanceGenerator:
 
         # Launch Docker Compose
         # result = subprocess.run(
-        #     ["docker-compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"],
+        #     ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"],
         #     env={**os.environ, **env_vars})
 
-        command = ["docker-compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"]
+        command = ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "up", "-d"]
 
         result = subprocess.check_call(command, env={**os.environ, **env_vars})
         if result != 0:
@@ -126,7 +126,7 @@ class InstanceGenerator:
                 "CONTROLLER_SERVER_PORT": str(instance['ports']['controller_server_port']),
                 "ESP_CONTROLLER_SERVER_PORT": str(instance['ports']['controller_server_port']),
                     } 
-            command = ["docker-compose", "-f", self.docker_compose_path, "-p", project_name, "down","--remove-orphans"]
+            command = ["docker compose", "-f", self.docker_compose_path, "-p", project_name, "down","--remove-orphans"]
             result = subprocess.check_call(command, env={**os.environ, **env_vars})
             if result != 0:
                 raise Exception("Docker Compose failed")
