@@ -14,7 +14,7 @@ services:
       - BACKEND_HTTP_PORT
       - CONTROLLER_WEBSOCKET_PORT
       - CONTROLLER_SERVER_PORT
-  restart: on-failure
+    restart: on-failure
 
   firmware:
     image: "uintuser/ribot-linux-firmware"
