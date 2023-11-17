@@ -1,5 +1,6 @@
 
 #include "utils.h"
+#include <cstdint>
 
 #ifdef ESP_PLATFORM
 #include <rom/ets_sys.h>
@@ -155,7 +156,7 @@ void task_feed() {}
 void task_end() {}
 
 void run_delay(uint32_t delay_ms) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms*5));
 }
 
 void run_delay_microseconds(uint32_t delay_us) {

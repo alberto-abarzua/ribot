@@ -125,7 +125,7 @@ class ArmController:
         start_time = time.time()
         if wait:
             while not self.is_ready and not self.stop_event.is_set():
-                time.sleep(0.1)
+                time.sleep(2)
                 if time.time() - start_time > connection_controller_timeout:
                     raise TimeoutError("Controller took too long to start, check arm client")
 

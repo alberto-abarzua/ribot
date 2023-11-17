@@ -6,6 +6,7 @@ import threading
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional, Union
+import time
 
 import websockets
 
@@ -55,7 +56,7 @@ class ControllerServer(ControllerDependencies):
         self._connection_mutex: FIFOLock = FIFOLock()
         self.stop_event = controller.stop_event
 
-        self.status_time_interval: float = 1 / 30  # 30 Hz
+        self.status_time_interval: float = 1 / 15
 
     @property
     def connection_mutex(self) -> FIFOLock:
@@ -201,6 +202,8 @@ class ControllerServer(ControllerDependencies):
             if isinstance(msg, Message):
                 handler = self.controller.message_op_handlers[msg.op]
                 handler(msg)
+
+            self.stop_event.wait(0.05)
 
 
 # -----------------

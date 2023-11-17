@@ -26,7 +26,7 @@ class InstanceGenerator:
         )
         self.start_instance_checker()
 
-    def isntance_checker_target_fun(self) -> None:
+    def instance_checker_target_fun(self) -> None:
         while True:
             instances = self.instances
             free_instances = 0
@@ -43,7 +43,9 @@ class InstanceGenerator:
 
             if free_instances <= 3:
                 new_uuid = str(uuid.uuid4())
+                self.instances = instances
                 new_instance = self.create_instance(new_uuid)
+                instances = self.instances
                 new_instance["free"] = True
                 instances[new_uuid] = new_instance
 
@@ -52,7 +54,7 @@ class InstanceGenerator:
             time.sleep(5)
 
     def start_instance_checker(self) -> None:
-        thread = threading.Thread(target=self.isntance_checker_target_fun)
+        thread = threading.Thread(target=self.instance_checker_target_fun)
         thread.start()
 
     def get_instances(self) -> Dict[str, Any]:

@@ -162,7 +162,7 @@ bool Controller::start() {
     if (succesful_setup != ArmClientCode::SUCCESS) {
         std::cout << "Failed to setup arm client, retrying in 3 seconds"
                   << std::endl;
-        run_delay(2000);
+        run_delay(3000);
         return false;
     }
     this->run_step_task();
@@ -712,9 +712,22 @@ void Controller::stop_step_task() {}
 #else
 
 void Controller::step_target_fun() {
+    task_add();
+
+    uint64_t iter = 0;
+    uint64_t iter_delay = 500;
+
     while (this->stop_flag == false) {
+        if (iter > iter_delay) {
+            task_feed();
+            run_delay(10);
+            iter = 0;
+        }
+
         this->step();
+        iter++;
     }
+    task_end();
 }
 
 void Controller::run_step_task() {

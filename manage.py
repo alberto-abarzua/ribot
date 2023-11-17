@@ -403,6 +403,7 @@ class Manager:
 
     def test_debug(self, **_):
         os.environ["CONTROLLER_PRINT_STATUS"] = "true"
+        
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
         self.docker_manager.dc_down(['controller.yaml', 'firmware.yaml'])

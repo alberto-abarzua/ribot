@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     image: "uintuser/ribot-backend"
-    command: pdm run  uvicorn src.main:app --host 0.0.0.0 --port ${BACKEND_HTTP_PORT} --reload
+    command: pdm run  uvicorn src.main:app --host 0.0.0.0 --port ${BACKEND_HTTP_PORT}
     volumes:
       - ./web_arm.toml:/app/src/config/main_arm.toml 
     ports:

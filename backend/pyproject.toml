@@ -18,7 +18,7 @@ dev = [
 
 
 [tool.pdm.scripts]
-start = "pdm run uvicorn src.main:app  --host 0.0.0.0 --port ${BACKEND_HTTP_PORT} --reload"
+start = "pdm run uvicorn src.main:app  --host 0.0.0.0 --port ${BACKEND_HTTP_PORT}"
 isort = "isort src"
 black = "black src"
 pure_lint = "flake8 src"
