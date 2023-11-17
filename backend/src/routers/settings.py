@@ -111,7 +111,7 @@ def list_configs() -> Dict[Any, Any]:
     return {"configs": [str(f) for f in CONFIG_PATH.iterdir() if f.is_file()]}
 
 
-@router.get("/websocket_info")
+@router.get("/websocket_info/")
 def websocket_info(
     controller: ArmController = controller_dependency,
 ) -> Dict[Any, Any]:
