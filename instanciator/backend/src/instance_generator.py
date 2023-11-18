@@ -197,4 +197,5 @@ class InstanceGenerator:
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
+        print("instance checker started")
         pass
