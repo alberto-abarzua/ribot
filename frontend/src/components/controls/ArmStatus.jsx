@@ -42,7 +42,7 @@ const ArmStatus = () => {
     }
 
     return (
-        <div className="m-4 flex flex-col rounded-md  bg-slate-200  p-2  shadow-md">
+        <div className="m-2 flex scale-90 transform flex-col rounded-md  bg-slate-200  p-2  shadow-md">
             <div className="mb-1 flex w-full items-center justify-center self-center ">
                 <div className="flex items-center justify-center">
                     <InfoHover text="The current coordinates and position of the arm" />
