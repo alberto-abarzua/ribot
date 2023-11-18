@@ -48,7 +48,12 @@ class Instance:
         self.time_old_health_check = 60 * 5
         self.time_last_health_check = None
         self.free = True
-        self.ports = self.get_ports()
+
+        self.ports = Ports(
+            backend_http_port=self.get_free_port(),
+            controller_websocket_port=self.get_free_port(),
+            controller_server_port=self.get_free_port(),
+        )
 
     def get_free_port(self) -> int:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -58,12 +63,6 @@ class Instance:
             return port
 
     def get_ports(self) -> Ports:
-        if self.ports is None:
-            self.ports = Ports(
-                backend_http_port=self.get_free_port(),
-                controller_websocket_port=self.get_free_port(),
-                controller_server_port=self.get_free_port(),
-            )
         return self.ports
 
     def get_project_name(self) -> str:
@@ -204,7 +203,6 @@ class InstanceGenerator:
                 self.instances.remove(instance)
 
         num_free = sum(1 for instance in self.instances if instance.free)
-
 
         if num_free < self.min_instances:
             print("creating new instance")
