@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional, List
 import dataclasses
 import redis
 import pickle
-from threading import Lock, Event, Timer
+from threading import RLock, Event, Timer
 
 PARENT_FILE_PATH = Path(__file__).parent
 
@@ -164,7 +164,7 @@ class InstanceGenerator:
             host="localhost", port=6379, db=0
         )
 
-        self.instances_lock = Lock()
+        self.instances_lock = RLock()
         self.stop_event = Event()
         self.instances = []
         self.min_instances = 5
