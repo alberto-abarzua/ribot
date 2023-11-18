@@ -6,12 +6,11 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import dataclasses
 import redis
 import pickle
-from threading import Lock
-import functools
+from threading import Lock, Event, Timer
 
 PARENT_FILE_PATH = Path(__file__).parent
 
@@ -35,7 +34,6 @@ class Ports:
         }
 
 
-import functools
 class Instance:
     instance_uuid: str
     time_created: float
@@ -150,11 +148,14 @@ class Instance:
             "free": self.free,
             "ports": self.ports,
             "time_last_health_check": self.time_last_health_check,
+            "readable_time_last_health_check": time.ctime(self.time_last_health_check) if self.time_last_health_check is not None else "None",
             "healthy": self.health_check(),
         }
 
 
 class InstanceGenerator:
+    instances: list[Instance]
+
     def __init__(self) -> None:
         self.docker_compose_path = str(DOCKER_COMPOSE_FILE_PATH)
         self.redis_client = redis.Redis(
@@ -162,15 +163,15 @@ class InstanceGenerator:
         )
 
         self.instances_lock = Lock()
+        self.stop_event = Event()
         self.start_instance_checker()
+        self.instances = []
+        self.min_instances = 5
 
     @staticmethod
     def redis_instances(func):
-
         def wrapper(self, *args, **kwargs):
             try:
-                print(self.__dict__)
-                print(self)
                 with self.instances_lock:
                     redis_object = self.redis_client.get("instances")
                     if redis_object is not None:
@@ -178,7 +179,7 @@ class InstanceGenerator:
                     else:
                         self.instances = []
 
-                    result = func(self,*args, **kwargs)
+                    result = func(self, *args, **kwargs)
 
                     pickled_instances = pickle.dumps(self.instances)
                     self.redis_client.set("instances", pickled_instances)
@@ -202,5 +203,57 @@ class InstanceGenerator:
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
-        print("instance checker started")
-        pass
+        for instance in self.instances:
+            if instance.should_stop():
+                instance.stop()
+                self.instances.remove(instance)
+
+        num_free = sum(1 for instance in self.instances if instance.free)
+
+        if num_free < self.min_instances:
+            self.create_instance()
+
+        Timer(5, self.instance_checker_target_fun).start()
+
+    @redis_instances
+    def use_instance(self, instance_uuid: str) -> None:
+        instance = self.get_instance_by_uuid(instance_uuid)
+        if instance is not None:
+            instance.free = False
+
+    @redis_instances
+    def create_instance(self) -> Instance:
+        instance = Instance()
+        instance.start()
+        self.instances.append(instance)
+        return instance
+
+    @redis_instances
+    def get_instance_by_uuid(self, instance_uuid: str) -> Optional[Instance]:
+        for instance in self.instances:
+            if instance.instance_uuid == instance_uuid:
+                return instance
+        return None
+
+    @redis_instances
+    def stop_all(self) -> None:
+        for instance in self.instances:
+            instance.stop()
+            self.instances.remove(instance)
+
+    @redis_instances
+    def stop_by_uuid(self, instance_uuid: str) -> None:
+        instance = self.get_instance_by_uuid(instance_uuid)
+        if instance is not None:
+            instance.stop()
+            self.instances.remove(instance)
+
+    @redis_instances
+    def get_instances(self) -> List[Dict[str, Any]]:
+        return [instance.as_dict() for instance in self.instances]
+
+    @redis_instances
+    def set_last_health_check(self, instance_uuid: str) -> None:
+        instance = self.get_instance_by_uuid(instance_uuid)
+        if instance is not None:
+            instance.set_last_health_check()

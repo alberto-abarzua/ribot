@@ -1,6 +1,6 @@
 import os
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,70 +25,56 @@ app.add_middleware(
 
 
 @app.get("/instances/")
-async def get_instances() -> Dict[str, Any]:
+async def get_instances() -> List[Dict[str, Any]]:
     instances = instance_generator.get_instances()
     return instances
 
 
-@app.get("/instances/{uuid_str}")
-async def get_instance(uuid_str: str) -> Dict[str, Any]:
-    instance = instance_generator.get_instance(uuid_str)
-    if instance is None:
-        return {"status": "not found"}
-    else:
-        return instance
-
-
 @app.post("/instances/{uuid_str}/destroy")
 async def destroy_instance(uuid_str: str) -> Dict[str, Any]:
-    instance_generator.destroy(uuid_str)
+    instance_generator.stop_by_uuid(uuid_str)
     return {"status": "ok"}
 
 
-@app.get("/instance/")
-async def create_instance() -> Dict[str, Any]:
-    new_uuid = uuid.uuid4().__str__()
-    new_instance = instance_generator.create_instance(new_uuid)
-    return new_instance
-
-
-@app.post("/destroy_all/")
+@app.post("/stop_all/")
 async def destroy_all() -> Dict[str, Any]:
-    instance_generator.destroy_all()
+    instance_generator.stop_all()
     return {"status": "ok"}
+
 
 
 @app.get("/backend_url/")
 async def get_backend_port(request: Request, response: Response) -> Dict[str, Any]:
     instance_id_cookie = request.cookies.get("instance_id")
+    instance = None
+    instance_id = None
 
     if not instance_id_cookie:
-        uuid = instance_generator.get_uuid()
+        instance = instance_generator.create_instance()
+        instance_id = instance.instance_uuid
         response.set_cookie(
             key="instance_id",
-            value=uuid,
+            value=instance_id,
             expires=30 * 60,
             httponly=True,
         )
+
     else:
-        uuid = instance_id_cookie
+        instance_id = instance_id_cookie
+        instance = instance_generator.get_instance_by_uuid(instance_id)
+        if not instance:
+            instance = instance_generator.create_instance()
+            instance_id = instance.instance_uuid
+            response.set_cookie(
+                key="instance_id",
+                value=instance_id,
+                expires=30 * 60,
+                httponly=True,
+            )
+    ports = instance.get_ports()
+    backend_port = ports.backend_http_port
 
-    instance = instance_generator.get_instance(uuid)
-    if instance is None:
-        new_uuid = instance_generator.get_uuid()
-        response.set_cookie(
-            key="instance_id",
-            value=new_uuid,
-            expires=30 * 60,
-            httponly=True,
-        )
-        instance = instance_generator.get_instance(new_uuid)
-
-    if instance is None:
-        return {"status": "not found"}
-
-    port = instance["ports"]["backend_http_port"]
-    return {"backend_url": f"{HOST}:{port}", "backend_port": port, "host": HOST}
+    return {"backend_url": f"{HOST}:{backend_port}", "backend_port": backend_port, "host": HOST}
 
 
 @app.get("/health_check/")
