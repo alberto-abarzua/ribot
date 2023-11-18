@@ -77,10 +77,13 @@ class InstanceGenerator:
                     last_health_check > self.healty_timeout
 
                 if is_old or old_health_check or not healthy:
+                    print('\n------------------')
                     print("\tdestroying", instance_uuid)
                     print('\tis_old', is_old)
                     print('\told_health_check', old_health_check)
                     print('\thealthy', healthy)
+                    print('\n------------------')
+
                     self.destroy(instance_uuid)
                     continue
 
@@ -218,10 +221,10 @@ class InstanceGenerator:
             self.instances = instances
 
     def destroy(self, uuid_str: str) -> None:
-        if uuid_str in self.instances:
+        instances = self.instances
+        if uuid_str in instances:
             print("\tdestroying", uuid_str)
             project_name = self.get_project_name(uuid_str)
-            instances = self.instances
             instance = instances[uuid_str]
 
             env_vars = {
@@ -246,6 +249,7 @@ class InstanceGenerator:
                 "down",
                 "--remove-orphans",
             ]
+            print(command)
             result = subprocess.check_call(command, env={**os.environ, **env_vars})
             if result != 0:
                 raise Exception("docker ", "compose failed")
