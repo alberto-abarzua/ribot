@@ -194,15 +194,9 @@ class InstanceGenerator:
         thread = threading.Thread(target=self.instance_checker_target_fun)
         thread.start()
 
-    def prune(self) -> None:
-        command = ["docker", "system", "prune", "-f"]
-        try:
-            subprocess.check_call(command)
-        except subprocess.CalledProcessError:
-            pass
-
     @redis_instances
     def instance_checker_target_fun(self) -> None:
+        print("checking instances")
         for instance in self.instances:
             if instance.should_stop():
                 instance.stop()
@@ -213,7 +207,15 @@ class InstanceGenerator:
         if num_free < self.min_instances:
             self.create_instance()
 
+        print("checking instances done")
         Timer(5, self.instance_checker_target_fun).start()
+
+    def prune(self) -> None:
+        command = ["docker", "system", "prune", "-f"]
+        try:
+            subprocess.check_call(command)
+        except subprocess.CalledProcessError:
+            pass
 
     @redis_instances
     def use_instance(self, instance_uuid: str) -> None:
