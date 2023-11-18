@@ -211,7 +211,7 @@ class InstanceGenerator:
             print("creating new instance")
             self.create_instance()
 
-        Timer(5, self.instance_checker_target_fun).start()
+        Timer(self.check_interval, self.instance_checker_target_fun).start()
 
     def prune(self) -> None:
         command = ["docker", "system", "prune", "-f"]
