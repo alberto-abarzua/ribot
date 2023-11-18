@@ -5,6 +5,12 @@ import os
 import re
 import subprocess
 
+from pathlib import Path
+
+
+
+CURRENT_FILE_PATH = Path(__file__).parent
+
 
 class Deploy:
 
@@ -32,6 +38,7 @@ class Deploy:
     def parse_and_execute(self):
         parser = argparse.ArgumentParser(description='Deploy services')
         parser.add_argument('action', choices=['start', 'stop', 'restart', 'status'])
+        self.source_env(CURRENT_FILE_PATH / '.env')
 
         args = parser.parse_args()
 
