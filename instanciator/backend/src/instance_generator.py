@@ -77,6 +77,10 @@ class InstanceGenerator:
                     last_health_check > self.healty_timeout
 
                 if is_old or old_health_check or not healthy:
+                    print("\tdestroying", instance_uuid)
+                    print('\tis_old', is_old)
+                    print('\told_health_check', old_health_check)
+                    print('\thealthy', healthy)
                     self.destroy(instance_uuid)
                     continue
 
@@ -139,7 +143,7 @@ class InstanceGenerator:
     def get_free_port(self) -> int:
         while True:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("", 0))  # Bind to port 0 to let the OS choose an available port
+                s.bind(("", 0))  
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 port = s.getsockname()[1]
                 return port
@@ -158,6 +162,7 @@ class InstanceGenerator:
         new_uuid = str(uuid.uuid4())
         new_instance = self.create_instance(new_uuid)
         new_instance["free"] = False
+        new_instance["last_health_check"] = time.time()
         instances[new_uuid] = new_instance
         self.instances = instances
         return new_uuid
@@ -208,11 +213,13 @@ class InstanceGenerator:
     def set_last_health_check(self, uuid_str: str) -> None:
         instances = self.instances
         if uuid_str in instances:
+            print("\thealth check", uuid_str)
             instances[uuid_str]["last_health_check"] = time.time()
             self.instances = instances
 
     def destroy(self, uuid_str: str) -> None:
         if uuid_str in self.instances:
+            print("\tdestroying", uuid_str)
             project_name = self.get_project_name(uuid_str)
             instances = self.instances
             instance = instances[uuid_str]

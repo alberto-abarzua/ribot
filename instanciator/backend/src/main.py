@@ -73,13 +73,22 @@ async def get_backend_port(request: Request, response: Response) -> Dict[str, An
     else:
         uuid = instance_id_cookie
 
-    
     instance = instance_generator.get_instance(uuid)
     if instance is None:
+        new_uuid = instance_generator.get_uuid()
+        response.set_cookie(
+            key="instance_id",
+            value=new_uuid,
+            expires=30 * 60,
+            httponly=True,
+        )
+        instance = instance_generator.get_instance(new_uuid)
+
+    if instance is None:
         return {"status": "not found"}
-    else:
-        port = instance["ports"]["backend_http_port"]
-        return {"backend_url": f"{HOST}:{port}", "backend_port": port, "host": HOST}
+
+    port = instance["ports"]["backend_http_port"]
+    return {"backend_url": f"{HOST}:{port}", "backend_port": port, "host": HOST}
 
 
 @app.get("/health_check/")
@@ -94,7 +103,3 @@ async def health_check(request: Request) -> Dict[str, Any]:
     instance_generator.set_last_health_check(uuid)
 
     return {"status": "ok"}
-
-
-
-
