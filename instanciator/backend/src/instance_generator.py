@@ -162,9 +162,6 @@ class InstanceGenerator:
         self.instances_lock = Lock()
         self.start_instance_checker()
 
-    def instance_checker_target_fun(self) -> None:
-        pass
-
     @staticmethod
     def redis_instances(func):
         def wrapper(self, *args, **kwargs):
@@ -198,3 +195,6 @@ class InstanceGenerator:
         except subprocess.CalledProcessError:
             pass
 
+    @redis_instances
+    def instance_checker_target_fun(self) -> None:
+        pass
