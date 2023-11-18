@@ -93,6 +93,7 @@ class Instance:
                     if service["State"] != "running":
                         return False
                 except json.JSONDecodeError:
+
                     print(f"Error decoding JSON from service string: {service_str}")
                     return False
 
@@ -149,7 +150,7 @@ class Instance:
             raise Exception("docker compose failed")
 
     def should_stop(self) -> bool:
-        old = time.time() - self.time_created > 30 * 60
+        old = False
         healthy = self.health_check()
         old_health_check = self.time_last_health_check is not None and time.time(
         ) - self.time_last_health_check > 60 * 5
