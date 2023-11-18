@@ -50,7 +50,7 @@ async def get_backend_port(request: Request, response: Response) -> Dict[str, An
     instance_id = None
 
     if not instance_id_cookie:
-        instance = instance_generator.create_instance()
+        instance = instance_generator.get_free_instance()
         instance_id = instance.instance_uuid
         response.set_cookie(
             key="instance_id",
@@ -63,7 +63,7 @@ async def get_backend_port(request: Request, response: Response) -> Dict[str, An
         instance_id = instance_id_cookie
         instance = instance_generator.get_instance_by_uuid(instance_id)
         if not instance:
-            instance = instance_generator.create_instance()
+            instance = instance_generator.get_free_instance()
             instance_id = instance.instance_uuid
             response.set_cookie(
                 key="instance_id",

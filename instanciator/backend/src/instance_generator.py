@@ -167,6 +167,8 @@ class InstanceGenerator:
         self.stop_event = Event()
         self.instances = []
         self.min_instances = 5
+        self.check_interval = 20
+        self.prune_interval = 60 * 60
         self.start_instance_checker()
 
     @staticmethod
@@ -193,6 +195,7 @@ class InstanceGenerator:
 
     def start_instance_checker(self) -> None:
         self.instance_checker_target_fun()
+        Timer(self.prune_interval, self.prune).start()
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
@@ -208,7 +211,6 @@ class InstanceGenerator:
             print("creating new instance")
             self.create_instance()
 
-        print("checking instances done")
         Timer(5, self.instance_checker_target_fun).start()
 
     def prune(self) -> None:
@@ -219,10 +221,15 @@ class InstanceGenerator:
             pass
 
     @redis_instances
-    def use_instance(self, instance_uuid: str) -> None:
-        instance = self.get_instance_by_uuid(instance_uuid)
-        if instance is not None:
-            instance.free = False
+    def get_free_instance(self) -> Instance:
+        for instance in self.instances:
+            if instance.free:
+                instance.free = False
+                return instance
+
+        new_instance = self.create_instance()
+        new_instance.free = False
+        return new_instance
 
     @redis_instances
     def create_instance(self) -> Instance:
