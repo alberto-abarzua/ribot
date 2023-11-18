@@ -37,7 +37,7 @@ class Deploy:
 
         if args.action == 'start':
             subprocess.run(['docker', 'compose', 'up', '-d'])
-            subprocess.check_call(['pdm', 'run', 'start'])
+            subprocess.check_call(['pdm', 'run', 'start'], env=os.environ,cwd='backend')
 
         elif args.action == 'stop':
             subprocess.run(['docker', 'compose', 'down', '--remove-orphans'])
