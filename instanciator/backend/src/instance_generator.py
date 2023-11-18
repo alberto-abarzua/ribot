@@ -99,6 +99,7 @@ class Instance:
     def start(self) -> None:
         env_vars = self.get_env_vars()
         project_name = self.get_project_name()
+        print(f"starting instance {project_name}")
 
         command = [
             "docker",
@@ -118,6 +119,7 @@ class Instance:
     def stop(self) -> None:
         env_vars = self.get_env_vars()
         project_name = self.get_project_name()
+        print(f"stopping {project_name}")
 
         command = [
             "docker",
@@ -191,8 +193,7 @@ class InstanceGenerator:
         return wrapper
 
     def start_instance_checker(self) -> None:
-        thread = threading.Thread(target=self.instance_checker_target_fun)
-        thread.start()
+        self.instance_checker_target_fun()
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
