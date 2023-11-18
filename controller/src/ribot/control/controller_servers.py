@@ -223,8 +223,8 @@ class WebsocketServer(ControllerDependencies):
     async def handler(self, websocket: Any, _: str) -> None:
         async for message in websocket:
             if message.strip() == "get_angles":
-                angles = self.controller.current_angles
-                response = Message(MessageOp.STATUS, 0, angles)
+                angles_tool = list(self.controller.current_angles) + [self.controller.tool_value]
+                response = Message(MessageOp.STATUS, 0, angles_tool)
                 await websocket.send(response.encode())
 
     def _start(self) -> None:

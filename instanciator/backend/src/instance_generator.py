@@ -75,7 +75,13 @@ class InstanceGenerator:
                 if instance["free"]:
                     free_instances += 1
 
-            if free_instances <= 3:
+                if time.time() - instance["last_health_check"] > 60 * 3:
+                    self.set_last_health_check(instance_uuid)
+                    self.destroy(instance_uuid)
+
+
+
+            if free_instances <= 5:
                 new_uuid = str(uuid.uuid4())
                 self.instances = instances
                 new_instance = self.create_instance(new_uuid)
@@ -186,7 +192,15 @@ class InstanceGenerator:
             "time_started": time.time(),
             "free": True,
             "uuid": uuid_str,
+            "last_health_check": 0,
+
         }
+
+    def set_last_health_check(self, uuid_str: str) -> None:
+        instances = self.instances
+        if uuid_str in instances:
+            instances[uuid_str]["last_health_check"] = time.time()
+            self.instances = instances
 
     def destroy(self, uuid_str: str) -> None:
         if uuid_str in self.instances:

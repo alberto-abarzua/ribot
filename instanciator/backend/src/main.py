@@ -61,18 +61,43 @@ async def destroy_all() -> Dict[str, Any]:
 @app.get("/backend_url/")
 async def get_backend_port(request: Request, response: Response) -> Dict[str, Any]:
     instance_id_cookie = request.cookies.get("instance_id")
-    uuid = instance_generator.get_uuid()
 
     if not instance_id_cookie:
+        uuid = instance_generator.get_uuid()
         response.set_cookie(
             key="instance_id",
             value=uuid,
             expires=30 * 60,
             httponly=True,
         )
+    else:
+        uuid = instance_id_cookie
+
+    
     instance = instance_generator.get_instance(uuid)
     if instance is None:
         return {"status": "not found"}
     else:
         port = instance["ports"]["backend_http_port"]
         return {"backend_url": f"{HOST}:{port}", "backend_port": port, "host": HOST}
+
+
+@app.post("/health_check/")
+async def health_check(request: Request) -> Dict[str, Any]:
+    instance_id_cookie = request.cookies.get("instance_id")
+
+    if not instance_id_cookie:
+        return {"status": "not found"}
+    else:
+        uuid = instance_id_cookie
+
+    instance_generator.set_last_health_check(uuid)
+
+    if instance is None:
+        return {"status": "not found"}
+    else:
+        return {"status": "ok"}
+
+
+
+
