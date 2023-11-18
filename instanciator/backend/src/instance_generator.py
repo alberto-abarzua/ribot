@@ -18,12 +18,18 @@ DOCKER_COMPOSE_FILE_PATH = (
 )
 
 
+
 class InstanceGenerator:
     def __init__(self) -> None:
         self.docker_compose_path = str(DOCKER_COMPOSE_FILE_PATH)
         self.redis_client = redis.Redis(
             host="localhost", port=6379, db=0, decode_responses=True
         )
+        self.healty_timeout = 60 * 3
+        self.old_instance_timeout = 30 * 60
+        self.min_instances = 5
+        self.prune_interval = 60 * 20
+
         self.start_instance_checker()
 
     def check_instance_health(self, uuid_str: str) -> bool:
@@ -39,10 +45,10 @@ class InstanceGenerator:
                 "ESP_CONTROLLER_SERVER_PORT": str(instance["ports"]["controller_server_port"]),
             }
 
-            command = ["docker", "compose", "-f", self.docker_compose_path, '-p', project_name, "ps", "--format", "json"]
+            command = ["docker", "compose", "-f", self.docker_compose_path,
+                       '-p', project_name, "ps", "--format", "json"]
             result = subprocess.check_output(command, env={**os.environ, **env_vars})
 
-            # Split the result into separate JSON objects
             services = result.decode("utf-8").strip().split('\n')
 
             for service_str in services:
@@ -55,51 +61,53 @@ class InstanceGenerator:
 
     def instance_checker_target_fun(self) -> None:
         last_prune = 0
+
         while True:
             instances = self.instances
             free_instances = 0
 
             for instance in instances.values():
                 instance_uuid = instance["uuid"]
-
-                if time.time() - instance["time_started"] > 30 * 60:
-                    self.destroy(instance_uuid)
-                    continue
-
+                time_started = instance["time_started"]
                 healthy = self.check_instance_health(instance_uuid)
+                last_health_check = instance["last_health_check"]
 
-                if not healthy:
+                is_old = time.time() - time_started > self.old_instance_timeout
+                old_health_check = last_health_check is not None and last_health_check != 0 and time.time() - \
+                    last_health_check > self.healty_timeout
+
+                if is_old or old_health_check or not healthy:
                     self.destroy(instance_uuid)
                     continue
 
                 if instance["free"]:
                     free_instances += 1
 
-                if time.time() - instance["last_health_check"] > 60 * 3:
-                    self.set_last_health_check(instance_uuid)
-                    self.destroy(instance_uuid)
 
-
-
-            if free_instances <= 5:
+            if free_instances <= self.min_instances:
                 new_uuid = str(uuid.uuid4())
+
                 self.instances = instances
                 new_instance = self.create_instance(new_uuid)
                 instances = self.instances
+
                 new_instance["free"] = True
                 instances[new_uuid] = new_instance
 
             self.instances = instances
 
-            if time.time() - last_prune > 60 * 20:
+            if time.time() - last_prune > self.prune_interval:
+                self.prune()
                 last_prune = time.time()
-                command = ["docker", "system", "prune", "-f"]
-                try:
-                    subprocess.check_call(command)
-                except subprocess.CalledProcessError:
-                    pass
 
-            time.sleep(5)
+
+
+    def prune(self) -> None:
+        command = ["docker", "system", "prune", "-f"]
+        try:
+            subprocess.check_call(command)
+        except subprocess.CalledProcessError:
+            pass
 
     def start_instance_checker(self) -> None:
         thread = threading.Thread(target=self.instance_checker_target_fun)
@@ -154,6 +162,7 @@ class InstanceGenerator:
         self.instances = instances
         return new_uuid
 
+
     def create_instance(self, uuid_str: str) -> Dict[str, Any]:
         backend_http_port = self.get_free_port()
         controller_websocket_port = self.get_free_port()
@@ -192,7 +201,7 @@ class InstanceGenerator:
             "time_started": time.time(),
             "free": True,
             "uuid": uuid_str,
-            "last_health_check": 0,
+            "last_health_check": None,
 
         }
 

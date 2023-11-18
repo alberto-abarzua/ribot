@@ -93,10 +93,7 @@ async def health_check(request: Request) -> Dict[str, Any]:
 
     instance_generator.set_last_health_check(uuid)
 
-    if instance is None:
-        return {"status": "not found"}
-    else:
-        return {"status": "ok"}
+    return {"status": "ok"}
 
 
 
