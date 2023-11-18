@@ -11,6 +11,7 @@ import dataclasses
 import redis
 import pickle
 from threading import Lock
+import functools
 
 PARENT_FILE_PATH = Path(__file__).parent
 
@@ -164,6 +165,8 @@ class InstanceGenerator:
 
     @staticmethod
     def redis_instances(func):
+
+        @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             try:
                 with self.instances_lock:
@@ -173,7 +176,7 @@ class InstanceGenerator:
                     else:
                         self.instances = []
 
-                    result = func(*args, **kwargs)
+                    result = func(self, *args, **kwargs)
 
                     pickled_instances = pickle.dumps(self.instances)
                     self.redis_client.set("instances", pickled_instances)
