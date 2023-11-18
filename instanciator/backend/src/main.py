@@ -82,7 +82,7 @@ async def get_backend_port(request: Request, response: Response) -> Dict[str, An
         return {"backend_url": f"{HOST}:{port}", "backend_port": port, "host": HOST}
 
 
-@app.post("/health_check/")
+@app.get("/health_check/")
 async def health_check(request: Request) -> Dict[str, Any]:
     instance_id_cookie = request.cookies.get("instance_id")
 
