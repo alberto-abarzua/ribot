@@ -75,21 +75,35 @@ class Instance:
             "ESP_CONTROLLER_SERVER_PORT": str(self.ports.controller_server_port),
         }
 
-    def health_check(self) -> bool:
-        project_name = self.get_project_name()
-        env_vars = self.get_env_vars()
+     def health_check(self) -> bool:
+            try:
+                project_name = self.get_project_name()
+                env_vars = self.get_env_vars()
 
-        command = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE_PATH,
-                   '-p', project_name, "ps", "--format", "json"]
-        result = subprocess.check_output(command, env={**os.environ, **env_vars})
+                command = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE_PATH,
+                           '-p', project_name, "ps", "--format", "json"]
 
-        services = result.decode("utf-8").strip().split('\n')
+                result = subprocess.check_output(command, env={**os.environ, **env_vars})
 
-        for service_str in services:
-            service = json.loads(service_str)
-            if service["State"] != "running":
+                services = result.decode("utf-8").strip().split('\n')
+
+                for service_str in services:
+                    try:
+                        service = json.loads(service_str)
+                        if service["State"] != "running":
+                            return False
+                    except json.JSONDecodeError:
+                        print(f"Error decoding JSON from service string: {service_str}")
+                        return False
+
+            except subprocess.CalledProcessError as e:
+                print(f"Subprocess error: {e}")
                 return False
-        return True
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return False
+
+            return True
 
     def set_last_health_check(self) -> None:
         self.time_last_health_check = time.time()
@@ -224,6 +238,7 @@ class InstanceGenerator:
         for instance in self.instances:
             if instance.free:
                 instance.free = False
+                instance.set_last_health_check()
                 return instance
 
         new_instance = self.create_instance()

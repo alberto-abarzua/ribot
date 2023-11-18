@@ -1,6 +1,6 @@
 title = "Robot arm configuration"
 [joint_configuration]
-    speed_rad_per_s = 2.0
+    speed_rad_per_s = 1.2
     steps_per_rev_motor_axis = 800 # Microstepping
     homing_direction = 1 # 1 or -1
     max_angle_rad = 7.0
