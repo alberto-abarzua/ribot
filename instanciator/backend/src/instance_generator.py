@@ -56,7 +56,13 @@ class InstanceGenerator:
                 if service["State"] != "running":
                     return False
             return True
-        except Exception:
+        except Exception as e:
+
+            print("health check failed")
+            print("uuid_str", uuid_str)
+            print(e)
+
+
             return False
 
     def instance_checker_target_fun(self) -> None:
