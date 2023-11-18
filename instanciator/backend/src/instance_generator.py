@@ -166,9 +166,9 @@ class InstanceGenerator:
 
         self.instances_lock = Lock()
         self.stop_event = Event()
-        self.start_instance_checker()
         self.instances = []
         self.min_instances = 5
+        self.start_instance_checker()
 
     @staticmethod
     def redis_instances(func):
