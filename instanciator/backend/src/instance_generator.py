@@ -152,6 +152,28 @@ class Instance:
             "healthy": self.health_check(),
         }
 
+def redis_instances(func):
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            with self.instances_lock:
+                redis_object = self.redis_client.get("instances")
+                if redis_object is not None:
+                    self.instances = pickle.loads(redis_object)
+                else:
+                    self.instances = []
+
+                result = func(self, *args, **kwargs)
+
+                pickled_instances = pickle.dumps(self.instances)
+                self.redis_client.set("instances", pickled_instances)
+                return result
+
+        except (redis.RedisError, pickle.PickleError) as error:
+            print(f"An error occurred: {error}")
+            raise
+    return wrapper
 
 class InstanceGenerator:
     def __init__(self) -> None:
@@ -163,29 +185,6 @@ class InstanceGenerator:
         self.instances_lock = Lock()
         self.start_instance_checker()
 
-    @staticmethod
-    def redis_instances(func):
-
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                with self.instances_lock:
-                    redis_object = self.redis_client.get("instances")
-                    if redis_object is not None:
-                        self.instances = pickle.loads(redis_object)
-                    else:
-                        self.instances = []
-
-                    result = func(self, *args, **kwargs)
-
-                    pickled_instances = pickle.dumps(self.instances)
-                    self.redis_client.set("instances", pickled_instances)
-                    return result
-
-            except (redis.RedisError, pickle.PickleError) as error:
-                print(f"An error occurred: {error}")
-                raise
-        return wrapper
 
     def start_instance_checker(self) -> None:
         thread = threading.Thread(target=self.instance_checker_target_fun)
