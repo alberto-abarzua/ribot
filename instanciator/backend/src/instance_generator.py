@@ -205,7 +205,9 @@ class InstanceGenerator:
 
         num_free = sum(1 for instance in self.instances if instance.free)
 
+
         if num_free < self.min_instances:
+            print("creating new instance")
             self.create_instance()
 
         print("checking instances done")
