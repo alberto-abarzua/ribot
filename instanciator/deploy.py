@@ -36,11 +36,11 @@ class Deploy:
         args = parser.parse_args()
 
         if args.action == 'start':
-            subprocess.run(['docker-compose', 'up', '-d'])
+            subprocess.run(['docker', 'compose', 'up', '-d'])
             subprocess.check_call(['pdm', 'run', 'start'])
 
         elif args.action == 'stop':
-            subprocess.run(['docker-compose', 'down', '--remove-orphans'])
+            subprocess.run(['docker', 'compose', 'down', '--remove-orphans'])
 
 
 if __name__ == "__main__":
