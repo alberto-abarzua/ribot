@@ -68,7 +68,7 @@ class Deploy:
 
     def parse_and_execute(self):
         parser = argparse.ArgumentParser(description='Deploy services')
-        parser.add_argument('action', choices=['start', 'stop', 'restart', 'status'])
+        parser.add_argument('action', choices=['start', 'stop', 'setup','status'])
         self.source_env(CURRENT_FILE_PATH / '.env')
 
         args = parser.parse_args()
@@ -79,10 +79,13 @@ class Deploy:
         elif args.action == 'setup':
             subprocess.run(['docker', 'compose', 'up', '-d'])
             subprocess.check_call(['pdm', 'install'], env=os.environ, cwd='backend')
-
         elif args.action == 'stop':
             subprocess.run(['docker', 'compose', 'down', '--remove-orphans'])
 
+        elif args.action == 'status':
+            subprocess.run(['docker', 'compose', 'ps'])
+            subprocess.run(['systemctl', 'status', 'instanciator.service'])
+        
 
 if __name__ == "__main__":
     manager = Deploy()
