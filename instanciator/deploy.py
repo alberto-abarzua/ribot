@@ -53,7 +53,7 @@ class Deploy:
     def create_systemd_service(self):
         script_command = f"{CURRENT_FILE_PATH}/deploy.py start"
 
-        service_content = SYSTEMD_SERVICE_TEMPLATE.format(script_command,
+        service_content = SYSTEMD_SERVICE_TEMPLATE.format(script_command=script_command,
                                                           working_directory=str(CURRENT_FILE_PATH)
                                                           )
 
