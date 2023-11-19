@@ -15,6 +15,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/bin"
 ExecStart={script_command}
 WorkingDirectory={working_directory}
 Restart=on-failure
