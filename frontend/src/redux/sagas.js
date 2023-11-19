@@ -11,7 +11,9 @@ function* callHealthCheck() {
         if (instanciatorUrl && instanciatorUrl !== 'undefined') {
             try {
                 yield call(instanciatorApi.get, '/health_check/');
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error calling instanciator healthcheck', error);
+            }
         }
     } catch (error) {
         console.error('Error calling healthcheck', error);
@@ -44,5 +46,4 @@ function* watchFetchApiData() {
 
 export default function* rootSaga() {
     yield all([watchFetchApiData(), watchCallHealthCheck()]);
-
 }

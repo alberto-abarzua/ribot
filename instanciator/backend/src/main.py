@@ -37,19 +37,19 @@ app.add_middleware(
 
 
 @app.get("/instances/")
-async def get_instances() -> List[Dict[str, Any]]:
+async def get_instances(_: str = token_dependency) -> List[Dict[str, Any]]:
     instances = instance_generator.get_instances()
     return instances
 
 
 @app.post("/instances/{uuid_str}/destroy")
-async def destroy_instance(uuid_str: str) -> Dict[str, Any]:
+async def destroy_instance(uuid_str: str, _: str = token_dependency) -> Dict[str, Any]:
     instance_generator.stop_by_uuid(uuid_str)
     return {"status": "ok"}
 
 
 @app.post("/stop_all/")
-async def destroy_all() -> Dict[str, Any]:
+async def destroy_all(_: str = token_dependency) -> Dict[str, Any]:
     instance_generator.stop_all()
     return {"status": "ok"}
 
