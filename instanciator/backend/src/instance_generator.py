@@ -181,6 +181,7 @@ class InstanceGenerator:
         self.stop_event = Event()
         self.instances = []
         self.min_instances = 5
+        self.max_instances = 20
         self.check_interval = 20
         self.prune_interval = 60 * 60
         self.start_instance_checker()
@@ -218,6 +219,19 @@ class InstanceGenerator:
             if instance.should_stop():
                 instance.stop()
                 self.instances.remove(instance)
+
+        num_instances = len(self.instances)
+        if num_instances > self.max_instances:
+            free_instances = [instance for instance in self.instances if instance.free]
+            if len(free_instances) == 0:
+                print("no free instances, can't stop")
+                oldest_instance = self.instances[-1]
+            else:
+                oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
+
+
+            oldest_instance.stop()
+            self.instances.remove(oldest_instance)
 
         num_free = sum(1 for instance in self.instances if instance.free)
 

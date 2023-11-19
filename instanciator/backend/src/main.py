@@ -1,8 +1,7 @@
 import os
-import uuid
 from typing import Any, Dict, List
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.instance_generator import InstanceGenerator
@@ -12,6 +11,19 @@ instance_generator = InstanceGenerator()
 HOST = os.environ.get("HOST", "http://localhost")
 
 ORIGIN = os.environ.get("ORIGIN", "http://localhost:3000")
+
+
+ACCESS_TOKENS = os.environ.get("ACCESS_TOKENS", "").split(",")
+
+
+def verify_token(token: str):
+    if token not in ACCESS_TOKENS:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return True
+
+
+token_dependency = Depends(verify_token)
+
 
 app = FastAPI()
 
@@ -42,9 +54,8 @@ async def destroy_all() -> Dict[str, Any]:
     return {"status": "ok"}
 
 
-
 @app.get("/backend_url/")
-async def get_backend_port(request: Request, response: Response) -> Dict[str, Any]:
+async def get_backend_port(request: Request, response: Response, _: str = token_dependency) -> Dict[str, Any]:
     instance_id_cookie = request.cookies.get("instance_id")
     instance = None
     instance_id = None
