@@ -77,8 +77,7 @@ class Deploy:
             subprocess.run(['docker', 'compose', 'up', '-d'])
             subprocess.check_call(['pdm', 'run', 'start'], env=os.environ, cwd='backend')
         elif args.action == 'setup':
-            subprocess.run(['docker', 'compose', 'up', '-d'])
-            subprocess.check_call(['pdm', 'install'], env=os.environ, cwd='backend')
+            self.create_systemd_service()
         elif args.action == 'stop':
             subprocess.run(['docker', 'compose', 'down', '--remove-orphans'])
 
