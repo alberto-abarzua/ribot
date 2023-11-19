@@ -15,7 +15,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/bin/env python3 {script_command}
+ExecStart={script_command}
 WorkingDirectory={working_directory}
 Restart=on-failure
 
