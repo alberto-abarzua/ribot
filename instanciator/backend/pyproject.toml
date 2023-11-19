@@ -1,0 +1,32 @@
+[project]
+dependencies = [
+    "fastapi>=0.101.1",
+    "uvicorn>=0.23.2",
+    "redis>=5.0.1",
+]
+requires-python = ">=3.11"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "flake8-annotations>=3.0.1",
+    "mypy>=1.4.1",
+]
+
+
+[tool.pdm.scripts]
+start = "pdm run uvicorn src.main:app  --host 0.0.0.0 --port 7400"
+isort = "isort src"
+black = "black src"
+pure_lint = "flake8 src"
+type_check = "mypy src"
+format = {composite = ["isort", "black"]}
+lint = {composite = ["pure_lint", "type_check"]}
+
+
+[mypy]
+ignore_missing_imports = "True"
+disallow_untyped_defs = "True"
+mypy_path = "src"

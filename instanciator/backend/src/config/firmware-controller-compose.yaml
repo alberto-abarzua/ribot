@@ -1,0 +1,26 @@
+
+version: '3.8'
+services:
+  backend:
+    image: "uintuser/ribot-backend"
+    command: pdm run  uvicorn src.main:app --host 0.0.0.0 --port ${BACKEND_HTTP_PORT}
+    volumes:
+      - ./web_arm.toml:/app/src/config/main_arm.toml 
+    ports:
+      - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket
+      - "$CONTROLLER_SERVER_PORT:$CONTROLLER_SERVER_PORT" # controller
+      - "$BACKEND_HTTP_PORT:$BACKEND_HTTP_PORT" # fastapi
+    environment:
+      - BACKEND_HTTP_PORT
+      - CONTROLLER_WEBSOCKET_PORT
+      - CONTROLLER_SERVER_PORT
+    restart: on-failure
+
+  firmware:
+    image: "uintuser/ribot-linux-firmware"
+    environment:
+      - ESP_WIFI_SSID=ssid
+      - ESP_WIFI_PASSWORD=password
+      - ESP_CONTROLLER_SERVER_HOST=backend
+      - ESP_CONTROLLER_SERVER_PORT
+    restart: on-failure

@@ -1,29 +1,40 @@
 import ActionContainer from '@/components/actions/ActionContainer';
 import ToolBar from '@/components/actions/ToolBar';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
 import { actionListActions } from '@/redux/ActionListSlice';
 import { runAction } from '@/utils/actions';
 import byIdContext from '@/utils/byIdContext';
-import ErrorIcon from '@mui/icons-material/Error';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import LooksOneIcon from '@mui/icons-material/LooksOne';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 const ActionPanel = () => {
+    const { toast } = useToast();
     const dispatch = useDispatch();
 
     const actionSlice = useSelector(state => state.actionList);
 
+    const isHomed = useSelector(state => state.armPose.isHomed);
+
+    const [loop, setLoop] = useState(false);
+
     const actionList = actionSlice.actions;
     const byId = actionSlice.byId;
-    console.log(byId);
-    console.log(actionList);
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
-
-    const valid = actionList.every(action => action.valid);
+    console.log(loop);
 
     useEffect(() => {
         runningRef.current = running;
@@ -35,11 +46,23 @@ const ActionPanel = () => {
 
             action = byId[action.id];
             dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: true }));
+            if (!action.valid) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error in action!',
+                    description: 'The position you are trying to move to is out of bounds.',
+                });
+                break;
+            }
             await runAction(action, dispatch);
 
             dispatch(actionListActions.setRunningStatus({ actionId: action.id, running: false }));
         }
 
+        if (loop) {
+            console.log('looping');
+            await runActions();
+        }
         setRunning(false);
     };
 
@@ -51,31 +74,15 @@ const ActionPanel = () => {
         }
     };
 
-    let play_or_stop = {
-        icon: null,
-        color: null,
-        hovercolor: null,
-        text: null,
-    };
-
-    if (valid) {
-        if (running) {
-            play_or_stop.icon = <StopIcon className="text-3xl text-white" />;
-            play_or_stop.color = 'bg-red-400';
-            play_or_stop.hovercolor = 'hover:bg-red-500';
-            play_or_stop.text = 'Stop';
-        } else {
-            play_or_stop.icon = <PlayArrowIcon className="text-3xl text-white" />;
-            play_or_stop.color = 'bg-green-400';
-            play_or_stop.hovercolor = 'hover:bg-green-500';
-            play_or_stop.text = 'Run';
+    const playSelectValueChange = value => {
+        console.log(value);
+        if (value === 'loop') {
+            setLoop(true);
         }
-    } else {
-        play_or_stop.icon = <ErrorIcon className="text-3xl text-white" />;
-        play_or_stop.color = 'bg-orange-400';
-        play_or_stop.hovercolor = 'hover:bg-orange-500';
-        play_or_stop.text = 'Errors';
-    }
+        if (value === 'once') {
+            setLoop(false);
+        }
+    };
 
     return (
         <byIdContext.Provider value={byId}>
@@ -85,15 +92,37 @@ const ActionPanel = () => {
                     <ActionContainer actionList={actionList} />
                 </div>
                 <div className="absolute bottom-10 right-8 z-20">
-                    <Button
-                        color={play_or_stop.color}
-                        hovercolor={play_or_stop.hoverColor}
-                        onClick={handleClickPlayStop}
-                        disabled={!valid}
-                    >
-                        {play_or_stop.icon}
-                        <div className="text-lg text-white"> {play_or_stop.text}</div>
-                    </Button>
+                    {running ? (
+                        <Button variant="destructive" onClick={handleClickPlayStop}>
+                            <StopIcon className="text-3xl text-white" />
+                            <div className="text-lg text-white"> Stop</div>
+                        </Button>
+                    ) : (
+                        <Button onClick={handleClickPlayStop} disabled={!isHomed}>
+                            <PlayArrowIcon className="text-3xl text-white" />
+                            <div className="text-lg text-white"> Play</div>
+
+                            <Select
+                                onValueChange={playSelectValueChange}
+                                value={loop ? 'loop' : 'once'}
+                                className="border-red border bg-red-100"
+                            >
+                                <SelectTrigger className="relative left-4 border-none border-input bg-transparent  outline-none ring-transparent focus:border-none focus:outline-none  focus:ring-transparent ">
+                                    <SelectValue placeholder="" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="loop">
+                                        Loop
+                                        <AllInclusiveIcon className="ml-1 scale-75 transform"></AllInclusiveIcon>
+                                    </SelectItem>
+                                    <SelectItem value="once">
+                                        Once
+                                        <LooksOneIcon className="ml-1 scale-75 transform"></LooksOneIcon>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </Button>
+                    )}
                 </div>
             </div>
         </byIdContext.Provider>

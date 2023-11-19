@@ -55,7 +55,7 @@ class ControllerServer(ControllerDependencies):
         self._connection_mutex: FIFOLock = FIFOLock()
         self.stop_event = controller.stop_event
 
-        self.status_time_interval: float = 1 / 30  # 30 Hz
+        self.status_time_interval: float = 1 / 15
 
     @property
     def connection_mutex(self) -> FIFOLock:
@@ -202,6 +202,8 @@ class ControllerServer(ControllerDependencies):
                 handler = self.controller.message_op_handlers[msg.op]
                 handler(msg)
 
+            self.stop_event.wait(0.05)
+
 
 # -----------------
 # WebsocketServer
@@ -221,8 +223,8 @@ class WebsocketServer(ControllerDependencies):
     async def handler(self, websocket: Any, _: str) -> None:
         async for message in websocket:
             if message.strip() == "get_angles":
-                angles = self.controller.current_angles
-                response = Message(MessageOp.STATUS, 0, angles)
+                angles_tool = list(self.controller.current_angles) + [self.controller.tool_value]
+                response = Message(MessageOp.STATUS, 0, angles_tool)
                 await websocket.send(response.encode())
 
     def _start(self) -> None:

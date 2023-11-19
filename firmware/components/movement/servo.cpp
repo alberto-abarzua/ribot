@@ -95,6 +95,7 @@ Servo::Servo(int8_t pin) {
     this->set_speed(0.5);
     this->set_steps_per_revolution(720);
 }
+
 Servo::~Servo() {
     if (this->end_stop != nullptr) {
         delete this->end_stop;

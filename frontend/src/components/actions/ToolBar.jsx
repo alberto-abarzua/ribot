@@ -105,7 +105,7 @@ const ToolBar = () => {
     ];
 
     return (
-        <div className="fixed  z-40 mx-auto inline-flex h-14  items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
+        <div className="fixed  z-30 mx-auto inline-flex h-14  items-start justify-start overflow-hidden rounded-bl-md rounded-br-md bg-gray-100 shadow">
             {elements.map((element, index) => (
                 <ToolBarElement key={index} element={element} />
             ))}

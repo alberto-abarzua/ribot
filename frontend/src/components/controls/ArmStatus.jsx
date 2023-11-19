@@ -1,3 +1,4 @@
+import InfoHover from '@/components/general/text/InfoHover';
 import TextVariable from '@/components/general/text/TextVariable';
 import { ControllerStatus } from '@/utils/arm_enums';
 import AddHomeIcon from '@mui/icons-material/AddHome';
@@ -41,11 +42,14 @@ const ArmStatus = () => {
     }
 
     return (
-        <div className="m-4 flex flex-col rounded-md  bg-slate-200  p-2  shadow-md">
+        <div className="m-2 flex scale-90 transform flex-col rounded-md  bg-slate-200  p-2  shadow-md">
             <div className="mb-1 flex w-full items-center justify-center self-center ">
-                <h2 className="mr-2 flex-nowrap whitespace-nowrap text-xl font-medium">
-                    Arm Status
-                </h2>
+                <div className="flex items-center justify-center">
+                    <InfoHover text="The current coordinates and position of the arm" />
+                    <h2 className="mr-2 flex-nowrap whitespace-nowrap text-xl font-medium">
+                        Arm Status
+                    </h2>
+                </div>
 
                 <div
                     className={

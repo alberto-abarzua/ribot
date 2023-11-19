@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import api from '@/utils/api';
 import { ControllerStatus } from '@/utils/arm_enums';
 import { Bolt } from '@mui/icons-material';
@@ -26,11 +27,11 @@ const ControlPanel = () => {
     const status = useSelector(state => state.armPose.status);
     const isHomed = useSelector(state => state.armPose.isHomed);
 
-    const [showAxisControls, setShowAxisControls] = useState(true);
+    const [showAxisControls, setShowAxisControls] = useState(false);
     let controlContent = null;
     if (status == ControllerStatus.NOT_STARTED || status == ControllerStatus.WAITING_CONNECTION) {
         controlContent = (
-            <div className="flex h-full items-center justify-center ">
+            <div className="flex  h-full items-center justify-center ">
                 <Card className="m-auto w-fit">
                     <CardHeader>
                         <CardTitle>Waiting for arm!</CardTitle>
@@ -57,7 +58,11 @@ const ControlPanel = () => {
             </div>
         );
     } else {
-        controlContent = showAxisControls ? <AxisControls /> : <JointsControls />;
+        controlContent = (
+            <div className="h-full w-full overflow-scroll">
+                {showAxisControls ? <AxisControls /> : <JointsControls />}
+            </div>
+        );
     }
 
     return (
@@ -77,12 +82,33 @@ const ControlPanel = () => {
                 </div>
 
                 <div className="ml-auto flex w-fit items-center gap-x-3">
-                    <Button onClick={call_home}>
-                        <HomeIcon className=" text-xl" /> Home Arm
-                    </Button>
-                    <Button onClick={call_stop_movement} variant="destructive">
-                        <DangerousIcon className="text" /> Stop
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip delayDuration={300}>
+                            <TooltipTrigger>
+                                <Button onClick={call_home}>
+                                    <HomeIcon className=" text-xl" /> Home Arm
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Sets the default position </p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip delayDuration={300}>
+                            <TooltipTrigger>
+                                <Button onClick={call_stop_movement} variant="destructive">
+                                    <DangerousIcon className="text" /> Stop
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Stop all movements</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
             </div>
             {controlContent}

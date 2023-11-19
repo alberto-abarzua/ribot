@@ -19,4 +19,15 @@ mergeInto(LibraryManager.library, {
             return port;
         }
     },
+    GetWebSocketProtocol: function () {
+        const params = new URLSearchParams(window.location.search);
+        const protocol = params.get("protocol");
+        if (protocol) {
+            console.log("SetWebSocketInfo: " + protocol);
+            var bufferSize = lengthBytesUTF8(protocol) + 1;
+            var buffer = _malloc(bufferSize);
+            stringToUTF8(protocol, buffer, bufferSize);
+            return buffer;
+        }
+    },
 });

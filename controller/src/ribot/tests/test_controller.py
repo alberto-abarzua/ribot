@@ -32,7 +32,14 @@ class TestController(unittest.TestCase):
         arm_params.a5x = 64.1
         arm_params.a6x = 169
 
-        cls.controller = ArmController(arm_parameters=arm_params)
+        controler_server_port = int(os.environ.get("CONTROLLER_SERVER_PORT", 8500))
+        controller_websocket_port = int(os.environ.get("CONTROLLER_WEBSOCKET_PORT", 8430))
+        print("controller_websocket_port", controller_websocket_port)
+        print("controller_server_port", controler_server_port)
+
+        cls.controller = ArmController(
+            arm_parameters=arm_params, server_port=controler_server_port, websocket_port=controller_websocket_port
+        )
         cls.controller.start(websocket_server=False, wait=True)
 
         cls.controller.print_status = os.environ.get("CONTROLLER_PRINT_STATUS", "False").upper() == "TRUE"

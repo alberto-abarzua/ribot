@@ -89,7 +89,7 @@ class DockerManger:
         try:
             if mute:
                 return subprocess.run(new_command, env={**os.environ, **env}, check=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             else:
                 return subprocess.check_call(new_command, env={**os.environ, **env})
         except subprocess.CalledProcessError as e:
@@ -121,10 +121,10 @@ class DockerManger:
         file_list = self.get_file_list(files)
         return subprocess.check_call(['docker', 'compose', *file_list, 'logs', '--follow'])
 
-    def dc_command(self,files:List[str],command: str):
+    def dc_command(self, files: List[str], command: str):
         file_list = self.get_file_list(files)
         command_list = command.split(' ')
-        return subprocess.check_call(['docker', 'compose', *file_list]+ command_list, env={**os.environ})
+        return subprocess.check_call(['docker', 'compose', *file_list] + command_list, env={**os.environ})
 
 
 class Manager:
@@ -197,11 +197,20 @@ class Manager:
 
     def build(self, **kwargs):
         container_name = kwargs.get('container', None)
+        no_editable = kwargs.get('no_editable', False)
         no_cache = kwargs.get('no_cache', False)
-        if container_name is not None:
-            self.docker_manager.dc_build([container_name], no_cache=no_cache)
-        else:
-            self.docker_manager.dc_build(self.serivice_names, no_cache=no_cache)
+        os.environ['BACKEND_EDITABLE_PACKAGES'] = 'true' if not no_editable else 'false'
+        try:
+            subprocess.check_call(['rm', '-rf', 'controller'], cwd='backend')
+            subprocess.check_call(['cp', '-r', '../controller', '.'], cwd='backend')
+
+            if container_name is not None:
+                self.docker_manager.dc_build([container_name], no_cache=no_cache)
+            else:
+                self.docker_manager.dc_build(self.serivice_names, no_cache=no_cache)
+
+        finally:
+            subprocess.check_call(['rm', '-rf', 'controller'], cwd='backend')
 
     def get_usb_port(self):
         ports = serial.tools.list_ports.comports()
@@ -362,10 +371,8 @@ class Manager:
     def lint(self, **kwargs):
         container_name = kwargs.get('container', None)
 
-
         if container_name is None:
 
-            os.environ['BACKEND_UPDATE_RIBOT_CONTROLLER'] = 'true'
             commands = [
                 ('controller.yaml', 'controller pdm run lint'),
                 ('backend.yaml', 'backend pdm run lint'),
@@ -396,6 +403,7 @@ class Manager:
 
     def test_debug(self, **_):
         os.environ["CONTROLLER_PRINT_STATUS"] = "true"
+
         self.docker_manager.dc_up(['controller.yaml', 'firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller", "CONTROLLER_COMMAND": "test"})
         self.docker_manager.dc_down(['controller.yaml', 'firmware.yaml'])
@@ -442,13 +450,21 @@ class Manager:
     def runserver(self, **kwargs):
         esp = kwargs.get('esp', False)
         detached = kwargs.get('detached', False)
-        os.environ['BACKEND_UPDATE_RIBOT_CONTROLLER'] = 'true'
+        use_instanciator = kwargs.get('use_instanciator', False)
+        if use_instanciator:
+            os.environ['VITE_BACKEND_URL'] = 'no_backend'
+            service_list = ['frontend.yaml']
+        else:
 
-        service_list = ['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml']
-        if not esp:
+            service_list = ['backend.yaml', 'unity_webgl_server.yaml', 'frontend.yaml']
+
+        if not esp and not use_instanciator:
             service_list.append('firmware.yaml')
-        self.docker_manager.dc_up(service_list, env={
-            "ESP_CONTROLLER_SERVER_HOST": self.current_host_ip}, detached=detached)
+
+        if esp:
+            os.environ["ESP_CONTROLLER_SERVER_HOST"] = self.current_host_ip
+
+        self.docker_manager.dc_up(service_list, detached=detached)
 
         if not detached:
             self.docker_manager.dc_down(service_list)
@@ -485,7 +501,6 @@ class Manager:
         parser_dc.add_argument(
             '--container', '-c', choices=self.serivice_names, help='Container to run command in')
 
-
         # --------------
         # Build firmware
         # --------------
@@ -510,6 +525,9 @@ class Manager:
             '--no-cache', action='store_true', help='Build all docker compose services without cache')
         parser_build.add_argument(
             '--container', '-c', choices=self.serivice_names, help='Container to build')
+
+        parser_build.add_argument(
+            '--no-editable', action='store_true', help='Build all docker compose services without editable mode')
 
         # --------------
         # Build esp
@@ -579,6 +597,9 @@ class Manager:
             '--esp', action='store_true', help='Run server for ESP-32 ')
         parser_runserver.add_argument(
             '--detached', '-d', action='store_true', help='Run server in detached mode')
+
+        parser_runserver.add_argument(
+            '--use-instanciator', action='store_true', help='Run server with instanciator')
 
         # --------------
         #  Publish controller
@@ -650,8 +671,6 @@ class Manager:
             exit(1)
 
         command_map[parsed_args.command](**vars(parsed_args))
-
-
 
 
 if __name__ == "__main__":

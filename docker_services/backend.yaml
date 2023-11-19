@@ -4,10 +4,13 @@ services:
     build:
       context: "../backend"
       dockerfile: "Dockerfile"
+      args:
+        - EDITABLE_PACKAGES=$BACKEND_EDITABLE_PACKAGES
     image: "uintuser/ribot-backend"
     volumes:
       - ../backend/src:/app/src
       - ../backend/pyproject.toml:/app/pyproject.toml
+      - ../backend/src/config/main_arm.toml:/app/src/config/main_arm.toml
       - ../backend/pdm.lock:/app/pdm.lock
       - ../controller:/app/controller
     ports:
@@ -17,8 +20,5 @@ services:
     environment:
       - BACKEND_HTTP_PORT
       - CONTROLLER_WEBSOCKET_PORT
-      - BACKEND_UPDATE_RIBOT_CONTROLLER
       - CONTROLLER_SERVER_PORT
 
-volumes:
-  pdm_cache:
