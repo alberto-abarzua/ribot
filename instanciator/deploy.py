@@ -63,8 +63,8 @@ class Deploy:
             file.write(service_content)
 
         subprocess.run(['systemctl', 'daemon-reload'])
-        subprocess.run(['systemctl', 'enable', 'mycustomservice'])
-        subprocess.run(['systemctl', 'start', 'mycustomservice'])
+        subprocess.run(['systemctl', 'enable', 'instanciator'])
+        subprocess.run(['systemctl', 'start', 'instanciator'])
 
     def parse_and_execute(self):
         parser = argparse.ArgumentParser(description='Deploy services')
