@@ -4,7 +4,7 @@ const FeatureList = [
     Svg: require("@site/static/img/exp.svg").default,
     description: (
       <>
-        Powerfull User Interface that allows you to control your robot arm with
+        Powerful User Interface that allows you to control your robot arm with
         just a few clicks.
       </>
     ),
