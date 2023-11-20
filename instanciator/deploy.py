@@ -23,7 +23,18 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 """
+SYSTEMD_TIMER_TEMPLATE = """
+[Unit]
+Description=Instanciator timer
 
+[Timer]
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+"""
 
 CURRENT_FILE_PATH = Path(__file__).parent
 
@@ -63,13 +74,20 @@ class Deploy:
         with open(service_file_path, 'w') as file:
             file.write(service_content)
 
+        timer_file_path = '/etc/systemd/system/instanciator.timer'
+
+        with open(timer_file_path, 'w') as file:
+            file.write(SYSTEMD_TIMER_TEMPLATE)
+
         subprocess.run(['systemctl', 'daemon-reload'])
+        subprocess.run(['systemctl', 'enable', 'instanciator.timer'])
+        subprocess.run(['systemctl', 'start', 'instanciator.timer'])
         subprocess.run(['systemctl', 'enable', 'instanciator'])
         subprocess.run(['systemctl', 'start', 'instanciator'])
 
     def parse_and_execute(self):
         parser = argparse.ArgumentParser(description='Deploy services')
-        parser.add_argument('action', choices=['start', 'stop', 'setup','status'])
+        parser.add_argument('action', choices=['start', 'stop', 'setup', 'status'])
         self.source_env(CURRENT_FILE_PATH / '.env')
 
         args = parser.parse_args()
@@ -85,7 +103,7 @@ class Deploy:
         elif args.action == 'status':
             subprocess.run(['docker', 'compose', 'ps'])
             subprocess.run(['systemctl', 'status', 'instanciator.service'])
-        
+
 
 if __name__ == "__main__":
     manager = Deploy()

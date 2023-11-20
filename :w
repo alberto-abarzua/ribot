@@ -11,9 +11,9 @@ const POSITION = {
     yaw: 15,
 };
 
-const checkActionWasRan = action => {
+const checkActionWasRun = (action) => {
     return action.lastRun && Date.now() - action.lastRun < 10000;
-};
+}
 
 export const Steps = {
     HOME_ARM: 'HOME_ARM',
@@ -27,7 +27,6 @@ export const Steps = {
     RUN_ACTION_LIST_2: 'RUN_ACTION_LIST_2',
     MOVE_TOOL_IN_CONTROL_PANEL: 'MOVE_TOOL_IN_CONTROL_PANEL',
     ADD_TOOL_MOVE_TO_ACTION_LIST: 'ADD_TOOL_MOVE_TO_ACTION_LIST',
-    ADD_TOOL_MOVE_TO_ACTION_LIST_2: 'ADD_TOOL_MOVE_TO_ACTION_LIST_2',
     RUN_ACTION_LIST_3: 'RUN_ACTION_LIST_3',
     GO_TO_POSITION: 'GO_TO_POSITION',
     ADD_MOVE_TO_ACTION_LIST_3: 'ADD_MOVE_TO_ACTION_LIST_3',
@@ -93,7 +92,11 @@ export const evaluateStepMap = {
             return false;
         }
         const firstAction = actionList.byId[actionList.actions[0].id];
-        return checkActionWasRan(firstAction);
+        const lastRun = firstAction.lastRun;
+        if (lastRun && Date.now() - lastRun > 10000) {
+            return true;
+        }
+        return false;
     },
     [Steps.ADD_SLEEP_TO_ACTION_LIST]: state => {
         // The state passed holds all the store state
@@ -120,7 +123,11 @@ export const evaluateStepMap = {
         // The state passed holds all the store state
         const actionList = state.actionList;
         const firstAction = actionList.byId[actionList.actions[0].id];
-        return checkActionWasRan(firstAction);
+        const lastRun = firstAction.lastRun;
+        if (lastRun && Date.now() - lastRun > 10000) {
+            return true;
+        }
+        return false;
     },
     [Steps.MOVE_TOOL_IN_CONTROL_PANEL]: state => {
         // The state passed holds all the store state
@@ -141,32 +148,20 @@ export const evaluateStepMap = {
         }
         return false;
     },
-    [Steps.ADD_TOOL_MOVE_TO_ACTION_LIST_2]: state => {
-        // The state passed holds all the store state
-        const actionList = state.actionList;
-        let num_moves = 0;
-        let equal_zero = false;
-        for (let action of actionList.actions) {
-            if (action.type === ActionTypes.TOOL) {
-                num_moves++;
-                action = actionList.byId[action.id];
-                if (action.value.toolValue === 0) {
-                    equal_zero = true;
-                }
-            }
-        }
-        return num_moves >= 2 && equal_zero;
-    },
     [Steps.RUN_ACTION_LIST_3]: state => {
         // The state passed holds all the store state
         const actionList = state.actionList;
         const firstAction = actionList.byId[actionList.actions[0].id];
-        return checkActionWasRan(firstAction);
+        const lastRun = firstAction.lastRun;
+        if (lastRun && Date.now() - lastRun > 10000) {
+            return true;
+        }
+        return false;
     },
     [Steps.GO_TO_POSITION]: state => {
         // The state passed holds all the store state
         const armPose = state.armPose;
-        const tolerance = 10;
+        const tolerance = 5;
         for (let key in POSITION) {
             let distance = Math.abs(armPose[key] - POSITION[key]);
             if (distance > tolerance) {
@@ -189,7 +184,11 @@ export const evaluateStepMap = {
         // The state passed holds all the store state
         const actionList = state.actionList;
         const firstAction = actionList.byId[actionList.actions[0].id];
-        return checkActionWasRan(firstAction);
+        const lastRun = firstAction.lastRun;
+        if (lastRun && Date.now() - lastRun > 10000) {
+            return true;
+        }
+        return false;
     },
     [Steps.ADD_ACTION_SET_TO_ACTION_LIST]: state => {
         // The state passed holds all the store state
@@ -214,17 +213,19 @@ export const evaluateStepMap = {
         // The state passed holds all the store state
         const actionList = state.actionList;
         const firstAction = actionList.byId[actionList.actions[0].id];
-        return checkActionWasRan(firstAction);
+        const lastRun = firstAction.lastRun;
+        if (lastRun && Date.now() - lastRun > 10000) {
+            return true;
+        }
+        return false;
     },
     [Steps.RENAME_ACTION_SET]: state => {
         // The state passed holds all the store state
         const actionList = state.actionList;
         const actionSet = actionList.byId[actionList.actions[0].id];
-
         if (actionSet.name) {
             return true;
         }
-        return false;
     },
 
     [Steps.DUPLICATE_ACTION_SET]: state => {
@@ -343,16 +344,6 @@ const initialState = {
             },
         },
         {
-            name: 'Add Another Tool move and set to 0',
-            id: Steps.ADD_TOOL_MOVE_TO_ACTION_LIST_2,
-            description:
-                'Add another tool move and set the tool value to 0',
-            completion: {
-                done: false,
-                timestamp: null,
-            },
-        },
-        {
             name: 'Run the Action List Again',
             id: Steps.RUN_ACTION_LIST_3,
             description: 'Press the Play Button',
@@ -364,8 +355,8 @@ const initialState = {
         {
             name: 'Go to Position',
             id: Steps.GO_TO_POSITION,
-            description: `Move close to the following position:`,
-            extra: 'X: 370  |  Y: 100  |  Z: 100  |  Roll: 0  |  Pitch: 60  |  Yaw: 15',
+            description:
+                'Move to a specific position using axis controls (x: 370, y: 100, z: 100, roll: 0, pitch: 60, yaw: 15))',
             completion: {
                 done: false,
                 timestamp: null,
@@ -401,7 +392,7 @@ const initialState = {
         {
             name: 'Move All to Action Set',
             id: Steps.MOVE_ALL_TO_ACTION_SET,
-            description: 'Move all actions into the action set (drag them!)',
+            description: 'Move all actions to the action set (drag them!)',
             completion: {
                 done: false,
                 timestamp: null,

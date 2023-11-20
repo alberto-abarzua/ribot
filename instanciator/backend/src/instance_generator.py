@@ -210,36 +210,38 @@ class InstanceGenerator:
 
     def start_instance_checker(self) -> None:
         self.instance_checker_target_fun()
-        Timer(self.prune_interval, self.prune).start()
+        self.prune_target_fun()
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
-        print("checking instances")
-        for instance in self.instances:
-            if instance.should_stop():
-                instance.stop()
-                self.instances.remove(instance)
+        try:
+            print("checking instances")
+            for instance in self.instances:
+                if instance.should_stop():
+                    instance.stop()
+                    self.instances.remove(instance)
 
-        num_instances = len(self.instances)
-        if num_instances > self.max_instances:
-            free_instances = [instance for instance in self.instances if instance.free]
-            if len(free_instances) == 0:
-                print("no free instances, can't stop")
-                oldest_instance = self.instances[-1]
-            else:
-                oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
+            num_instances = len(self.instances)
+            if num_instances > self.max_instances:
+                free_instances = [instance for instance in self.instances if instance.free]
+                if len(free_instances) == 0:
+                    print("no free instances, can't stop")
+                    oldest_instance = self.instances[-1]
+                else:
+                    oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
 
+                oldest_instance.stop()
+                self.instances.remove(oldest_instance)
 
-            oldest_instance.stop()
-            self.instances.remove(oldest_instance)
+            num_free = sum(1 for instance in self.instances if instance.free)
 
-        num_free = sum(1 for instance in self.instances if instance.free)
+            if num_free < self.min_instances and num_instances < self.max_instances:
+                print("creating new instance")
+                self.create_instance()
 
-        if num_free < self.min_instances:
-            print("creating new instance")
-            self.create_instance()
-
-        Timer(self.check_interval, self.instance_checker_target_fun).start()
+            Timer(self.check_interval, self.instance_checker_target_fun).start()
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
     def prune(self) -> None:
         command = ["docker", "system", "prune", "-f"]
@@ -247,6 +249,10 @@ class InstanceGenerator:
             subprocess.check_call(command)
         except subprocess.CalledProcessError:
             pass
+
+    def prune_target_fun(self) -> None:
+        self.prune()
+        Timer(self.prune_interval, self.prune_target_fun).start()
 
     @redis_instances
     def get_free_instance(self) -> Instance:

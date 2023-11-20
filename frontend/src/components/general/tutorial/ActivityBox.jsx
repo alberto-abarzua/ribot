@@ -1,18 +1,23 @@
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { currentStepSelector } from '@/redux/ActivitySlice';
 import { activityActions } from '@/redux/ActivitySlice';
+import { prefillGoogleForm } from '@/utils/activity';
 import QuizIcon from '@mui/icons-material/Quiz';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { InsertDriveFile } from '@mui/icons-material';
 
 const ActivityBox = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const [formUrl, setFormUrl] = useState(null);
     const dispatch = useDispatch();
     const steps = useSelector(state => state.activity.steps);
     const currentStep = useSelector(currentStepSelector);
+    const actionList = useSelector(state => state.actionList);
 
     const numSteps = steps.length;
+
     let num_done = 0;
     for (let step of steps) {
         if (step.completion.done) {
@@ -22,7 +27,6 @@ const ActivityBox = () => {
         }
     }
     const completion = Math.round((num_done / numSteps) * 100);
-    console.log(steps);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -35,6 +39,17 @@ const ActivityBox = () => {
     const clearActivity = () => {
         dispatch(activityActions.clearActivity());
     };
+
+    useEffect(() => {
+        if (!currentStep) {
+            const results = {
+                steps: steps,
+            };
+            const url = prefillGoogleForm(results);
+            console.log(url);
+            setFormUrl(url);
+        }
+    }, [currentStep, steps, actionList]);
 
     return (
         <div
@@ -57,10 +72,21 @@ const ActivityBox = () => {
                     <div className="rounded bg-slate-50 px-3 py-1 text-gray-800 shadow-sm shadow-white">
                         <p className="text-xl">{currentStep.name}</p>
                         <p className="text-sm text-gray-600">{currentStep.description}</p>
+                        {currentStep.extra && (
+                            <p className="text-sm font-bold text-gray-600">{currentStep.extra}</p>
+                        )}
                     </div>
                 </div>
             ) : (
-                <div>Activity Completed!</div>
+                <>
+                    <p className="text-lg">Activity Completed!</p>
+                    <div className="flex items-center justify-center gap-x-2 py-4">
+                        <InsertDriveFileIcon className="text-blue-500"></InsertDriveFileIcon>
+                        <a href={formUrl} className="text-xl font-bold text-blue-400 underline">
+                            Please fill out this form!
+                        </a>
+                    </div>
+                </>
             )}
         </div>
     );

@@ -8,8 +8,8 @@ import { useSelector } from 'react-redux';
 
 const AxisControls = () => {
     const { toast } = useToast();
-    const [coordsStep, setCoordsStep] = useState(20);
-    const [anglesStep, setAnglesStep] = useState(20);
+    const [coordsStep, setCoordsStep] = useState(10);
+    const [anglesStep, setAnglesStep] = useState(10);
 
     const currentPose = useSelector(state => state.armPose);
 
