@@ -4,11 +4,13 @@ import ArmStatus from '@/components/controls/ArmStatus';
 import ControlPanel from '@/components/controls/ControlPanel';
 import SideNav from '@/components/general/layout/SideNav';
 import Providers from '@/components/general/providers/Providers';
+import ActivityBox from '@/components/general/tutorial/ActivityBox';
 import { Toaster } from '@/components/ui/toaster';
 
 export default function Home() {
     return (
         <Providers>
+            <ActivityBox></ActivityBox>
             <div className="box-border flex h-screen">
                 <div className="relative flex h-full flex-col lg:w-16 ">
                     <SideNav></SideNav>

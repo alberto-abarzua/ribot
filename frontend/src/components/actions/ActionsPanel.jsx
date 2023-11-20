@@ -34,7 +34,6 @@ const ActionPanel = () => {
 
     const [running, setRunning] = useState(false);
     const runningRef = useRef(false);
-    console.log(loop);
 
     useEffect(() => {
         runningRef.current = running;
@@ -60,7 +59,6 @@ const ActionPanel = () => {
         }
 
         if (loop) {
-            console.log('looping');
             await runActions();
         }
         setRunning(false);
@@ -75,7 +73,6 @@ const ActionPanel = () => {
     };
 
     const playSelectValueChange = value => {
-        console.log(value);
         if (value === 'loop') {
             setLoop(true);
         }

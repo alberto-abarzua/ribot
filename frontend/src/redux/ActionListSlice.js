@@ -1,4 +1,5 @@
 import { ActionTypes } from '@/utils/actions';
+import { loadState } from '@/utils/state';
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -6,16 +7,17 @@ const initialState = {
     byId: {}, // hash table with all actions by id
 };
 
-// Action
-// {
-//    id,
-//    value,
-//    type,
-//    parentId,
-//    valid,
-//    running,
-//    name,
-// }
+const loadedState = loadState()?.actionList;
+
+if (loadedState) {
+    console.log('loadedState', loadedState);
+    if (loadedState.actions) {
+        initialState.actions = loadedState.actions;
+    }
+    if (loadedState.byId) {
+        initialState.byId = loadedState.byId;
+    }
+}
 
 const getParentList = (state, action) => {
     const { parentId } = action;
@@ -157,6 +159,9 @@ const actionListSlice = createSlice({
         setRunningStatus: (state, action) => {
             const { actionId, running } = action.payload;
             state.byId[actionId].running = running;
+            if (running) {
+                state.byId[actionId].lastRun = Date.now();
+            }
         },
 
         setActionValue: (state, action) => {

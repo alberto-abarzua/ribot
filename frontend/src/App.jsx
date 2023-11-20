@@ -14,7 +14,6 @@ function App() {
     const [denied, setDenied] = useState(true);
 
     useEffect(() => {
-        console.log('useEffect triggered');
         if (isMobileDevice()) {
             setDenied(true);
             setLoading(false);
@@ -22,36 +21,28 @@ function App() {
         }
 
         const getBackendInfo = async () => {
-            console.log('getBackendInfo function called');
             let envBackendUrl = import.meta.env.VITE_BACKEND_URL;
-            console.log('VITE_BACKEND_URL:', envBackendUrl);
             window.localStorage.removeItem('backendUrl');
 
             if (envBackendUrl === undefined || envBackendUrl === 'no_backend') {
-                console.log('Fetching backend URL from API');
                 const access_token = searchParams.get('access_token');
                 try {
                     const response = await instanciatorApi.get('/backend_url/', {
                         params: { token: access_token },
                     });
-                    console.log('Response from API:', response);
                     const { backend_port } = response.data;
 
                     const backend_url = `${import.meta.env.VITE_INSTANCIATOR_URL}/s${backend_port}`;
                     window.localStorage.setItem('backendUrl', backend_url);
-                    console.log('Backend URL saved to local storage from API:', backend_url);
                     if (backend_port === undefined) {
-                        console.log('Backend port is undefined');
                         setDenied(true);
                     }
                     setDenied(false);
                 } catch (error) {
-                    console.log('Error fetching backend URL from API');
                     setDenied(true);
                     console.log(error);
                 }
             } else {
-                console.log('Saving env variable to local storage:', envBackendUrl);
                 window.localStorage.setItem('backendUrl', envBackendUrl);
                 setDenied(false);
             }
