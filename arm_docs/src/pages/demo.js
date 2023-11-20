@@ -72,10 +72,10 @@ export default function Home() {
             permite la precisión en tareas específicas.
           </p>
 
-          <div className="flex justify-center gap-x-6">
+          <div className="flex-col lg:flex justify-center gap-x-6">
             <div className="flex flex-col flex-1 items-center">
               <p className="text-xl font-bold flex-1 px-2 py-3">Coordenadas</p>
-              <div className="flex ">
+              <div className="flex-col lg:flex ">
                 <p className="text-lg flex-1 px-2 py-3">
                   Las coordenadas son un conjunto de valores que determinan la
                   posición exacta de un punto en un espacio. En robótica, se
@@ -93,7 +93,7 @@ export default function Home() {
               <p className="text-xl font-bold flex-1 px-2 py-3">
                 Ángulos de Aproximación
               </p>
-              <div className="flex ">
+              <div className="flex-col lg:flex">
                 <p className="text-lg flex-1 px-2 py-3">
                   Los ángulos de aproximación, como el roll, pitch y yaw, se
                   refieren a las rotaciones en torno a los ejes principales del
