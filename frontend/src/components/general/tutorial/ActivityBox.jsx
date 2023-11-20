@@ -32,7 +32,17 @@ const ActivityBox = () => {
             setIsVisible(true);
         }, 4000);
 
-        return () => clearTimeout(timer);
+        // 30 min
+        const exitTimeout = 30 * 60 * 1000;
+
+        const exitTimer = setTimeout(() => {
+            window.close();
+        }, exitTimeout);
+
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(exitTimer);
+        };
     }, []);
 
     const clearActivity = () => {
