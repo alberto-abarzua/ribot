@@ -5,18 +5,15 @@ import ActivityBox from "@site/static/img/activity_box.png";
 import Euler from "@site/static/img/euler.gif";
 import Coordinates from "@site/static/img/coordinates.gif";
 import ArrowDownSVG from "@site/static/img/down_arrow.svg";
+import { useLocation } from "react-router-dom";
 
-// <img
-//   src={GeneralGif}
-//   alt="General Overview"
-//   className="w-1/3 flex-shrink-0 overflow-hidden rounded-md object-contain"
-// />
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get("access_token");
   const onClickGoToActivity = () => {
-    const url =
-      "https://demo.ribot.dev/?access_token=QslklxkIoFrDMqjQPwSIaFabSlBnOUTzxRMlVgxuSUWhRijUvsNZWjDxyXwnhaFE";
-    // go to url in new tab
+    const url = `https://demo.ribot.dev/?access_token=${token}&activity=true`;
     window.open(url, "_blank");
   };
   return (
@@ -24,7 +21,7 @@ export default function Home() {
       title={`Hello from ${siteConfig.title}`}
       description="Description will go into a meta tag in <head />"
     >
-      <main className="flex flex-col justify-center p-10 ">
+      <main className="flex flex-col justify-center p-10 w-full lg:w-4/5 mx-auto ">
         <div className="flex flex-col">
           <h1 className="text-3xl font-bold mb-2">
             Prueba de Usabilidad - Plataforma de Control Brazo Robótico
@@ -72,10 +69,10 @@ export default function Home() {
             permite la precisión en tareas específicas.
           </p>
 
-          <div className="flex-col lg:flex justify-center gap-x-6">
-            <div className="flex flex-col flex-1 items-center">
+          <div className="flex-col flex xl:flex-row justify-center items-start gap-x-6">
+            <div className="flex flex-col w-2/3 flex-1 ">
               <p className="text-xl font-bold flex-1 px-2 py-3">Coordenadas</p>
-              <div className="flex-col lg:flex ">
+              <div className="flex-col flex items-center ">
                 <p className="text-lg flex-1 px-2 py-3">
                   Las coordenadas son un conjunto de valores que determinan la
                   posición exacta de un punto en un espacio. En robótica, se
@@ -89,11 +86,11 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="flex flex-col flex-1 items-center">
+            <div className="flex flex-col flex-1  w-2/3">
               <p className="text-xl font-bold flex-1 px-2 py-3">
                 Ángulos de Aproximación
               </p>
-              <div className="flex-col lg:flex">
+              <div className="flex-col flex items-center">
                 <p className="text-lg flex-1 px-2 py-3">
                   Los ángulos de aproximación, como el roll, pitch y yaw, se
                   refieren a las rotaciones en torno a los ejes principales del
@@ -113,29 +110,29 @@ export default function Home() {
 
         <div className="flex flex-col mt-10">
           <h3 className="text-2xl font-bold">La Actividad!</h3>
-          <div className="flex items-center justify-center gap-x-20 ">
-            <div className="flex">
+          <div className="flex items-start justify-start gap-x-20 ">
+            <div className="flex-col flex lg:flex-row">
               <p className="text-lg flex-1 px-2 py-3">
-                Veras un recuadro como el de la imagen de la derecha. Este
-                recuadro te dira que hacer en cada paso. Sigue las instrucciones
-                y completa la actividad. Al final se abrirá un formulario para
-                que puedas dejar tus comentarios sobre la actividad. (Es
-                importante que completes el formulario para que la actividad sea
-                válida)
+                Veras un recuadro morado como el de la imagen de la derecha.
+                Este recuadro te dira que hacer en cada paso. Sigue las
+                instrucciones y completa la actividad. Al final se abrirá un
+                formulario para que puedas dejar tus comentarios sobre la
+                actividad. (Es importante que completes el formulario para que
+                la actividad sea válida)
               </p>
 
               <img
                 src={ActivityBox}
                 alt="Angles of Approach Explanation"
-                className="w-1/4 flex-shrink-0 overflow-hidden rounded-md object-contain"
+                className=" w-60 flex-shrink-0 rounded-md object-contain object-top mt-5"
               />
             </div>
           </div>
-          <ArrowDownSVG className="w-10 h-10 mx-auto mt-5 transform scale-50 transition-all animate-bounce" />
-          <div className="flex justify-center mt-5">
+
+          <div className="flex justify-center mt-16">
             <button
               onClick={onClickGoToActivity}
-              className="bg-green-600 text-white  transform scale-150 px-4 py-2 rounded-md hover:bg-green-700 font-mono"
+              className="bg-green-600 text-white border-gray-500  shadow-gray-500 shadow-sm border transform scale-150 px-4 py-2 rounded-md hover:bg-green-700 font-mono"
             >
               Comenzar la Actividad
             </button>

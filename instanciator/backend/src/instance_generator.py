@@ -180,8 +180,8 @@ class InstanceGenerator:
         self.instances_lock = RLock()
         self.stop_event = Event()
         self.instances = []
-        self.min_instances = 5
-        self.max_instances = 20
+        self.min_instances = int(os.environ.get("MIN_INSTANCES", 10))
+        self.max_instances = int(os.environ.get("MAX_INSTANCES", 20))
         self.check_interval = 20
         self.prune_interval = 60 * 60
         self.start_instance_checker()

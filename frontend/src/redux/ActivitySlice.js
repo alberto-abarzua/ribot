@@ -241,11 +241,12 @@ export const evaluateStepMap = {
 };
 
 const initialState = {
+    last_activity: null,
     steps: [
         {
-            name: 'Home the arm',
+            name: 'Home the Arm',
             id: Steps.HOME_ARM,
-            description: 'Press the Home Arm Button',
+            description: 'Press the "Home Arm" button.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -254,16 +255,17 @@ const initialState = {
         {
             name: 'Move Joint 3',
             id: Steps.MOVE_JOINT_3,
-            description: 'Go to the control panel and move joint 3',
+            description: 'Adjust joint 3 to any desired position using the control panel.',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Move to action list',
+            name: 'Add Move Action',
             id: Steps.ADD_MOVE_TO_ACTION_LIST,
-            description: 'Press or drag the Green Move Button in the Toolbar',
+            description:
+                'Add a move action by pressing or dragging the green move button in the toolbar at the top left of the screen.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -272,16 +274,16 @@ const initialState = {
         {
             name: 'Move Joint 1',
             id: Steps.MOVE_JOINT_1,
-            description: 'Go to the control panel and move joint 1',
+            description: 'Adjust joint 1 to any desired position using the control panel.',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Another Move to Action List',
+            name: 'Add Another Move Action',
             id: Steps.ADD_MOVE_TO_ACTION_LIST_2,
-            description: 'Press or drag the green move button in the toolbar',
+            description: 'Add another move action using the green move button in the toolbar.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -290,16 +292,17 @@ const initialState = {
         {
             name: 'Run Action List',
             id: Steps.RUN_ACTION_LIST,
-            description: 'Press the Play Button',
+            description: 'Press the "Play" button to execute the action list.',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Sleep to Action List',
+            name: 'Add Sleep Action',
             id: Steps.ADD_SLEEP_TO_ACTION_LIST,
-            description: 'Press or drag the blue sleep button in the toolbar',
+            description:
+                'Add a sleep action by pressing or dragging the blue sleep button in the toolbar.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -308,7 +311,7 @@ const initialState = {
         {
             name: 'Set Sleep Duration to 1',
             id: Steps.SET_SLEEP_DURATION_TO_1,
-            description: 'Set the duration of the sleep action to 1',
+            description: 'Set the duration of the sleep action to 1.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -317,7 +320,7 @@ const initialState = {
         {
             name: 'Run the Action List Again',
             id: Steps.RUN_ACTION_LIST_2,
-            description: 'Press the Play Button',
+            description: 'Press the "Play" button.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -326,26 +329,26 @@ const initialState = {
         {
             name: 'Move Tool in Control Panel',
             id: Steps.MOVE_TOOL_IN_CONTROL_PANEL,
-            description: 'Move the tool using the control panel',
+            description: 'Move the tool to any desired position using the control panel.',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Tool Move to Action List',
+            name: 'Add Tool Move Action',
             id: Steps.ADD_TOOL_MOVE_TO_ACTION_LIST,
             description:
-                'Add a tool move to the action list (press or drag the orange tool button in the toolbar)',
+                'Add a tool move action (press or drag the orange tool button in the toolbar).',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Another Tool move and set to 0',
+            name: 'Add Another Tool Move Action and Set to 0',
             id: Steps.ADD_TOOL_MOVE_TO_ACTION_LIST_2,
-            description: 'Add another tool move and set the tool value to 0',
+            description: 'Add another tool move action and set the tool value to 0.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -354,7 +357,7 @@ const initialState = {
         {
             name: 'Run the Action List Again',
             id: Steps.RUN_ACTION_LIST_3,
-            description: 'Press the Play Button',
+            description: 'Press the "Play" button.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -363,17 +366,18 @@ const initialState = {
         {
             name: 'Go to Position',
             id: Steps.GO_TO_POSITION,
-            description: `Move close to the following position:`,
-            extra: 'X: 370  |  Y: 100  |  Z: 100  |  Roll: 0  |  Pitch: 60  |  Yaw: 15',
+            description:
+                'Move close to the following position using the control panel (Toggle to X,Y,Z Mode), or by modifiying the values in a move action',
+            extra: 'X: 370 | Y: 100 | Z: 100 | Roll: 0 | Pitch: 60 | Yaw: 15',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Another Move to Action List',
+            name: 'Add Another Move Action',
             id: Steps.ADD_MOVE_TO_ACTION_LIST_3,
-            description: 'Press or drag the Green Move Button in the Toolbar',
+            description: 'Add another move action using the green move button in the toolbar.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -382,16 +386,17 @@ const initialState = {
         {
             name: 'Run Action List',
             id: Steps.RUN_ACTION_LIST_4,
-            description: 'Run again hte action list',
+            description: 'Run the action list again by pressing the "Play" button.',
             completion: {
                 done: false,
                 timestamp: null,
             },
         },
         {
-            name: 'Add Action Set to Action List',
+            name: 'Add Action Set',
             id: Steps.ADD_ACTION_SET_TO_ACTION_LIST,
-            description: 'Add an action set to the action list',
+            description:
+                'Add an action set to the action list using the pink action set button in the toolbar.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -400,7 +405,7 @@ const initialState = {
         {
             name: 'Move All to Action Set',
             id: Steps.MOVE_ALL_TO_ACTION_SET,
-            description: 'Move all actions into the action set (drag them!)',
+            description: 'Move all actions into the action set by dragging them into the set.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -409,7 +414,7 @@ const initialState = {
         {
             name: 'Run Action List',
             id: Steps.RUN_ACTION_LIST_5,
-            description: 'Run the action list again',
+            description: 'Run the action list again by pressing the "Play" button.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -418,7 +423,7 @@ const initialState = {
         {
             name: 'Duplicate Action Set',
             id: Steps.DUPLICATE_ACTION_SET,
-            description: 'Create a duplicate of the action set',
+            description: 'Create a duplicate of the action set.',
             completion: {
                 done: false,
                 timestamp: null,

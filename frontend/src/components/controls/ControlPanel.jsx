@@ -67,48 +67,51 @@ const ControlPanel = () => {
 
     return (
         <div className="flex h-full w-full flex-col bg-slate-50">
-            <div className="flex flex-row items-center rounded-lg bg-slate-200 p-4 ">
-                <div className="flex items-center gap-x-3 rounded-lg bg-white px-4 py-2">
-                    <Label htmlFor="control-toggle " className="mr-4 whitespace-nowrap text-lg">
-                        <InfoHover text="Toggle between Axis and Joint controls" />
-                        Axis-Joint Controls
-                    </Label>
-                    <Switch
-                        className="scale-125 transform"
-                        id="control-toggle"
-                        checked={showAxisControls}
-                        onCheckedChange={() => setShowAxisControls(!showAxisControls)}
-                    />
-                </div>
+            <div className="mx-2 mt-2 flex flex-col gap-y-4 rounded-lg bg-slate-200 p-4">
+                <h1 className="mx-2 text-2xl font-bold">Control Panel</h1>
+                <div className="flex flex-row items-center ">
+                    <div className="flex items-center gap-x-3 rounded-lg bg-white px-4 py-2">
+                        <Label htmlFor="control-toggle " className="mr-4 whitespace-nowrap text-lg">
+                            <InfoHover text="Toggle between controlling coordinates + raw-pitch-yaw and individual joints" />
+                            {'X-Y-Z ⥄   Joint Controls'}
+                        </Label>
+                        <Switch
+                            className="scale-125 transform"
+                            id="control-toggle"
+                            checked={showAxisControls}
+                            onCheckedChange={() => setShowAxisControls(!showAxisControls)}
+                        />
+                    </div>
 
-                <div className="ml-auto flex w-fit items-center gap-x-3">
-                    <TooltipProvider>
-                        <Tooltip delayDuration={300}>
-                            <TooltipTrigger>
-                                <Button onClick={call_home}>
-                                    <HomeIcon className=" text-xl" /> Home Arm
-                                </Button>
-                            </TooltipTrigger>
+                    <div className="ml-auto flex w-fit items-center gap-x-3">
+                        <TooltipProvider>
+                            <Tooltip delayDuration={300}>
+                                <TooltipTrigger>
+                                    <Button onClick={call_home}>
+                                        <HomeIcon className=" text-xl" /> Home Arm
+                                    </Button>
+                                </TooltipTrigger>
 
-                            <TooltipContent>
-                                <p>Sets the default position </p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                                <TooltipContent>
+                                    <p>Sets the default position </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
-                    <TooltipProvider>
-                        <Tooltip delayDuration={300}>
-                            <TooltipTrigger>
-                                <Button onClick={call_stop_movement} variant="destructive">
-                                    <DangerousIcon className="text" /> Stop
-                                </Button>
-                            </TooltipTrigger>
+                        <TooltipProvider>
+                            <Tooltip delayDuration={300}>
+                                <TooltipTrigger>
+                                    <Button onClick={call_stop_movement} variant="destructive">
+                                        <DangerousIcon className="text" /> Stop
+                                    </Button>
+                                </TooltipTrigger>
 
-                            <TooltipContent>
-                                <p>Stop all movements</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                                <TooltipContent>
+                                    <p>Stop all movements</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </div>
             </div>
             {controlContent}
