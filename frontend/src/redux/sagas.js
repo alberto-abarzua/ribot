@@ -1,8 +1,8 @@
+import { evaluateStepMap, activityActions } from '@/redux/ActivitySlice';
 import { armPoseActions } from '@/redux/ArmPoseSlice';
 import api from '@/utils/api';
 import instanciatorApi from '@/utils/instanciator_api';
 import { call, put, delay, all, select } from 'redux-saga/effects';
-import { evaluateStepMap, activityActions } from '@/redux/ActivitySlice';
 
 function* callHealthCheck() {
     try {
@@ -28,10 +28,10 @@ function* watchCallHealthCheck() {
     }
 }
 
-function* storeState(state) {
+function storeState(state) {
     try {
         const serializedState = JSON.stringify(state);
-        console.log('Saving state:')
+        console.log('Saving state:');
         localStorage.setItem('state', serializedState);
     } catch (e) {
         console.warn('Failed to save state:', e);

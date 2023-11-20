@@ -1,6 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { loadState } from '@/utils/state';
 import { ActionTypes } from '@/utils/actions';
+import { loadState } from '@/utils/state';
+import { createSlice } from '@reduxjs/toolkit';
 
 const POSITION = {
     x: 370,
@@ -345,8 +345,7 @@ const initialState = {
         {
             name: 'Add Another Tool move and set to 0',
             id: Steps.ADD_TOOL_MOVE_TO_ACTION_LIST_2,
-            description:
-                'Add another tool move and set the tool value to 0',
+            description: 'Add another tool move and set the tool value to 0',
             completion: {
                 done: false,
                 timestamp: null,

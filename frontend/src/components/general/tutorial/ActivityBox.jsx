@@ -2,11 +2,10 @@ import { Progress } from '@/components/ui/progress';
 import { currentStepSelector } from '@/redux/ActivitySlice';
 import { activityActions } from '@/redux/ActivitySlice';
 import { prefillGoogleForm } from '@/utils/activity';
-import QuizIcon from '@mui/icons-material/Quiz';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import QuizIcon from '@mui/icons-material/Quiz';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { InsertDriveFile } from '@mui/icons-material';
 
 const ActivityBox = () => {
     const [isVisible, setIsVisible] = useState(false);

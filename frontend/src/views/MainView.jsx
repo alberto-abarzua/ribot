@@ -2,9 +2,9 @@ import ActionsPanel from '@/components/actions/ActionsPanel';
 import ArmSimulation from '@/components/armsimulation/ArmSimulation';
 import ArmStatus from '@/components/controls/ArmStatus';
 import ControlPanel from '@/components/controls/ControlPanel';
-import ActivityBox from '@/components/general/tutorial/ActivityBox';
 import SideNav from '@/components/general/layout/SideNav';
 import Providers from '@/components/general/providers/Providers';
+import ActivityBox from '@/components/general/tutorial/ActivityBox';
 import { Toaster } from '@/components/ui/toaster';
 
 export default function Home() {
