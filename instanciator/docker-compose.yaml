@@ -9,6 +9,7 @@ services:
     # depends_on:
     #   - certbot
     network_mode: host
+    restart: unless-stopped
 
   certbot:
     image: certbot/certbot
@@ -20,6 +21,8 @@ services:
     command: >
       'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
 
+    restart: unless-stopped
+
   unity_webgl_server:
     image: uintuser/ribot-unity-webgl-server
     ports:
@@ -29,6 +32,7 @@ services:
     image: redis:alpine
     ports:
       - 6379:6379
+    restart: unless-stopped
 
     volumes:
       - redis-data:/data

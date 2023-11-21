@@ -63,10 +63,11 @@ class Deploy:
             print(f"An error occurred while processing the environment file: {e}")
 
     def create_systemd_service(self):
-        script_command = f"{CURRENT_FILE_PATH}/deploy.py start"
 
+        working_directory = CURRENT_FILE_PATH/'backend'
+        script_command = "pdm run start"
         service_content = SYSTEMD_SERVICE_TEMPLATE.format(script_command=script_command,
-                                                          working_directory=str(CURRENT_FILE_PATH)
+                                                          working_directory=str(working_directory)
                                                           )
 
         service_file_path = '/etc/systemd/system/instanciator.service'
