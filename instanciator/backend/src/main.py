@@ -34,7 +34,7 @@ token_dependency = Depends(verify_token)
 instanciator_dependency = Depends(SingletonInstanceGenerator.get_instance)
 
 
-app = FastAPI()
+app = FastAPI(lifespan=instance_generator_lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,7 +52,7 @@ async def get_instances(instance_generator: InstanceGenerator = instanciator_dep
 
 
 @app.post("/instances/{uuid_str}/destroy")
-async def destroy_instance( uuid_str: str,instance_generator: InstanceGenerator = instanciator_dependency, _: str = token_dependency) -> Dict[str, Any]:
+async def destroy_instance(uuid_str: str, instance_generator: InstanceGenerator = instanciator_dependency, _: str = token_dependency) -> Dict[str, Any]:
     instance_generator.stop_by_uuid(uuid_str)
     return {"status": "ok"}
 
@@ -98,7 +98,7 @@ async def get_backend_port(request: Request, response: Response, instance_genera
 
 
 @app.get("/health_check/")
-async def health_check(request: Request,instance_generator: InstanceGenerator = instanciator_dependency) -> Dict[str, Any]:
+async def health_check(request: Request, instance_generator: InstanceGenerator = instanciator_dependency) -> Dict[str, Any]:
     instance_id_cookie = request.cookies.get("instance_id")
 
     if not instance_id_cookie:
