@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, List
 import dataclasses
 import redis
 import pickle
-from threading import RLock, Event, Timer
+from threading import RLock, Event, Thread
 
 PARENT_FILE_PATH = Path(__file__).parent
 
@@ -36,10 +36,10 @@ class Ports:
 class Instance:
     instance_uuid: str
     time_created: float
-    free: bool
+    free: bool = True
     ports: Ports
-    time_last_health_check: Optional[float]
-    access_token: Optional[str]
+    time_last_health_check: Optional[float] = None
+    access_token: Optional[str] = None
 
     def __init__(self):
         self.instance_uuid = str(uuid.uuid4())
@@ -187,6 +187,7 @@ class InstanceGenerator:
         self.max_instances = int(os.environ.get("MAX_INSTANCES", 20))
         self.check_interval = 20
         self.prune_interval = 60 * 60
+        self.threads = []
         self.start_instance_checker()
 
     @staticmethod
@@ -211,9 +212,23 @@ class InstanceGenerator:
                 raise
         return wrapper
 
+    def instance_checker_wrapper(self):
+        while not self.stop_event.wait(self.check_interval):
+            self.instance_checker_target_fun()
+
     def start_instance_checker(self) -> None:
-        self.instance_checker_target_fun()
-        self.prune_target_fun()
+
+        instance_checker_thread = Thread(target=self.instance_checker_wrapper)
+        print("starting instance checker")
+        instance_checker_thread.start()
+
+        prune_thread = Thread(target=self.prune_target_fun)
+        print("starting prune thread")
+        prune_thread.start()
+
+        self.threads.append(instance_checker_thread)
+        self.threads.append(prune_thread)
+        print("started threads")
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
@@ -242,9 +257,12 @@ class InstanceGenerator:
                 print("creating new instance")
                 self.create_instance()
 
-            Timer(self.check_interval, self.instance_checker_target_fun).start()
         except Exception as e:
             print(f"Unexpected error: {e}")
+
+    def prune_target_fun(self) -> None:
+        while not self.stop_event.wait(self.prune_interval):
+            self.prune()
 
     def prune(self) -> None:
         command = ["docker", "system", "prune", "-f"]
@@ -252,10 +270,6 @@ class InstanceGenerator:
             subprocess.check_call(command)
         except subprocess.CalledProcessError:
             pass
-
-    def prune_target_fun(self) -> None:
-        self.prune()
-        Timer(self.prune_interval, self.prune_target_fun).start()
 
     @redis_instances
     def get_free_instance(self, access_token: str) -> Instance:
@@ -307,3 +321,20 @@ class InstanceGenerator:
         instance = self.get_instance_by_uuid(instance_uuid)
         if instance is not None:
             instance.set_last_health_check()
+
+    def stop(self) -> None:
+        print("stopping instance generator")
+        self.stop_event.set()
+        for thread in self.threads:
+            thread.join()
+        print("stopped instance generator")
+
+
+class SingletonInstanceGenerator:
+    instance: Optional[InstanceGenerator] = None
+
+    @staticmethod
+    def get_instance() -> InstanceGenerator:
+        if SingletonInstanceGenerator.instance is None:
+            SingletonInstanceGenerator.instance = InstanceGenerator()
+        return SingletonInstanceGenerator.instance
