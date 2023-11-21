@@ -65,7 +65,7 @@ class Deploy:
     def create_systemd_service(self):
 
         working_directory = CURRENT_FILE_PATH/'backend'
-        script_command = "pdm run start"
+        script_command = "/root/.local/bin/pdm run start"
         service_content = SYSTEMD_SERVICE_TEMPLATE.format(script_command=script_command,
                                                           working_directory=str(working_directory)
                                                           )
