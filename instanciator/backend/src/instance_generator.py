@@ -212,46 +212,53 @@ class InstanceGenerator:
                 raise
         return wrapper
 
+    def instance_checker_wrapper(self):
+        while not self.stop_event.wait(self.check_interval):
+            self.instance_checker_target_fun()
+
     def start_instance_checker(self) -> None:
-        instance_checker_thread = Thread(target=self.instance_checker_target_fun)
+
+        instance_checker_thread = Thread(target=self.instance_checker_wrapper)
+        print("starting instance checker")
         instance_checker_thread.start()
 
         prune_thread = Thread(target=self.prune_target_fun)
+        print("starting prune thread")
         prune_thread.start()
 
         self.threads.append(instance_checker_thread)
         self.threads.append(prune_thread)
+        print("started threads")
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
-        while not self.stop_event.wait(self.check_interval):
-            try:
-                print("checking instances")
-                for instance in self.instances:
-                    if instance.should_stop():
-                        instance.stop()
-                        self.instances.remove(instance)
+        try:
+            print("checking instances")
+            for instance in self.instances:
+                if instance.should_stop():
+                    instance.stop()
+                    self.instances.remove(instance)
 
-                num_instances = len(self.instances)
-                if num_instances > self.max_instances:
-                    free_instances = [instance for instance in self.instances if instance.free]
-                    if len(free_instances) == 0:
-                        print("no free instances, can't stop")
-                        oldest_instance = self.instances[-1]
-                    else:
-                        oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
+            num_instances = len(self.instances)
+            if num_instances > self.max_instances:
+                free_instances = [instance for instance in self.instances if instance.free]
+                if len(free_instances) == 0:
+                    print("no free instances, can't stop")
+                    oldest_instance = self.instances[-1]
+                else:
+                    oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
 
-                    oldest_instance.stop()
-                    self.instances.remove(oldest_instance)
+                oldest_instance.stop()
+                self.instances.remove(oldest_instance)
 
-                num_free = sum(1 for instance in self.instances if instance.free)
+            num_free = sum(1 for instance in self.instances if instance.free)
 
-                if num_free < self.min_instances and num_instances < self.max_instances:
-                    print("creating new instance")
-                    self.create_instance()
+            if num_free < self.min_instances and num_instances < self.max_instances:
+                print("creating new instance")
+                self.create_instance()
 
-            except Exception as e:
-                print(f"Unexpected error: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
     def prune_target_fun(self) -> None:
         while not self.stop_event.wait(self.prune_interval):
