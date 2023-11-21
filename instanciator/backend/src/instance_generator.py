@@ -36,10 +36,10 @@ class Ports:
 class Instance:
     instance_uuid: str
     time_created: float
-    free: bool
+    free: bool = True
     ports: Ports
-    time_last_health_check: Optional[float]
-    access_token: Optional[str]
+    time_last_health_check: Optional[float] = None
+    access_token: Optional[str] = None
 
     def __init__(self):
         self.instance_uuid = str(uuid.uuid4())
@@ -217,34 +217,39 @@ class InstanceGenerator:
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
-        try:
-            print("checking instances")
-            for instance in self.instances:
-                if instance.should_stop():
-                    instance.stop()
-                    self.instances.remove(instance)
+       while not self.stop_event.wait(self.check_interval): 
+            try:
+                print("checking instances")
+                for instance in self.instances:
+                    if instance.should_stop():
+                        instance.stop()
+                        self.instances.remove(instance)
 
-            num_instances = len(self.instances)
-            if num_instances > self.max_instances:
-                free_instances = [instance for instance in self.instances if instance.free]
-                if len(free_instances) == 0:
-                    print("no free instances, can't stop")
-                    oldest_instance = self.instances[-1]
-                else:
-                    oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
+                num_instances = len(self.instances)
+                if num_instances > self.max_instances:
+                    free_instances = [instance for instance in self.instances if instance.free]
+                    if len(free_instances) == 0:
+                        print("no free instances, can't stop")
+                        oldest_instance = self.instances[-1]
+                    else:
+                        oldest_instance = min(free_instances, key=lambda instance: instance.time_created)
 
-                oldest_instance.stop()
-                self.instances.remove(oldest_instance)
+                    oldest_instance.stop()
+                    self.instances.remove(oldest_instance)
 
-            num_free = sum(1 for instance in self.instances if instance.free)
+                num_free = sum(1 for instance in self.instances if instance.free)
 
-            if num_free < self.min_instances and num_instances < self.max_instances:
-                print("creating new instance")
-                self.create_instance()
+                if num_free < self.min_instances and num_instances < self.max_instances:
+                    print("creating new instance")
+                    self.create_instance()
 
-            Timer(self.check_interval, self.instance_checker_target_fun).start()
-        except Exception as e:
-            print(f"Unexpected error: {e}")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+
+
+    def prune_target_fun(self) -> None:
+        while not self.stop_event.wait(self.prune_interval):
+            self.prune()
 
     def prune(self) -> None:
         command = ["docker", "system", "prune", "-f"]
@@ -252,10 +257,6 @@ class InstanceGenerator:
             subprocess.check_call(command)
         except subprocess.CalledProcessError:
             pass
-
-    def prune_target_fun(self) -> None:
-        self.prune()
-        Timer(self.prune_interval, self.prune_target_fun).start()
 
     @redis_instances
     def get_free_instance(self, access_token: str) -> Instance:
@@ -307,3 +308,16 @@ class InstanceGenerator:
         instance = self.get_instance_by_uuid(instance_uuid)
         if instance is not None:
             instance.set_last_health_check()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+
+
+class SingletonInstanceGenerator:
+    instance: Optional[InstanceGenerator] = None
+
+    @staticmethod
+    def get_instance() -> InstanceGenerator:
+        if SingletonInstanceGenerator.instance is None:
+            SingletonInstanceGenerator.instance = InstanceGenerator()
+        return SingletonInstanceGenerator.instance
