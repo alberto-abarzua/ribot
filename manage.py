@@ -479,7 +479,13 @@ class Manager:
         exit(0)
 
     def parse_and_execute(self):
-        self.source_env('.env')
+
+        try:
+            self.source_env('.env')
+        except FileNotFoundError:
+            print("No .env file found, using default environment variables")
+            self.source_env('.env.template')
+
         signal.signal(signal.SIGINT, self.handle_sigint)
         parser = argparse.ArgumentParser(
             description='Robot arm manager.',
