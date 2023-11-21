@@ -323,9 +323,11 @@ class InstanceGenerator:
             instance.set_last_health_check()
 
     def stop(self) -> None:
+        print("stopping instance generator")
         self.stop_event.set()
         for thread in self.threads:
             thread.join()
+        print("stopped instance generator")
 
 
 class SingletonInstanceGenerator:
