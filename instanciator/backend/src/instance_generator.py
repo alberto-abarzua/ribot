@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, List
 import dataclasses
 import redis
 import pickle
-from threading import RLock, Event, Timer
+from threading import RLock, Event, Thread
 
 PARENT_FILE_PATH = Path(__file__).parent
 
@@ -187,6 +187,7 @@ class InstanceGenerator:
         self.max_instances = int(os.environ.get("MAX_INSTANCES", 20))
         self.check_interval = 20
         self.prune_interval = 60 * 60
+        self.threads = []
         self.start_instance_checker()
 
     @staticmethod
@@ -212,12 +213,18 @@ class InstanceGenerator:
         return wrapper
 
     def start_instance_checker(self) -> None:
-        self.instance_checker_target_fun()
-        self.prune_target_fun()
+        instance_checker_thread = Thread(target=self.instance_checker_target_fun)
+        instance_checker_thread.start()
+
+        prune_thread = Thread(target=self.prune_target_fun)
+        prune_thread.start()
+
+        self.threads.append(instance_checker_thread)
+        self.threads.append(prune_thread)
 
     @redis_instances
     def instance_checker_target_fun(self) -> None:
-       while not self.stop_event.wait(self.check_interval): 
+        while not self.stop_event.wait(self.check_interval):
             try:
                 print("checking instances")
                 for instance in self.instances:
@@ -245,7 +252,6 @@ class InstanceGenerator:
 
             except Exception as e:
                 print(f"Unexpected error: {e}")
-
 
     def prune_target_fun(self) -> None:
         while not self.stop_event.wait(self.prune_interval):
@@ -311,6 +317,8 @@ class InstanceGenerator:
 
     def stop(self) -> None:
         self.stop_event.set()
+        for thread in self.threads:
+            thread.join()
 
 
 class SingletonInstanceGenerator:
