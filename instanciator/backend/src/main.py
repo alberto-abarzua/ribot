@@ -10,7 +10,7 @@ from src.instance_generator import SingletonInstanceGenerator, InstanceGenerator
 @asynccontextmanager
 async def instance_generator_lifespan(_: FastAPI):  # type: ignore # noqa: ANN201
     instance_generator = SingletonInstanceGenerator.get_instance()
-
+    print("Starting instance generator")
     yield
 
     instance_generator.stop()
@@ -47,6 +47,7 @@ app.add_middleware(
 
 @app.get("/instances/")
 async def get_instances(instance_generator: InstanceGenerator = instanciator_dependency, _: str = token_dependency) -> List[Dict[str, Any]]:
+
     instances = instance_generator.get_instances()
     return instances
 
