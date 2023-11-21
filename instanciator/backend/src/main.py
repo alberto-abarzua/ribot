@@ -13,6 +13,7 @@ async def instance_generator_lifespan(_: FastAPI):  # type: ignore # noqa: ANN20
     print("Starting instance generator")
     yield
 
+    print("Stopping instance generator")
     instance_generator.stop()
 
 
