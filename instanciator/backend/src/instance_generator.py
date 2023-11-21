@@ -39,6 +39,7 @@ class Instance:
     free: bool
     ports: Ports
     time_last_health_check: Optional[float]
+    access_token: Optional[str]
 
     def __init__(self):
         self.instance_uuid = str(uuid.uuid4())
@@ -47,6 +48,7 @@ class Instance:
         self.time_old_health_check = 60 * 5
         self.time_last_health_check = None
         self.free = True
+        self.access_token = None
 
         self.ports = Ports(
             backend_http_port=self.get_free_port(),
@@ -165,6 +167,7 @@ class Instance:
             "time_last_health_check": self.time_last_health_check,
             "readable_time_last_health_check": time.ctime(self.time_last_health_check) if self.time_last_health_check is not None else "None",
             "healthy": self.health_check(),
+            "access_token": self.access_token
         }
 
 
@@ -255,14 +258,16 @@ class InstanceGenerator:
         Timer(self.prune_interval, self.prune_target_fun).start()
 
     @redis_instances
-    def get_free_instance(self) -> Instance:
+    def get_free_instance(self, access_token: str) -> Instance:
         for instance in self.instances:
             if instance.free:
                 instance.free = False
+                instance.access_token = access_token
                 instance.set_last_health_check()
                 return instance
 
         new_instance = self.create_instance()
+        new_instance.access_token = access_token
         new_instance.free = False
         return new_instance
 
