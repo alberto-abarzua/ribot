@@ -20,6 +20,7 @@ import { ItemTypes } from '@/utils/ItemTypes';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DownloadIcon from '@mui/icons-material/Download';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -35,6 +36,7 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
     const id = action.id;
     const dispatch = useDispatch();
     const [url, setUrl] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         let actionForDownload = getActionForDownload(action);
@@ -155,10 +157,20 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
                                 <CloseIcon className="text-xl" />
                             </div>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger>
-                                    <div className="absolute bottom-0 right-0 mt-10 flex cursor-pointer items-center justify-center rounded-tl-md p-3 text-white transition-all duration-300 hover:bg-gray-100 hover:text-gray-500">
-                                        <MenuOpenIcon className="relative -right-1  scale-150 transform" />
+                            <DropdownMenu
+                                open={menuOpen}
+                                onOpenChange={() => {
+                                    setMenuOpen(false);
+                                }}
+                            >
+                                <DropdownMenuTrigger
+                                    onClick={event => {
+                                        event.preventDefault();
+                                        setMenuOpen(true);
+                                    }}
+                                >
+                                    <div className="absolute -bottom-2 right-0 mt-10 flex cursor-pointer items-center justify-center rounded-tl-md p-3 text-white transition-all duration-300 hover:bg-gray-100 hover:text-gray-500">
+                                        <MoreHorizIcon className="relative -right-1  scale-150 transform" />
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>

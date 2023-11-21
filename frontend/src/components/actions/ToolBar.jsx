@@ -56,7 +56,7 @@ const ToolBar = () => {
             type: ActionTypes.MOVE,
             value: moveValue,
             hovercolor: 'hover:bg-action-move-hover',
-            helpText: 'Move Addction: Move to a pose (Uses current pose as base)',
+            helpText: 'Move Action: Move to a position',
         },
         {
             name: 'Sleep',
