@@ -62,7 +62,7 @@ const ActivityBox = () => {
 
     return (
         <div
-            className={`absolute left-1/2 top-2 z-20 flex w-1/4 transform flex-col justify-center  rounded-md border border-gray-700 bg-purple-700 bg-opacity-90  p-4 text-white transition-all  duration-500 ${
+            className={`absolute left-[55%] top-2 z-20 flex w-[28%] transform flex-col justify-center  rounded-md border border-gray-700 bg-purple-700 bg-opacity-90  p-4 text-white transition-all  duration-500 ${
                 isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
             }`}
         >
