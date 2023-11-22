@@ -112,14 +112,23 @@ export default function Home() {
           <h3 className="text-2xl font-bold">La Actividad!</h3>
           <div className="flex items-start justify-start gap-x-20 ">
             <div className="flex-col flex lg:flex-row">
-              <p className="text-lg flex-1 px-2 py-3">
-                Veras un recuadro morado como el de la imagen de la derecha.
-                Este recuadro te dira que hacer en cada paso. Sigue las
-                instrucciones y completa la actividad. Al final se abrirá un
-                formulario para que puedas dejar tus comentarios sobre la
-                actividad. (Es importante que completes el formulario para que
-                la actividad sea válida)
-              </p>
+              <div>
+                <p className="text-lg flex-1 px-2 py-3">
+                  El objetivo de esta actividad sera guiarte a través de la
+                  plataforma para que puedas mover el brazo robótico de manera
+                  libre y generar bloques de acciones para 'programar' el brazo
+                  y que este realice una tarea.
+                </p>
+
+                <p className="text-lg flex-1 px-2 py-3">
+                  Veras un recuadro morado como el de la imagen de la derecha.
+                  Este recuadro te dira que hacer en cada paso. Sigue las
+                  instrucciones y completa la actividad. Al final se abrirá un
+                  formulario para que puedas dejar tus comentarios sobre la
+                  actividad. (Es importante que completes el formulario para que
+                  la actividad sea válida)
+                </p>
+              </div>
 
               <img
                 src={ActivityBox}

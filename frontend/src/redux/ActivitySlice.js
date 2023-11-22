@@ -246,7 +246,8 @@ const initialState = {
         {
             name: 'Home the Arm',
             id: Steps.HOME_ARM,
-            description: 'Press the "Home Arm" button.',
+            description:
+                'Press the "Home Arm" button to initialize the arm at its default position.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -309,9 +310,10 @@ const initialState = {
             },
         },
         {
-            name: 'Set Sleep Duration to 1',
+            name: 'Move and Set Sleep Duration to 1',
             id: Steps.SET_SLEEP_DURATION_TO_1,
-            description: 'Set the duration of the sleep action to 1.',
+            description:
+                'Drag the sleep action between the two move actions and set the duration of it to 1.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -367,8 +369,8 @@ const initialState = {
             name: 'Go to Position',
             id: Steps.GO_TO_POSITION,
             description:
-                'Move close to the following position using the control panel (Toggle to X,Y,Z Mode), or by modifiying the values in a move action',
-            extra: 'X: 370 | Y: 100 | Z: 100 | Roll: 0 | Pitch: 60 | Yaw: 15',
+                'Imagine there is a cube you need to grab in the following position. Move close to it changing the values of a move action or by moving using the control panel (X,Y,Z) Mode',
+            extra: 'Cube Position: X: 370 | Y: 100 | Z: 100 | Roll: 0 | Pitch: 60 | Yaw: 15',
             completion: {
                 done: false,
                 timestamp: null,
@@ -405,7 +407,7 @@ const initialState = {
         {
             name: 'Move All to Action Set',
             id: Steps.MOVE_ALL_TO_ACTION_SET,
-            description: 'Move all actions into the action set by dragging them into the set.',
+            description: 'Organize your action list: Move all actions into the action set by dragging them into the set.',
             completion: {
                 done: false,
                 timestamp: null,
@@ -423,7 +425,7 @@ const initialState = {
         {
             name: 'Duplicate Action Set',
             id: Steps.DUPLICATE_ACTION_SET,
-            description: 'Create a duplicate of the action set.',
+            description: 'No need to do it all again: Create a duplicate of the action set.',
             completion: {
                 done: false,
                 timestamp: null,
