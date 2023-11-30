@@ -92,12 +92,8 @@ Below is an example illustrating how to use the `ribot-controller` library to co
 ```python
 from ribot.control.arm_kinematics import ArmParameters, ArmPose
 from ribot.controller import ArmController, Settings
-from ribot.utils.prints import console
 
 if __name__ == "__main__":
-    console.log("Starting sample_main.py!", style="bold green")
-    EPSILON = 0.01
-
     # Arm parameters (Physical dimensions of the arm)
     arm_params: ArmParameters = ArmParameters()
     arm_params.a2x = 0
@@ -130,7 +126,7 @@ if __name__ == "__main__":
     # Move the tool (rads)
     controller.set_tool_value(1.2)
 
-    print("Arm was homed?", controller.is_homed)
+    print("Homed:", controller.is_homed)
 ```
 
 This example demonstrates initializing the controller, setting up the arm parameters, and executing various movements including positioning, angling, and tool manipulation.
