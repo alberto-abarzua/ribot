@@ -18,19 +18,17 @@ const JointsControls = () => {
     };
 
     return (
-        <div className="flex w-fit flex-wrap items-center  gap-4 p-4">
+        <div className="flex w-fit flex-wrap items-center  gap-4 p-2">
             <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
-                <div>
+                <div className="flex w-1/2 justify-between">
                     <h3 className="mb-2 text-lg font-medium">Joint Controls</h3>
-                </div>
-                <div className="w-2/3">
                     <TextVariableInfo
                         label="Step Size"
                         value={angleStep}
                         setValue={setAngleStep}
                         infoText={'The amount each joint will move'}
                     ></TextVariableInfo>
-                </div>{' '}
+                </div>
                 <div className="flex flex-row justify-center gap-2">
                     {' '}
                     {currentAngles.map((_, index) => (

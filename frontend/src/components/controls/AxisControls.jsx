@@ -36,12 +36,11 @@ const AxisControls = () => {
     };
 
     return (
-        <div className="flex flex-wrap items-center gap-4 p-4">
-            <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
-                <div>
-                    <h3 className="mb-2 text-lg font-medium">Coordinates Control</h3>
-                </div>
-                <div className="w-2/3">
+        <div className="flex flex-wrap items-center gap-2 p-2">
+            <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-2 shadow-md">
+                <div className="flex justify-between ">
+                    <h3 className="mb-2text-lg font-medium">Coordinates Control</h3>
+
                     <TextVariableInfo
                         label="Step Size"
                         value={coordsStep}
@@ -49,6 +48,7 @@ const AxisControls = () => {
                         infoText={'The amount the arm moves for coordinate changes'}
                     ></TextVariableInfo>
                 </div>
+
                 <div className="flex flex-row justify-center">
                     <MoveAxis
                         label="X"
@@ -71,11 +71,9 @@ const AxisControls = () => {
                 </div>
             </div>
 
-            <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-4 shadow-md">
-                <div>
+            <div className="flex flex-1 flex-col rounded-md bg-slate-200 p-2 shadow-md">
+                <div className="flex justify-between ">
                     <h3 className="mb-2 text-lg font-medium">Angles Control</h3>
-                </div>
-                <div className="w-2/3">
                     <TextVariableInfo
                         label="Step Size"
                         value={anglesStep}

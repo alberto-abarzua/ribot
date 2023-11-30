@@ -12,11 +12,11 @@ const MoveAxis = ({ label, value, setValue, step_amount = 10 }) => {
     };
 
     return (
-        <div className="inline-flex h-36 w-24 flex-col items-center justify-start gap-2 px-1">
+        <div className="m-0 flex h-36 w-24 flex-col items-center justify-center gap-y-1 p-0">
             <div className="text-base font-bold text-black">{label}</div>
             <button
                 onClick={upValue}
-                className="flex h-7 w-20 flex-col items-center justify-center gap-2.5 rounded bg-slate-400 p-2.5 text-white shadow hover:bg-slate-600"
+                className="flex h-7 w-20 items-center  justify-center  rounded-sm bg-slate-400 p-1 text-white shadow hover:bg-slate-600"
             >
                 +
             </button>
@@ -27,7 +27,7 @@ const MoveAxis = ({ label, value, setValue, step_amount = 10 }) => {
             </div>
             <button
                 onClick={downValue}
-                className="flex h-7  w-20 flex-col items-center justify-center gap-2.5 rounded-sm bg-slate-400 p-2.5 text-white shadow hover:bg-slate-600"
+                className="flex h-7 w-20 items-center  justify-center  rounded-sm bg-slate-400 p-1 text-white shadow hover:bg-slate-600"
             >
                 -
             </button>

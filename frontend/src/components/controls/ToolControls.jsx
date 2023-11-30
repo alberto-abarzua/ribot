@@ -14,11 +14,9 @@ const ToolControls = () => {
     const [toolStep, setToolStep] = useState(10);
 
     return (
-        <div className="flex flex-col  rounded-md bg-slate-200 p-4 shadow-md ">
-            <div>
+        <div className="flex flex-col  rounded-md bg-slate-200 p-2 shadow-md ">
+            <div className="flex flex-col justify-between">
                 <h3 className="mb-2 text-lg font-medium">Tool Control</h3>
-            </div>
-            <div className="w-2/3">
                 <TextVariableInfo
                     label="Step Size"
                     value={toolStep}
@@ -26,7 +24,6 @@ const ToolControls = () => {
                     infoText={'The amount the tool will move (not precise)'}
                 ></TextVariableInfo>
             </div>
-
             <div className="flex flex-row justify-center">
                 <MoveAxis
                     label="Tool Value"
