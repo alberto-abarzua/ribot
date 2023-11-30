@@ -32,10 +32,10 @@ const Tutorial = ({ toggleShow }) => {
 
     return (
         <div
-            className="fixed inset-0 z-40 flex flex-wrap items-center justify-center bg-black bg-opacity-50"
+            className="fixed inset-0 z-40 flex flex-wrap items-center justify-center bg-gray-500/50 "
             onClick={handleBackdropClick}
         >
-            <div className="bg-opacity-85 relative z-50 flex h-[95%] w-11/12 flex-wrap items-start justify-center gap-4 overflow-auto rounded-md bg-slate-100 p-9 shadow-lg">
+            <div className="relative z-50  grid h-[95%] w-11/12 grid-cols-3 grid-rows-1 gap-4 overflow-auto rounded-md bg-slate-100 p-9 shadow-lg">
                 <button
                     onClick={() => toggleShow(false)}
                     className="absolute right-0 top-0 m-3 text-lg hover:text-gray-500"

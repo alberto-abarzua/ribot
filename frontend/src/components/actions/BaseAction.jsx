@@ -124,11 +124,13 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
             <AutorenewIcon className="animate-spin text-4xl transition-all duration-300 group-hover:text-gray-600" />
         ) : (
             <div className="p-3" onMouseDown={e => e.stopPropagation()} ref={drag}>
-                <DragIndicatorIcon className="mx-3 scale-150 transform transition-all duration-300 hover:text-slate-300" />
+                <DragIndicatorIcon className="mx-2 -translate-x-1 scale-150 transform transition-all duration-300 hover:text-slate-300" />
             </div>
         )
     ) : (
-        <ErrorIcon className="scale-150 transform text-red-500 transition-all duration-300 group-hover:text-gray-600" />
+        <div className="tranform animate-bounce">
+            <ErrorIcon className="scale-[1.6] transform text-red-600 transition-all duration-300 group-hover:text-red-600" />
+        </div>
     );
 
     if (!isDragging) {
@@ -137,8 +139,8 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
                 <ContextMenuTrigger>
                     <div
                         className={`transform transition-all ${
-                            valid ? '' : 'bg-red-900'
-                        } duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-4 overflow-hidden rounded-md px-6 py-3 text-white shadow`}
+                            valid ? '' : ' bg-opacity-70'
+                        } duration-100 ${className} group relative flex w-full shrink-0 items-center justify-center space-x-2 overflow-hidden rounded-md px-3 py-3 text-white shadow`}
                         {...props}
                         ref={ref}
                         data-handler-id={handlerId}
@@ -168,8 +170,8 @@ const BaseAction = ({ icon, children, className, action, ...props }) => {
                                         setMenuOpen(true);
                                     }}
                                 >
-                                    <div className="absolute -bottom-2 right-0 mt-10 flex cursor-pointer items-center justify-center rounded-tl-md p-3 text-white transition-all duration-300 hover:bg-gray-100 hover:text-gray-500">
-                                        <MoreHorizIcon className="relative -right-1  scale-150 transform" />
+                                    <div className="absolute bottom-0 right-0 flex cursor-pointer items-center justify-center rounded-tl-md p-1 px-2 text-white transition-all duration-300 hover:bg-gray-100 hover:text-gray-500">
+                                        <MoreHorizIcon className=" scale-150 transform" />
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>

@@ -101,21 +101,22 @@ def extract_euler_angles(R: np.ndarray) -> list[float]:
         raise ValueError("R must be a 3x3 matrix.")
 
     if R[2, 0] != 1 and R[2, 0] != -1:
+
+        roll = np.arctan2(R[2, 1], R[2, 2])
+
         pitch = -np.arcsin(R[2, 0])
 
-        roll = np.arctan2(R[2, 1] / np.cos(pitch), R[2, 2] / np.cos(pitch))
-
-        yaw = np.arctan2(R[1, 0] / np.cos(pitch), R[0, 0] / np.cos(pitch))
+        yaw = np.arctan2(R[1, 0], R[0, 0])
 
         return [float(roll), float(pitch), float(yaw)]
     else:
         yaw = 0
         if R[2, 0] == -1:
             pitch = np.pi / 2.0
-            roll = yaw + np.arctan2(R[0, 1], R[0, 2])
+            roll = np.arctan2(R[0, 1], R[0, 2])
         else:
             pitch = -np.pi / 2.0
-            roll = -yaw + np.arctan2(-R[0, 1], -R[0, 2])
+            roll = np.arctan2(-R[0, 1], -R[0, 2])
 
         return [float(roll), float(pitch), float(yaw)]
 

@@ -407,7 +407,8 @@ const initialState = {
         {
             name: 'Move All to Action Set',
             id: Steps.MOVE_ALL_TO_ACTION_SET,
-            description: 'Organize your action list: Move all actions into the action set by dragging them into the set.',
+            description:
+                'Organize your action list: Move all actions into the action set by dragging them into the set.',
             completion: {
                 done: false,
                 timestamp: null,

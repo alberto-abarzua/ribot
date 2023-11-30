@@ -23,6 +23,7 @@ const ActionPanel = () => {
     const { toast } = useToast();
     const dispatch = useDispatch();
 
+    console.log('rendering action panel');
     const actionSlice = useSelector(state => state.actionList);
 
     const isHomed = useSelector(state => state.armPose.isHomed);
