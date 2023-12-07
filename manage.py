@@ -7,6 +7,7 @@ import re
 import os
 import signal
 import socket
+import toml
 from typing import List
 from pathlib import Path
 import serial.tools.list_ports
@@ -146,27 +147,27 @@ class Manager:
             print(f"Error obtaining IP address: {e}")
             exit(1)
 
+    def source_settings(self, file_path):
+        with open(file_path, 'r') as f:
+            settings = toml.load(f)
+            print(settings)
+            for field, value_dict in settings.items():
+                for sub_key, value in value_dict.items():
+                    os.environ[f"{field}_{sub_key}".upper()] = str(value)
+            print(os.environ)
+
     def source_env(self, file_path):
         pattern = re.compile(r'^(?:export\s+)?([\w\.]+)\s*=\s*(.*)$')
-
-        try:
-            with open(file_path, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith('#') or not line:
-                        continue
-                    match = pattern.match(line)
-                    if match:
-                        key, value = match.groups()
-                        # Remove leading and trailing quotes if present
-                        value = value.strip('\'"')
-                        os.environ[key] = value
-        except FileNotFoundError:
-            print(f"File not found: {file_path}")
-        except IOError as e:
-            print(f"Error reading file {file_path}: {e}")
-        except Exception as e:
-            print(f"An error occurred while processing the environment file: {e}")
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('#') or not line:
+                    continue
+                match = pattern.match(line)
+                if match:
+                    key, value = match.groups()
+                    value = value.strip('\'"')
+                    os.environ[key] = value
 
     def build_firmware(self, **kwargs):
         locally = kwargs.get('locally', False)
@@ -311,6 +312,14 @@ class Manager:
 
         flash = kwargs.get('flash', False)
         locally = kwargs.get('locally', False)
+        ssid = kwargs.get('ssid', None)
+        password = kwargs.get('password', None)
+
+        if ssid is not None:
+            os.environ['ESP_WIFI_SSID'] = ssid
+
+        if password is not None:
+            os.environ['ESP_WIFI_PASSWORD'] = password
 
         os.environ['ESP_CONTROLLER_SERVER_HOST'] = self.current_host_ip
         os.environ['VERBOSE'] = '1'
@@ -481,10 +490,16 @@ class Manager:
     def parse_and_execute(self):
 
         try:
-            self.source_env('.env')
+            self.source_env(".env")
         except FileNotFoundError:
-            print("No .env file found, using default environment variables")
-            self.source_env('.env.template')
+            print("No .env file found. Continuing without environment variables")
+            self.source_settings("settings.toml")
+
+        try:
+            # self.source_settings("secrets.toml")
+            pass
+        except FileNotFoundError:
+            print("No secrets.toml file found. Continuing without secrets")
 
         signal.signal(signal.SIGINT, self.handle_sigint)
         parser = argparse.ArgumentParser(
@@ -552,6 +567,11 @@ class Manager:
 
         parser_build_esp.add_argument(
             '--flash', '-f', action='store_true', help='Build and flash firmware to esp32')
+
+        parser_build_esp.add_argument(
+            '--ssid', help='SSID for wifi')
+        parser_build_esp.add_argument(
+            '--password', help='Password for wifi')
 
         # --------------
         # Format code

@@ -12,6 +12,7 @@
 sdkconfig
 sdkconfig.old
 
+secrets.toml
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
