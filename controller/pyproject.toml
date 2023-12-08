@@ -48,7 +48,9 @@ isort = "isort src"
 black = "black src"
 pure_lint = "flake8 src"
 type_check = "mypy src"
-test = "python -m unittest discover -s src/ribot/tests -p 'test_*.py' -v"
+test_no_sleep = "python -m unittest discover -s src/ribot/tests -p 'test_*.py' -v"
+sleep = "sleep 3"
+test = {composite = ["test_no_sleep", "sleep"]}
 format = {composite = ["isort", "black"]}
 lint = {composite = ["pure_lint", "type_check"]}
 main = "python src/ribot/sample_main.py"

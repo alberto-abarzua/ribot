@@ -53,6 +53,7 @@ class TestController(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cls.controller.stop()
+        time.sleep(3)
 
     def tearDown(self) -> None:
         self.controller.move_joints_to([0, 0, 0, 0, 0, 0])
@@ -271,3 +272,6 @@ class TestController(unittest.TestCase):
         self.controller.stop_movement()
         time.sleep(0.5)
         self.assertEqual(self.controller.move_queue_size, 0)
+
+    if __name__ == "__main__":
+        unittest.main()

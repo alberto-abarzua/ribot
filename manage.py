@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from logging import captureWarnings
 from sys import stdout
 import time
 import argparse
@@ -73,7 +74,7 @@ class DockerManger:
             file_list.extend(['-f', self.get_service_from_name(service).full_path])
         return file_list
 
-    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False, mute=False):
+    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False):
         command_list = command.split(' ')
         service = self.get_service_from_name(service_name)
 
@@ -88,15 +89,11 @@ class DockerManger:
 
         new_command.extend(command_list)
 
-        try:
-            result = subprocess.run(new_command, env={**os.environ, **env}, check=True,
-                                    stderr=subprocess.PIPE)
-            print(result.stderr.decode('utf-8'))
-            return result.returncode
-        except subprocess.CalledProcessError as e:
-            print("Command failed with the following output:")
-            print(e.output.decode('utf-8'))  # Output includes both stdout and stderr
-            return e.returncode
+        result = subprocess.run(new_command, env={**os.environ, **env})
+        # repalce with os.system to get output
+        # result = os.system(' '.join(new_command))
+
+        return result.returncode
 
     def dc_up(self, files: List[str], env: dict = {}, detached=False):
 
@@ -123,7 +120,13 @@ class DockerManger:
 
     def dc_command(self, files: List[str], command: str):
         file_list = self.get_file_list(files)
-        command_list = command.split(' ')
+        command_list = []
+
+        if "run" in command:
+            command_list += ["run", "--service-ports", "--use-aliases"]
+            command_list += command.split(' ')[1:]
+        else:
+            command_list += command.split(' ')
         return subprocess.check_call(['docker', 'compose', *file_list] + command_list, env={**os.environ})
 
 
@@ -151,7 +154,10 @@ class Manager:
             settings = toml.load(f)
             for field, value_dict in settings.items():
                 for sub_key, value in value_dict.items():
-                    os.environ[f"{field}_{sub_key}".upper()] = str(value)
+                    if "no_pref" in field.lower():
+                        os.environ[sub_key.upper()] = str(value)
+                    else:
+                        os.environ[f"{field}_{sub_key}".upper()] = str(value)
 
     def source_env(self, file_path):
         pattern = re.compile(r'^(?:export\s+)?([\w\.]+)\s*=\s*(.*)$')
@@ -339,7 +345,7 @@ class Manager:
     def run_command(self, args):
         container, cmd = args
         try:
-            self.docker_manager.dc_run(container, cmd, mute=True)
+            self.docker_manager.dc_run(container, cmd, service_ports_and_aliases=True)
         except subprocess.CalledProcessError as e:
             print(f"Error running command: {e}")
 
