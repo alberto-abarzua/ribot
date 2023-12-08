@@ -17,7 +17,7 @@ EndStop::EndStop(int8_t pin) { this->pin = pin; }
 EndStop::EndStop(int8_t pin, const char* name) {
     this->pin = pin;
     this->name = new char[strlen(name) + 1];
-    strcpy(this->name, name);
+    strncpy(this->name, name, strlen(name) + 1);
 }
 
 EndStop::~EndStop() {

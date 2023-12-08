@@ -23,6 +23,8 @@ jobs:
       - name: Set Env File
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
 
+      - name: Install toml
+        run: pip install toml
       - name: Build Firmware Container for Linux
         run: ./manage.py build --container firmware
     
