@@ -4,6 +4,12 @@ Welcome to the Ribot project, your comprehensive solution for controlling roboti
 
 ![Ribot](./arm_docs/static/img/general_page.gif)
 
+## Demo Video
+
+[![Demo on Robot Arm](https://img.youtube.com/vi/HM4zTVW9VRM/0.jpg)](https://www.youtube.com/watch?v=HM4zTVW9VRM)
+
+[Click this or the image!](https://youtu.be/HM4zTVW9VRM)
+
 ## Getting Started
 
 ### Prerequisites
@@ -22,31 +28,31 @@ Welcome to the Ribot project, your comprehensive solution for controlling roboti
    git clone https://github.com/alberto-abarzua/ribot.git
    ```
 
-2. **Manage.py Script**
+2. **ribot.py Script**
    This utility script facilitates building, running, and managing the project.
    - Usage: 
      ```bash
-     python manage.py --help
+     python ribot.py --help
      ```
 
 3. **Building the Firmware for ESP32**
    ```bash
-   python manage.py build-esp
+   python ribot.py build-esp
    ```
 
 4. **Flashing the Firmware**
    ```bash
-   python manage.py build-esp --flash
+   python ribot.py build-esp --flash
    ```
 
 5. **Running Backend and Frontend Services**
    For real ESP32:
    ```bash
-   python manage.py runserver --esp
+   python ribot.py runserver --esp
    ```
    For a dummy firmware version (Docker):
    ```bash
-   python manage.py runserver
+   python ribot.py runserver
    ```
 
 ## Project Components
@@ -132,13 +138,21 @@ if __name__ == "__main__":
 This example demonstrates initializing the controller, setting up the arm parameters, and executing various movements including positioning, angling, and tool manipulation.
 
 ### Documentation
-For more detailed information and additional functionalities of the `ribot-controller` library.
-
-Integrate `ribot-controller` into your project to experience the power and simplicity of controlling robotic arms with Python.
-
-### Documentation
 For detailed documentation, please visit our [Docs](https://ribot.dev).
 
+### Contributing
+
+Please feel free to contribute to this project! We welcome any and all contributions to help improve the Ribot project. We don't have any specific guidelines for contributing, but please follow the general guidelines below:
+
+**Issues**: If you find any bugs or have any feature requests, please create an issue on GitHub.
+
+**Pull Requests**: If you have any changes you'd like to make, please create a pull request on GitHub. We'll review it and merge it if it looks good!
+
+**Code Style**: Follow the existing code style (formatting and linting). For python code, we use black, isort, mypy, and flake8. For C++ code, we use clang-format and clang-tidy. For JavaScript code, we use prettier and eslint.       
+- You can check if you are following the code style by running `python ribot.py lint` in the root directory of the project. This will run all the linters and formatters on the codebase.
+- To format the code, run `python ribot.py format` in the root directory of the project. This will run all the formatters on the codebase.
+
+**Testing**: We have unit tests for the Python codebase. You can run them by running `python ribot.py test` in the root directory of the project.
 
 ### License
 This project is licensed under the [MIT License](#).

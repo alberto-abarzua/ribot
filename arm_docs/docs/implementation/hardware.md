@@ -23,7 +23,11 @@ The ESP32 is the preferred microcontroller for several reasons:
 
 ### Wiring Diagram
 
-(Insert a wiring diagram here showing how to connect the ESP32 to the motors.)
+![Wiring Diagram](/img/wiring/wiring_esp.png)
+Wiring Diagram for the ESP32 and Stepper Motors
+
+![Wiring Diagram](/img/wiring/tb660.jpg)
+Example using TB6600 Stepper Motor Driver
 
 The wiring diagram is just an example; you can connect the motors in any way you wish, as long as you use the correct type of pins. Make sure to refer to the [ESP32 Pinout Reference](https://randomnerdtutorials.com/esp32-pinout-reference-gpios/) to understand which pins are suitable for output (for motors) and input (for sensors).
 

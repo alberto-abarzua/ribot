@@ -405,7 +405,7 @@ files = [
 
 [[package]]
 name = "ribot-controller"
-version = "0.3.10+editable"
+version = "0.3.11+editable"
 requires_python = ">=3.9"
 editable = true
 path = "./controller"
