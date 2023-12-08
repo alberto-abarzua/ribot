@@ -101,7 +101,6 @@ def extract_euler_angles(R: np.ndarray) -> list[float]:
         raise ValueError("R must be a 3x3 matrix.")
 
     if R[2, 0] != 1 and R[2, 0] != -1:
-
         roll = np.arctan2(R[2, 1], R[2, 2])
 
         pitch = -np.arcsin(R[2, 0])
@@ -136,15 +135,17 @@ def create_rotation_matrix_from_euler_angles(roll: float, pitch: float, yaw: flo
 
 
 def nearest_by_2pi_ref(angle: float, ref: float) -> float:
-    """Find the nearest angle to 'ref' that is a 2π away from 'angle' in any direction.
+    """Find the nearest angle to 'ref' that is a multiple of 2π away from 'angle' in any direction.
 
     Args:
         angle (float): The starting angle in radians.
         ref (float): The reference angle in radians.
 
     Returns:
-        float: The nearest angle to 'ref' that is a 2π away from 'angle' in any direction.
+        float: The nearest angle to 'ref' that is a multiple of 2π away from 'angle' in any direction.
     """
-    two_pi = 2 * np.pi
-    n = round((ref - angle) / two_pi)
-    return angle + n * two_pi
+    try:
+        n = round((ref - angle) / (2 * np.pi))
+        return angle + n * 2 * np.pi
+    except Exception:
+        return angle

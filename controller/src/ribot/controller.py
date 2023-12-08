@@ -50,6 +50,8 @@ class ArmController:
         self._current_angles: List[float] = [0, 0, 0, 0, 0, 0]
         self.current_angles_lock: FIFOLock = FIFOLock()
 
+        self.target_pose: Optional[ArmPose] = None
+
         self.tool_value: float = 0
         self.move_queue_size: int = 0
         self.is_homed: bool = False
@@ -347,6 +349,7 @@ class ArmController:
         self,
         pose: ArmPose,
     ) -> bool:
+        self.target_pose = pose
         target_angles = self.kinematics.pose_to_angles(pose, self.current_angles)
         if target_angles is None:
             console.log("Target pose is not reachable", style="error")
@@ -357,8 +360,11 @@ class ArmController:
         self,
         pose: ArmPose,
     ) -> bool:
-        target_pose = self.current_pose + pose
-        return self.move_to(target_pose)
+        if self.target_pose is None:
+            self.target_pose = self.current_pose
+
+        self.target_pose = self.target_pose + pose
+        return self.move_to(self.target_pose)
 
     def home(self, wait: bool = True) -> None:
         if self.print_status:
@@ -387,6 +393,7 @@ class ArmController:
     def move_joint_to(self, joint_idx: int, angle: float) -> bool:
         message = Message(MessageOp.MOVE, 9, [joint_idx, angle])
         self.controller_server.send_message(message, mutex=True)
+        self.target_pose = None
         self.move_queue_size += 1
         if self.print_status:
             console.log(f"Moving joint {joint_idx} to angle: {angle}", style="move_joints")
@@ -400,6 +407,7 @@ class ArmController:
     def move_joint_to_relative(self, joint_idx: int, angle: float) -> bool:
         message = Message(MessageOp.MOVE, 11, [joint_idx, angle])
         self.controller_server.send_message(message, mutex=True)
+        self.target_pose = None
         self.move_queue_size += 1
         if self.print_status:
             console.log(f"Moving joint {joint_idx} relative angle: {angle}", style="move_joints")
@@ -408,6 +416,7 @@ class ArmController:
     def move_joints_to_relative(self, angles: List[float]) -> bool:
         message = Message(MessageOp.MOVE, 13, angles)
         self.controller_server.send_message(message, mutex=True)
+        self.target_pose = None
         self.move_queue_size += 1
         if self.print_status:
             console.log(f"Moving joints relative angles: {angles}", style="move_joints")

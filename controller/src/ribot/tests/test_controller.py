@@ -8,7 +8,7 @@ import numpy as np
 from ribot.control.arm_kinematics import ArmParameters
 from ribot.controller import ArmController, Settings
 from ribot.utils.algebra import allclose
-from ribot.utils.prints import console
+from ribot.utils.prints import console, global_disble_console
 
 
 class TestController(unittest.TestCase):
@@ -17,6 +17,7 @@ class TestController(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        global_disble_console()
         console.log("Starting test_controller.py!", style="bold green")
 
         # Arm parameters
@@ -34,8 +35,6 @@ class TestController(unittest.TestCase):
 
         controler_server_port = int(os.environ.get("CONTROLLER_SERVER_PORT", 8500))
         controller_websocket_port = int(os.environ.get("CONTROLLER_WEBSOCKET_PORT", 8430))
-        print("controller_websocket_port", controller_websocket_port)
-        print("controller_server_port", controler_server_port)
 
         cls.controller = ArmController(
             arm_parameters=arm_params, server_port=controler_server_port, websocket_port=controller_websocket_port
@@ -54,6 +53,7 @@ class TestController(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cls.controller.stop()
+        time.sleep(3)
 
     def tearDown(self) -> None:
         self.controller.move_joints_to([0, 0, 0, 0, 0, 0])
@@ -222,7 +222,7 @@ class TestController(unittest.TestCase):
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
 
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
-        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 1600, 0)
+        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 1000, 0)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 200, 3)
 
         self.controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, 0)
@@ -272,3 +272,6 @@ class TestController(unittest.TestCase):
         self.controller.stop_movement()
         time.sleep(0.5)
         self.assertEqual(self.controller.move_queue_size, 0)
+
+    if __name__ == "__main__":
+        unittest.main()

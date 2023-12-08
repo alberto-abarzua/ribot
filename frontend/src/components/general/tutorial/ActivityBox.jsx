@@ -73,7 +73,7 @@ const ActivityBox = () => {
                 isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
             }`}
         >
-            <Accordion type="single" collapsible defaultValue='item-1'>
+            <Accordion type="single" collapsible defaultValue="item-1">
                 <AccordionItem value="item-1">
                     <AccordionTrigger>
                         <p className="whitespace-nowrap text-lg">Arm Activity!</p>

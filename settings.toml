@@ -1,0 +1,27 @@
+[ESP]
+controller_server_host = "backend"
+controller_server_port = 8500
+wifi_ssid = "PALVI"
+wifi_password = "Palvi.1400"
+
+[Controller]
+websocket_port = 8600
+server_port = 8500
+print_status = false
+
+
+[Backend]
+http_port = 5000
+update_ribot_controller = false
+editable_packages=false
+
+
+[Vite]
+backend_url = "http://localhost:5000"
+arm_simulation_websocket_port = 8600
+arm_simulation_websocket_host = "localhost"
+arm_simulation_url = "http://localhost:8080"
+
+[Arm_Simulation]
+port = 8080
+

@@ -50,6 +50,10 @@ def _enable_console() -> None:
     console.file = console_original_file
 
 
+def global_disble_console() -> None:
+    console.file = NullDevice()  # type: ignore
+
+
 def disable_console(func: Callable) -> Callable:
     def inner(*args: Tuple[int, str], **kwargs: Dict[str, Any]) -> Any:
         _disable_console()

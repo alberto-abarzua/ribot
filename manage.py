@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from logging import captureWarnings
+from sys import stdout
 import time
 import argparse
 import subprocess
@@ -7,6 +9,7 @@ import re
 import os
 import signal
 import socket
+import toml
 from typing import List
 from pathlib import Path
 import serial.tools.list_ports
@@ -71,7 +74,7 @@ class DockerManger:
             file_list.extend(['-f', self.get_service_from_name(service).full_path])
         return file_list
 
-    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False, mute=False):
+    def dc_run(self, service_name: str, command: str, env={}, service_ports_and_aliases=False, exec=False):
         command_list = command.split(' ')
         service = self.get_service_from_name(service_name)
 
@@ -86,17 +89,11 @@ class DockerManger:
 
         new_command.extend(command_list)
 
-        try:
-            if mute:
-                return subprocess.run(new_command, env={**os.environ, **env}, check=True,
-                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            else:
-                return subprocess.check_call(new_command, env={**os.environ, **env})
-        except subprocess.CalledProcessError as e:
-            if mute:
-                print("Command failed with the following output:")
-                print(e.stdout.decode('utf-8'))
-            raise
+        result = subprocess.run(new_command, env={**os.environ, **env})
+        # repalce with os.system to get output
+        # result = os.system(' '.join(new_command))
+
+        return result.returncode
 
     def dc_up(self, files: List[str], env: dict = {}, detached=False):
 
@@ -123,7 +120,13 @@ class DockerManger:
 
     def dc_command(self, files: List[str], command: str):
         file_list = self.get_file_list(files)
-        command_list = command.split(' ')
+        command_list = []
+
+        if "run" in command:
+            command_list += ["run", "--service-ports", "--use-aliases"]
+            command_list += command.split(' ')[1:]
+        else:
+            command_list += command.split(' ')
         return subprocess.check_call(['docker', 'compose', *file_list] + command_list, env={**os.environ})
 
 
@@ -146,27 +149,28 @@ class Manager:
             print(f"Error obtaining IP address: {e}")
             exit(1)
 
+    def source_settings(self, file_path):
+        with open(file_path, 'r') as f:
+            settings = toml.load(f)
+            for field, value_dict in settings.items():
+                for sub_key, value in value_dict.items():
+                    if "no_pref" in field.lower():
+                        os.environ[sub_key.upper()] = str(value)
+                    else:
+                        os.environ[f"{field}_{sub_key}".upper()] = str(value)
+
     def source_env(self, file_path):
         pattern = re.compile(r'^(?:export\s+)?([\w\.]+)\s*=\s*(.*)$')
-
-        try:
-            with open(file_path, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith('#') or not line:
-                        continue
-                    match = pattern.match(line)
-                    if match:
-                        key, value = match.groups()
-                        # Remove leading and trailing quotes if present
-                        value = value.strip('\'"')
-                        os.environ[key] = value
-        except FileNotFoundError:
-            print(f"File not found: {file_path}")
-        except IOError as e:
-            print(f"Error reading file {file_path}: {e}")
-        except Exception as e:
-            print(f"An error occurred while processing the environment file: {e}")
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('#') or not line:
+                    continue
+                match = pattern.match(line)
+                if match:
+                    key, value = match.groups()
+                    value = value.strip('\'"')
+                    os.environ[key] = value
 
     def build_firmware(self, **kwargs):
         locally = kwargs.get('locally', False)
@@ -311,8 +315,21 @@ class Manager:
 
         flash = kwargs.get('flash', False)
         locally = kwargs.get('locally', False)
+        ssid = kwargs.get('ssid', None)
+        password = kwargs.get('password', None)
+        controller_host = kwargs.get('controller_host', None)
+
+        if ssid is not None:
+            os.environ['ESP_WIFI_SSID'] = ssid
+
+        if password is not None:
+            os.environ['ESP_WIFI_PASSWORD'] = password
 
         os.environ['ESP_CONTROLLER_SERVER_HOST'] = self.current_host_ip
+
+        if controller_host is not None:
+            os.environ['ESP_CONTROLLER_SERVER_HOST'] = controller_host
+
         os.environ['VERBOSE'] = '1'
 
         if locally:
@@ -328,7 +345,7 @@ class Manager:
     def run_command(self, args):
         container, cmd = args
         try:
-            self.docker_manager.dc_run(container, cmd, mute=True)
+            self.docker_manager.dc_run(container, cmd, service_ports_and_aliases=True)
         except subprocess.CalledProcessError as e:
             print(f"Error running command: {e}")
 
@@ -347,7 +364,7 @@ class Manager:
                 futures = []
                 for cmd in commands:
                     print('Formatting', cmd[0])
-                    time.sleep(1)
+                    time.sleep(0.4)
                     futures.append(executor.submit(self.run_command, cmd))
                 for future in futures:
                     future.result()
@@ -412,6 +429,7 @@ class Manager:
         self.build_firmware()
         self.docker_manager.dc_up(['firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
+
         exit_code = self.docker_manager.dc_run('controller.yaml', 'controller pdm run test',
                                                service_ports_and_aliases=True)
 
@@ -481,10 +499,14 @@ class Manager:
     def parse_and_execute(self):
 
         try:
-            self.source_env('.env')
+            self.source_env(".env")
         except FileNotFoundError:
-            print("No .env file found, using default environment variables")
-            self.source_env('.env.template')
+            self.source_settings("settings.toml")
+
+        try:
+            self.source_settings("secrets.toml")
+        except FileNotFoundError:
+            print("No secrets.toml file found. Continuing without secrets")
 
         signal.signal(signal.SIGINT, self.handle_sigint)
         parser = argparse.ArgumentParser(
@@ -552,6 +574,14 @@ class Manager:
 
         parser_build_esp.add_argument(
             '--flash', '-f', action='store_true', help='Build and flash firmware to esp32')
+
+        parser_build_esp.add_argument(
+            '--ssid', help='SSID for wifi')
+        parser_build_esp.add_argument(
+            '--password', help='Password for wifi')
+
+        parser_build_esp.add_argument(
+            '--controller-host', help='Host for controller')
 
         # --------------
         # Format code
