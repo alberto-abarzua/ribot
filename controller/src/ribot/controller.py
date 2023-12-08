@@ -568,8 +568,7 @@ class SingletonArmController:
         cls.print_status = print_status
         cls.config_file = config_file
 
-        cls._instance = ArmController(arm_parameters=arm_parameters,
-                                      websocket_port=websocket_port, server_port=server_port)
+        cls._instance = ArmController(arm_parameters=arm_parameters, websocket_port=websocket_port, server_port=server_port)
         cls._instance.print_status = print_status
         if config_file is not None:
             cls._instance.set_config_file(config_file)

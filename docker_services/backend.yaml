@@ -10,8 +10,8 @@ services:
     volumes:
       - ../backend/src:/app/src
       - ../backend/pyproject.toml:/app/pyproject.toml
-      - ../backend/src/config/main_arm.toml:/app/src/config/main_arm.toml
       - ../backend/pdm.lock:/app/pdm.lock
+      - ../arm_config.toml:/app/src/config/main_arm.toml
       - ../controller:/app/controller
     ports:
       - "$CONTROLLER_WEBSOCKET_PORT:$CONTROLLER_WEBSOCKET_PORT" # websocket

@@ -13,8 +13,10 @@ print_status = false
 [Backend]
 http_port = 5000
 update_ribot_controller = false
+editable_packages=false
 
-[Front]
+
+[Vite]
 backend_url = "http://localhost:5000"
 arm_simulation_websocket_port = 8600
 arm_simulation_websocket_host = "localhost"

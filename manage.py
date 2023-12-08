@@ -150,11 +150,9 @@ class Manager:
     def source_settings(self, file_path):
         with open(file_path, 'r') as f:
             settings = toml.load(f)
-            print(settings)
             for field, value_dict in settings.items():
                 for sub_key, value in value_dict.items():
                     os.environ[f"{field}_{sub_key}".upper()] = str(value)
-            print(os.environ)
 
     def source_env(self, file_path):
         pattern = re.compile(r'^(?:export\s+)?([\w\.]+)\s*=\s*(.*)$')
@@ -314,6 +312,7 @@ class Manager:
         locally = kwargs.get('locally', False)
         ssid = kwargs.get('ssid', None)
         password = kwargs.get('password', None)
+        controller_host = kwargs.get('controller_host', None)
 
         if ssid is not None:
             os.environ['ESP_WIFI_SSID'] = ssid
@@ -322,6 +321,10 @@ class Manager:
             os.environ['ESP_WIFI_PASSWORD'] = password
 
         os.environ['ESP_CONTROLLER_SERVER_HOST'] = self.current_host_ip
+
+        if controller_host is not None:
+            os.environ['ESP_CONTROLLER_SERVER_HOST'] = controller_host
+
         os.environ['VERBOSE'] = '1'
 
         if locally:
@@ -356,7 +359,7 @@ class Manager:
                 futures = []
                 for cmd in commands:
                     print('Formatting', cmd[0])
-                    time.sleep(1)
+                    time.sleep(0.4)
                     futures.append(executor.submit(self.run_command, cmd))
                 for future in futures:
                     future.result()
@@ -492,12 +495,10 @@ class Manager:
         try:
             self.source_env(".env")
         except FileNotFoundError:
-            print("No .env file found. Continuing without environment variables")
             self.source_settings("settings.toml")
 
         try:
-            # self.source_settings("secrets.toml")
-            pass
+            self.source_settings("secrets.toml")
         except FileNotFoundError:
             print("No secrets.toml file found. Continuing without secrets")
 
@@ -572,6 +573,9 @@ class Manager:
             '--ssid', help='SSID for wifi')
         parser_build_esp.add_argument(
             '--password', help='Password for wifi')
+
+        parser_build_esp.add_argument(
+            '--controller-host', help='Host for controller')
 
         # --------------
         # Format code

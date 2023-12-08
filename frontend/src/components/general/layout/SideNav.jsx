@@ -1,7 +1,6 @@
 import LogoSVG from '@/assets/logo.svg';
 import Tutorial from '@/components/general/tutorial/Tutorial';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import TurnSlightLeftIcon from '@mui/icons-material/TurnSlightLeft';
 import { useState } from 'react';
 
 const SideNav = () => {
@@ -31,14 +30,6 @@ const SideNav = () => {
                             wasTutorialShown ? '' : 'animate-bounce'
                         } `}
                     ></InfoOutlinedIcon>
-                    {!wasTutorialShown && (
-                        <div className="absolute bottom-9 left-8 flex gap-0 ">
-                            <TurnSlightLeftIcon className="translate-x-1 -rotate-90 scale-150 transform text-green-500"></TurnSlightLeftIcon>
-                            <p className=" flex items-center justify-center whitespace-nowrap rounded-sm  bg-green-500 px-2 text-xs text-white shadow-sm shadow-gray-600">
-                                Info!
-                            </p>
-                        </div>
-                    )}
                 </div>
             </div>
 
