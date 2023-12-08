@@ -16,7 +16,7 @@ update_ribot_controller = false
 editable_packages=false
 
 
-[Vite]
+[Front]
 backend_url = "http://localhost:5000"
 arm_simulation_websocket_port = 8600
 arm_simulation_websocket_host = "localhost"

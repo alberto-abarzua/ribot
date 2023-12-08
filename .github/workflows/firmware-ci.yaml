@@ -26,10 +26,10 @@ jobs:
       - name: Install toml
         run: pip install toml
       - name: Build Firmware Container for Linux
-        run: ./manage.py build --container firmware
+        run: ./ribot.py build --container firmware
     
       - name: Build Firmware for Linux
-        run: ./manage.py buildf
+        run: ./ribot.py buildf
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -39,11 +39,11 @@ jobs:
 
       - name: Push Firmware-linux Container
         if: github.ref == 'refs/heads/main'
-        run: ./manage.py docker-compose --container firmware --op push
+        run: ./ribot.py docker-compose --container firmware --op push
 
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down --container firmware
+        run: ./ribot.py down --container firmware
 
   esp-idf-build: 
     runs-on: ubuntu-latest
@@ -64,10 +64,10 @@ jobs:
         run: printenv | grep -v "^\(PWD\|SHLVL\|HOME\)" > .env
 
       - name: Build ESP-IDF Container
-        run: ./manage.py build --container esp_idf
+        run: ./ribot.py build --container esp_idf
 
       - name: Build firmware for ESP32 using ESP-IDF
-        run: ./manage.py build-esp
+        run: ./ribot.py build-esp
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -77,10 +77,10 @@ jobs:
 
       - name: Push esp-idf Container
         if: github.ref == 'refs/heads/main'
-        run: ./manage.py docker-compose --container esp_idf --op push
+        run: ./ribot.py docker-compose --container esp_idf --op push
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down --container esp_idf
+        run: ./ribot.py down --container esp_idf
 
          
 

@@ -22,31 +22,31 @@ Welcome to the Ribot project, your comprehensive solution for controlling roboti
    git clone https://github.com/alberto-abarzua/ribot.git
    ```
 
-2. **Manage.py Script**
+2. **ribot.py Script**
    This utility script facilitates building, running, and managing the project.
    - Usage: 
      ```bash
-     python manage.py --help
+     python ribot.py --help
      ```
 
 3. **Building the Firmware for ESP32**
    ```bash
-   python manage.py build-esp
+   python ribot.py build-esp
    ```
 
 4. **Flashing the Firmware**
    ```bash
-   python manage.py build-esp --flash
+   python ribot.py build-esp --flash
    ```
 
 5. **Running Backend and Frontend Services**
    For real ESP32:
    ```bash
-   python manage.py runserver --esp
+   python ribot.py runserver --esp
    ```
    For a dummy firmware version (Docker):
    ```bash
-   python manage.py runserver
+   python ribot.py runserver
    ```
 
 ## Project Components

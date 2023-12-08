@@ -30,10 +30,10 @@ jobs:
         run: pip install toml
 
       - name: Build backend container
-        run: ./manage.py build --container backend --no-editable
+        run: ./ribot.py build --container backend --no-editable
 
       - name: Lint Backend
-        run: ./manage.py lint --container backend
+        run: ./ribot.py lint --container backend
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -43,10 +43,10 @@ jobs:
 
       - name: Push Backend Container
         if: github.ref == 'refs/heads/main'
-        run: ./manage.py docker-compose --container backend --op push
+        run: ./ribot.py docker-compose --container backend --op push
 
       - name: Stop and remove containers
         if: always()
-        run: ./manage.py down --container backend
+        run: ./ribot.py down --container backend
     
          

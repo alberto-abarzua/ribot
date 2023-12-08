@@ -158,7 +158,7 @@ void task_end() {}
 
 void run_delay(uint32_t delay_ms) {
     std::this_thread::sleep_for(
-        std::chrono::milliseconds(static_cast<long long>((delay_ms ))));
+        std::chrono::milliseconds(static_cast<int64_t>((delay_ms))));
 }
 
 void run_delay_microseconds(uint32_t delay_us) {
