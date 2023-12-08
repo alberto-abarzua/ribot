@@ -11,7 +11,7 @@ Welcome to the Ribot project, your comprehensive solution for controlling roboti
 - Python 3.8 or higher
 - ESPTool Python package for firmware flashing (Required, if using Docker):
   ```bash
-  pip install esptool
+  pip install esptool toml
   ```
 - Alternatively, you can use your own install of ESP IDF (v5.1.1) for manual firmware flashing.
 

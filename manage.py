@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from sys import stdout
 import time
 import argparse
 import subprocess
@@ -88,16 +89,14 @@ class DockerManger:
         new_command.extend(command_list)
 
         try:
-            if mute:
-                return subprocess.run(new_command, env={**os.environ, **env}, check=True,
-                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            else:
-                return subprocess.check_call(new_command, env={**os.environ, **env})
+            result = subprocess.run(new_command, env={**os.environ, **env}, check=True,
+                                    stderr=subprocess.PIPE)
+            print(result.stderr.decode('utf-8'))
+            return result.returncode
         except subprocess.CalledProcessError as e:
-            if mute:
-                print("Command failed with the following output:")
-                print(e.stdout.decode('utf-8'))
-            raise
+            print("Command failed with the following output:")
+            print(e.output.decode('utf-8'))  # Output includes both stdout and stderr
+            return e.returncode
 
     def dc_up(self, files: List[str], env: dict = {}, detached=False):
 
@@ -424,6 +423,7 @@ class Manager:
         self.build_firmware()
         self.docker_manager.dc_up(['firmware.yaml'], env={
             "ESP_CONTROLLER_SERVER_HOST": "controller"}, detached=True)
+
         exit_code = self.docker_manager.dc_run('controller.yaml', 'controller pdm run test',
                                                service_ports_and_aliases=True)
 

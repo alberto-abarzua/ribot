@@ -18,7 +18,7 @@ Before installing RiBot, ensure that your system meets the following prerequisit
 - **ESPtool**: This is a Python library needed for flashing the ESP32 microcontroller. Install it using the following command in your terminal:
 
     ```bash
-    pip install esptool
+    pip install esptool toml
     ```
 
 ## Steps to Install RiBot

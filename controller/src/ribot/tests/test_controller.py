@@ -221,7 +221,7 @@ class TestController(unittest.TestCase):
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
 
         self.controller.set_setting_joints(Settings.STEPS_PER_REV_MOTOR_AXIS, 800)
-        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 1600, 0)
+        self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 1000, 0)
         self.controller.set_setting_joint(Settings.STEPS_PER_REV_MOTOR_AXIS, 200, 3)
 
         self.controller.set_setting_joints(Settings.HOMING_OFFSET_RADS, 0)
