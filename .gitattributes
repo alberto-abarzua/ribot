@@ -7,4 +7,4 @@ frontend/src/components/ui/** linguist-vendored
 frontend/src/lib/** linguist-vendored
 
 # Docs
-arm_docs** linguist-vendored
+arm_docs/** linguist-vendored
