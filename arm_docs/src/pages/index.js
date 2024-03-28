@@ -46,6 +46,8 @@ export default function Home() {
                         url: 'https://ribot.dev',
                     })}
                 </script>
+                <script defer data-domain="ribot.dev" src="https://plausible.io/js/script.js"></script>
+
             </Head>
             <HomepageHeader />
             <main className="flex flex-col items-center justify-center gap-y-10">
